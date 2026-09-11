@@ -44,9 +44,11 @@ class Build:
 
 
 def build(mesh_path: str, grid: int, default_color: int, vocabulary: Vocabulary,
-          wheels: str | None = None, tiles: bool = True) -> Build:
-    """wheels: None — без колёс, "auto" — подобрать по арке, иначе номер детали колеса."""
-    model = voxelize_mesh(mesh_path, grid, vocabulary.aspect)
+          wheels: str | None = None, tiles: bool = True, max_colors: int = 4,
+          force_symmetric: bool = False) -> Build:
+    """wheels: None — без колёс, "auto" — подобрать по арке, иначе номер детали колеса.
+    max_colors — до скольких цветов сводить цвет меша. force_symmetric — зеркалить даже кривой меш."""
+    model = voxelize_mesh(mesh_path, grid, vocabulary.aspect, force_symmetric)
     mirrored = model.symmetric
     if mirrored:
         model = symmetrize(model)
@@ -62,7 +64,7 @@ def build(mesh_path: str, grid: int, default_color: int, vocabulary: Vocabulary,
     body_color = default_color
     if model.colors is not None:
         surface = voxels & ~interior(voxels)
-        codes[surface] = nearest_codes(model.colors[surface])
+        codes[surface] = nearest_codes(model.colors[surface], max_colors)
         body_color = Counter(codes[surface].tolist()).most_common(1)[0][0]
 
     if tiles:

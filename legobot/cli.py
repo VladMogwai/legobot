@@ -26,12 +26,15 @@ def main() -> None:
     ap.add_argument("--wheels", nargs="?", const="auto", choices=["auto", *WHEEL_BY_PART],
                     help="найти арки и поставить колёса: auto — подобрать по арке, или номер детали")
     ap.add_argument("--no-tiles", action="store_true", help="не заменять верхние пластины тайлами")
+    ap.add_argument("--colors", type=int, default=4, help="до скольких цветов сводить цвет меша")
+    ap.add_argument("--symmetric", action="store_true", help="зеркальная кладка, даже если меш кривоват (фото)")
     ap.add_argument("-o", "--out", help="куда писать .ldr")
     args = ap.parse_args()
 
     vocabulary = VOCABULARIES[args.unit]
     build_at = partial(build, args.mesh, default_color=args.color, vocabulary=vocabulary,
-                       wheels=args.wheels, tiles=not args.no_tiles)
+                       wheels=args.wheels, tiles=not args.no_tiles, max_colors=args.colors,
+                       force_symmetric=args.symmetric)
     if args.parts:
         result = fit_parts(build_at, args.parts)
     elif args.height:

@@ -24,14 +24,15 @@ class VoxelModel:
         return self.occupancy.shape
 
 
-def voxelize_mesh(path: str, grid: int, aspect: float) -> VoxelModel:
+def voxelize_mesh(path: str, grid: int, aspect: float, force_symmetric: bool = False) -> VoxelModel:
     """`grid` — штырьков по длинной стороне; `aspect` — высота слоя в долях шага штырьков.
+    force_symmetric — считать модель симметричной по лучшей оси, даже если меш кривоват (фото).
 
     Массив выровнен так, что середина модели по X совпадает с серединой массива:
     отражение массива — это отражение модели.
     """
     mesh = trimesh.load(path, force="mesh")
-    symmetric = _orient_mirror_axis(mesh)
+    symmetric = _orient_mirror_axis(mesh, force_symmetric)
     # Масштабируем по вертикали, чтобы кубический воксель соответствовал пропорциям детали.
     mesh.apply_scale([1.0, 1.0, 1.0 / aspect])
     pitch = mesh.extents[:2].max() / grid
@@ -45,13 +46,13 @@ def voxelize_mesh(path: str, grid: int, aspect: float) -> VoxelModel:
     return _align_mirror_axis(model, center_index)
 
 
-def _orient_mirror_axis(mesh) -> bool:
+def _orient_mirror_axis(mesh, force: bool = False) -> bool:
     """Если меш симметричен относительно плоскости, перпендикулярной Y, поворачиваем его
     на 90° вокруг вертикали, чтобы плоскость симметрии стала перпендикулярна X.
     Возвращает, симметричен ли меш вообще."""
     error = _mirror_error(mesh)
     axis = int(np.argmin(error))
-    if error[axis] > SYMMETRY_TOLERANCE:
+    if error[axis] > SYMMETRY_TOLERANCE and not force:
         return False
     if axis == 1:
         mesh.apply_transform(trimesh.transformations.rotation_matrix(np.pi / 2, [0, 0, 1]))
