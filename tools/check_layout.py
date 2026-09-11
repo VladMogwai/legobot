@@ -1,12 +1,12 @@
 """Диагностика кладки: связность модели, кирпичи без перекрытия шва, на одном штырьке."""
 import sys
 import numpy as np
-from legobot.voxelize import voxelize_mesh
-from legobot.layout import drop_floating, layout_bricks
+from legobot.voxelize import drop_floating, voxelize_mesh
+from legobot.layout import layout_bricks
 
-v = drop_floating(voxelize_mesh(sys.argv[1], int(sys.argv[2])))
+v = drop_floating(voxelize_mesh(sys.argv[1], int(sys.argv[2]))).occupancy
 nx, nz, nl = v.shape
-bricks = layout_bricks(v)
+bricks = layout_bricks(v, np.zeros(v.shape, int), 14)
 ids = np.full((nx, nz, nl), -1, int)
 for i, b in enumerate(bricks):
     ids[b.x:b.x+b.width, b.z:b.z+b.length, b.layer] = i

@@ -22,6 +22,7 @@ _ALL_FOOTPRINTS = {(p.width, p.length) for p in BRICKS} | {(p.length, p.width) f
 MIN_SUPPORT = 0.5   # доля площади, которая должна лежать на соседнем слое
 NO_BRICK = -1
 GROUND = 0          # id «земли» — сплошной опоры под нулевым слоем
+ANY_COLOR = -1      # воксель без требования к цвету (внутренний, снаружи не виден)
 
 
 @dataclass(frozen=True)
@@ -31,6 +32,7 @@ class PlacedBrick:
     z: int         # ближняя клетка по Z
     layer: int     # 0 = нижний
     rotated: bool  # повёрнут на 90° относительно родной ориентации
+    color: int     # код цвета LDraw
 
     @property
     def width(self) -> int:
@@ -61,23 +63,10 @@ class _Components:
         self._parent[self.find(i)] = self.find(j)
 
 
-def drop_floating(voxels: np.ndarray) -> np.ndarray:
-    """Убирает воксели, у которых пусто и снизу, и сверху: их не к чему прикрепить."""
-    v = voxels.copy()
-    while True:
-        below = np.zeros_like(v)
-        below[:, :, 1:] = v[:, :, :-1]
-        below[:, :, 0] = True  # земля
-        above = np.zeros_like(v)
-        above[:, :, :-1] = v[:, :, 1:]
-        keep = v & (below | above)
-        if keep.sum() == v.sum():
-            return keep
-        v = keep
-
-
-def layout_bricks(voxels: np.ndarray, mirrored: bool = False) -> list[PlacedBrick]:
-    """voxels: bool [x, y, z], z — вертикаль. mirrored — зеркальная кладка относительно середины X."""
+def layout_bricks(voxels: np.ndarray, colors: np.ndarray, default_color: int, mirrored: bool = False) -> list[PlacedBrick]:
+    """voxels: bool [x, y, z], z — вертикаль. colors: код цвета LDraw на каждый воксель той же формы,
+    ANY_COLOR — воксель без требования. Кирпич одноцветный: все его воксели с требованием одного цвета;
+    если требований нет — default_color. mirrored — зеркальная кладка относительно середины X."""
     nx, nz, nlayers = voxels.shape
     placed: list[PlacedBrick] = []
     components = _Components()
@@ -90,11 +79,11 @@ def layout_bricks(voxels: np.ndarray, mirrored: bool = False) -> list[PlacedBric
             below_ids = np.full((nx, nz), NO_BRICK)
             continue
         above = voxels[:, :, k + 1] if k + 1 < nlayers else empty
-        below_ids = _layout_layer(layer, below_ids, above, k, placed, components, mirrored)
+        below_ids = _layout_layer(layer, colors[:, :, k], default_color, below_ids, above, k, placed, components, mirrored)
     return placed
 
 
-def _layout_layer(layer, below_ids, above, k, placed, components, mirrored):
+def _layout_layer(layer, layer_colors, default_color, below_ids, above, k, placed, components, mirrored):
     free = layer.copy()
     nx, nz = free.shape
     ids = np.full((nx, nz), NO_BRICK)
@@ -108,12 +97,12 @@ def _layout_layer(layer, below_ids, above, k, placed, components, mirrored):
                 components.union(brick_id, int(under_id))
         free[x0:x0 + w, z0:z0 + l] = False
         ids[x0:x0 + w, z0:z0 + l] = brick_id
-        placed.append(_brick(w, l, x0, z0, k))
+        placed.append(_brick(w, l, x0, z0, k, _brick_color(layer_colors[x0:x0 + w, z0:z0 + l], default_color)))
 
     for x, z in _cells_hardest_first(layer, below, above):
         if not free[x, z] or (mirrored and x > (nx - 1) // 2):
             continue  # при зеркальной кладке правую половину заполняют отражения
-        x0, z0, w, l = _best_placement(free, below_ids, below, above, x, z, along_x, components, mirrored)
+        x0, z0, w, l = _best_placement(free, layer_colors, below_ids, below, above, x, z, along_x, components, mirrored)
         place(x0, z0, w, l)
         mx0 = nx - x0 - w
         if mirrored and mx0 != x0:
@@ -134,7 +123,7 @@ def _cells_hardest_first(layer, below, above):
     return list(zip(xs[order].tolist(), zs[order].tolist()))
 
 
-def _best_placement(free, below_ids, below, above, cx, cz, along_x, components, mirrored):
+def _best_placement(free, colors, below_ids, below, above, cx, cz, along_x, components, mirrored):
     nx, nz = free.shape
     best, best_key = None, None
     for w, l in _ALL_FOOTPRINTS:
@@ -144,7 +133,9 @@ def _best_placement(free, below_ids, below, above, cx, cz, along_x, components, 
                 x1, z1 = x0 + w, z0 + l
                 if x0 < 0 or z0 < 0 or x1 > nx or z1 > nz or not free[x0:x1, z0:z1].all():
                     continue
-                if mirrored and not _mirror_fits(free, x0, x1, z0, z1):
+                if not _single_color(colors[x0:x1, z0:z1]):
+                    continue
+                if mirrored and not _mirror_fits(free, colors, x0, x1, z0, z1):
                     continue
                 area = w * l
                 studs_below = int(below[x0:x1, z0:z1].sum())
@@ -164,16 +155,28 @@ def _best_placement(free, below_ids, below, above, cx, cz, along_x, components, 
     return best
 
 
-def _mirror_fits(free, x0, x1, z0, z1):
-    """Кирпич либо сам симметричен относительно середины X, либо его отражение свободно и не задевает его."""
+def _mirror_fits(free, colors, x0, x1, z0, z1):
+    """Кирпич либо сам симметричен относительно середины X, либо его отражение
+    свободно, того же цвета и не задевает его."""
     nx = free.shape[0]
     mx0, mx1 = nx - x1, nx - x0
     if (mx0, mx1) == (x0, x1):
         return True
-    return (mx1 <= x0 or mx0 >= x1) and free[mx0:mx1, z0:z1].all()
+    return (mx1 <= x0 or mx0 >= x1) and free[mx0:mx1, z0:z1].all() and _single_color(colors[mx0:mx1, z0:z1])
 
 
-def _brick(w, l, x, z, k):
+def _single_color(region) -> bool:
+    """Все воксели с требованием к цвету — одного цвета."""
+    required = region[region != ANY_COLOR]
+    return required.size == 0 or (required == required[0]).all()
+
+
+def _brick_color(region, default_color) -> int:
+    required = region[region != ANY_COLOR]
+    return int(required[0]) if required.size else default_color
+
+
+def _brick(w, l, x, z, k, color):
     if (w, l) in PART_BY_SIZE:
-        return PlacedBrick(PART_BY_SIZE[(w, l)], x, z, k, rotated=False)
-    return PlacedBrick(PART_BY_SIZE[(l, w)], x, z, k, rotated=True)
+        return PlacedBrick(PART_BY_SIZE[(w, l)], x, z, k, rotated=False, color=color)
+    return PlacedBrick(PART_BY_SIZE[(l, w)], x, z, k, rotated=True, color=color)

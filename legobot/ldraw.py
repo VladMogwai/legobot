@@ -11,19 +11,19 @@ _IDENTITY = "1.000000 0.000000 0.000000 0.000000 1.000000 0.000000 0.000000 0.00
 _ROTATE_90 = "0.000000 0.000000 1.000000 0.000000 1.000000 0.000000 -1.000000 0.000000 0.000000"
 
 
-def write_ldr(bricks: list[PlacedBrick], path: str, name: str, color: int) -> None:
+def write_ldr(bricks: list[PlacedBrick], path: str, name: str) -> None:
     lines = [f"0 FILE {name}.ldr", f"0 {name}", f"0 Name:  {name}", "0 Author:  legobot"]
     for _, layer_bricks in groupby(sorted(bricks, key=lambda b: b.layer), key=lambda b: b.layer):
-        lines.extend(_brick_line(b, color) for b in layer_bricks)
+        lines.extend(_brick_line(b) for b in layer_bricks)
         lines.append("0 STEP")  # слой = шаг инструкции
     lines.append("0 NOFILE")
     with open(path, "w") as f:
         f.write("\n".join(lines) + "\n")
 
 
-def _brick_line(b: PlacedBrick, color: int) -> str:
+def _brick_line(b: PlacedBrick) -> str:
     cx = (b.x + b.width / 2) * STUD_LDU
     cz = (b.z + b.length / 2) * STUD_LDU
     cy = -b.layer * BRICK_HEIGHT_LDU  # в LDraw вверх — это -Y
     rot = _ROTATE_90 if b.rotated else _IDENTITY
-    return f"1 {color} {cx:.6f} {cy:.6f} {cz:.6f} {rot} {b.part.number}.dat"
+    return f"1 {b.color} {cx:.6f} {cy:.6f} {cz:.6f} {rot} {b.part.number}.dat"
