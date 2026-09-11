@@ -2,22 +2,11 @@
 import sys
 from collections import Counter
 import numpy as np
+sys.path.insert(0, __file__.rsplit('/', 1)[0]); sys.path.insert(0, '.')
 
-DIM = {"3001": (4, 2), "3003": (2, 2), "3010": (4, 1), "3004": (2, 1), "3005": (1, 1)}
+from ldr_util import load_bricks
 
-def load(path):
-    bricks = []
-    for line in open(path):
-        if not line.startswith("1 "):
-            continue
-        t = line.split()
-        cx, cy, cz = map(float, t[2:5]); rot = list(map(float, t[5:14])); part = t[14][:-4]
-        w, l = DIM[part]
-        if rot[0] == 0: w, l = l, w
-        bricks.append((int(round(cx / 20 - w / 2)), int(round(cz / 20 - l / 2)), int(round(-cy / 24)), w, l))
-    return bricks
-
-bricks = load(sys.argv[1])
+bricks = [b[:5] for b in load_bricks(sys.argv[1])[0]]
 xs = [x + w for x, _, _, w, _ in bricks]; zs = [z + l for _, z, _, _, l in bricks]; ks = [k for _, _, k, _, _ in bricks]
 ids = np.full((max(xs), max(zs), max(ks) + 1), -1, int)
 for i, (x, z, k, w, l) in enumerate(bricks):

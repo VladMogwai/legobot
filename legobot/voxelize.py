@@ -9,9 +9,8 @@ import numpy as np
 import trimesh
 from scipy.spatial import cKDTree
 
-from .parts import BRICK_ASPECT
 
-SYMMETRY_TOLERANCE = 0.01  # медианное расстояние меша до своего отражения, в долях ширины
+SYMMETRY_TOLERANCE = 0.02  # 90-й перцентиль расстояния от отражённой поверхности до меша, в долях ширины
 
 
 @dataclass
@@ -25,15 +24,16 @@ class VoxelModel:
         return self.occupancy.shape
 
 
-def voxelize_mesh(path: str, grid: int) -> VoxelModel:
-    """`grid` — штырьков по длинной стороне.
+def voxelize_mesh(path: str, grid: int, aspect: float) -> VoxelModel:
+    """`grid` — штырьков по длинной стороне; `aspect` — высота слоя в долях шага штырьков.
 
     Массив выровнен так, что середина модели по X совпадает с серединой массива:
     отражение массива — это отражение модели.
     """
     mesh = trimesh.load(path, force="mesh")
-    # Сжимаем по вертикали, чтобы кубический воксель соответствовал пропорциям кирпича.
-    mesh.apply_scale([1.0, 1.0, 1.0 / BRICK_ASPECT])
+    symmetric = _orient_mirror_axis(mesh)
+    # Масштабируем по вертикали, чтобы кубический воксель соответствовал пропорциям детали.
+    mesh.apply_scale([1.0, 1.0, 1.0 / aspect])
     pitch = mesh.extents[:2].max() / grid
     vox = mesh.voxelized(pitch).fill()
     occupancy = vox.matrix
@@ -41,16 +41,35 @@ def voxelize_mesh(path: str, grid: int) -> VoxelModel:
 
     center_x = mesh.bounds[:, 0].mean()
     center_index = (center_x - vox.transform[0, 3]) / pitch
-    model = VoxelModel(occupancy, colors, symmetric=_mesh_is_symmetric(mesh, center_x))
+    model = VoxelModel(occupancy, colors, symmetric)
     return _align_mirror_axis(model, center_index)
 
 
-def _mesh_is_symmetric(mesh, center_x) -> bool:
-    """Отражаем вершины относительно плоскости x = center_x и смотрим, ложатся ли они на меш."""
-    mirrored = mesh.vertices.copy()
-    mirrored[:, 0] = 2 * center_x - mirrored[:, 0]
-    distance, _ = cKDTree(mesh.vertices).query(mirrored[::20])
-    return np.median(distance) / mesh.extents[0] <= SYMMETRY_TOLERANCE
+def _orient_mirror_axis(mesh) -> bool:
+    """Если меш симметричен относительно плоскости, перпендикулярной Y, поворачиваем его
+    на 90° вокруг вертикали, чтобы плоскость симметрии стала перпендикулярна X.
+    Возвращает, симметричен ли меш вообще."""
+    error = _mirror_error(mesh)
+    axis = int(np.argmin(error))
+    if error[axis] > SYMMETRY_TOLERANCE:
+        return False
+    if axis == 1:
+        mesh.apply_transform(trimesh.transformations.rotation_matrix(np.pi / 2, [0, 0, 1]))
+    return True
+
+
+def _mirror_error(mesh) -> tuple[float, float]:
+    """Для осей X и Y: насколько отражённая поверхность не ложится на меш (90-й перцентиль, в долях размера)."""
+    surface, _ = trimesh.sample.sample_surface(mesh, 200_000, seed=0)
+    probe, _ = trimesh.sample.sample_surface(mesh, 5_000, seed=1)
+    tree = cKDTree(surface)
+    errors = []
+    for axis in (0, 1):
+        mirrored = probe.copy()
+        mirrored[:, axis] = 2 * mesh.bounds[:, axis].mean() - mirrored[:, axis]
+        distance, _ = tree.query(mirrored)
+        errors.append(np.percentile(distance, 90) / mesh.extents[axis])
+    return errors[0], errors[1]
 
 
 def _sample_colors(mesh, vox, occupancy):

@@ -15,9 +15,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from .parts import BRICKS, PART_BY_SIZE, Part
-
-_ALL_FOOTPRINTS = {(p.width, p.length) for p in BRICKS} | {(p.length, p.width) for p in BRICKS}
+from .parts import Part, Vocabulary
 
 MIN_SUPPORT = 0.5   # доля площади, которая должна лежать на соседнем слое
 NO_BRICK = -1
@@ -63,11 +61,13 @@ class _Components:
         self._parent[self.find(i)] = self.find(j)
 
 
-def layout_bricks(voxels: np.ndarray, colors: np.ndarray, default_color: int, mirrored: bool = False) -> list[PlacedBrick]:
+def layout_bricks(voxels: np.ndarray, colors: np.ndarray, default_color: int, vocabulary: Vocabulary,
+                  mirrored: bool = False) -> list[PlacedBrick]:
     """voxels: bool [x, y, z], z — вертикаль. colors: код цвета LDraw на каждый воксель той же формы,
     ANY_COLOR — воксель без требования. Кирпич одноцветный: все его воксели с требованием одного цвета;
     если требований нет — default_color. mirrored — зеркальная кладка относительно середины X."""
     nx, nz, nlayers = voxels.shape
+    footprints = {(p.width, p.length) for p in vocabulary.parts} | {(p.length, p.width) for p in vocabulary.parts}
     placed: list[PlacedBrick] = []
     components = _Components()
     components.add()  # GROUND
@@ -79,11 +79,13 @@ def layout_bricks(voxels: np.ndarray, colors: np.ndarray, default_color: int, mi
             below_ids = np.full((nx, nz), NO_BRICK)
             continue
         above = voxels[:, :, k + 1] if k + 1 < nlayers else empty
-        below_ids = _layout_layer(layer, colors[:, :, k], default_color, below_ids, above, k, placed, components, mirrored)
+        below_ids = _layout_layer(layer, colors[:, :, k], default_color, below_ids, above, k,
+                                  placed, components, mirrored, vocabulary, footprints)
     return placed
 
 
-def _layout_layer(layer, layer_colors, default_color, below_ids, above, k, placed, components, mirrored):
+def _layout_layer(layer, layer_colors, default_color, below_ids, above, k, placed, components, mirrored,
+                  vocabulary, footprints):
     free = layer.copy()
     nx, nz = free.shape
     ids = np.full((nx, nz), NO_BRICK)
@@ -97,12 +99,12 @@ def _layout_layer(layer, layer_colors, default_color, below_ids, above, k, place
                 components.union(brick_id, int(under_id))
         free[x0:x0 + w, z0:z0 + l] = False
         ids[x0:x0 + w, z0:z0 + l] = brick_id
-        placed.append(_brick(w, l, x0, z0, k, _brick_color(layer_colors[x0:x0 + w, z0:z0 + l], default_color)))
+        placed.append(_brick(vocabulary, w, l, x0, z0, k, _brick_color(layer_colors[x0:x0 + w, z0:z0 + l], default_color)))
 
     for x, z in _cells_hardest_first(layer, below, above):
         if not free[x, z] or (mirrored and x > (nx - 1) // 2):
             continue  # при зеркальной кладке правую половину заполняют отражения
-        x0, z0, w, l = _best_placement(free, layer_colors, below_ids, below, above, x, z, along_x, components, mirrored)
+        x0, z0, w, l = _best_placement(free, layer_colors, below_ids, below, above, x, z, along_x, components, mirrored, footprints)
         place(x0, z0, w, l)
         mx0 = nx - x0 - w
         if mirrored and mx0 != x0:
@@ -123,10 +125,10 @@ def _cells_hardest_first(layer, below, above):
     return list(zip(xs[order].tolist(), zs[order].tolist()))
 
 
-def _best_placement(free, colors, below_ids, below, above, cx, cz, along_x, components, mirrored):
+def _best_placement(free, colors, below_ids, below, above, cx, cz, along_x, components, mirrored, footprints):
     nx, nz = free.shape
     best, best_key = None, None
-    for w, l in _ALL_FOOTPRINTS:
+    for w, l in footprints:
         for ox in range(w):
             for oz in range(l):
                 x0, z0 = cx - ox, cz - oz
@@ -176,7 +178,8 @@ def _brick_color(region, default_color) -> int:
     return int(required[0]) if required.size else default_color
 
 
-def _brick(w, l, x, z, k, color):
-    if (w, l) in PART_BY_SIZE:
-        return PlacedBrick(PART_BY_SIZE[(w, l)], x, z, k, rotated=False, color=color)
-    return PlacedBrick(PART_BY_SIZE[(l, w)], x, z, k, rotated=True, color=color)
+def _brick(vocabulary, w, l, x, z, k, color):
+    part = vocabulary.by_size(w, l)
+    if part is not None:
+        return PlacedBrick(part, x, z, k, rotated=False, color=color)
+    return PlacedBrick(vocabulary.by_size(l, w), x, z, k, rotated=True, color=color)

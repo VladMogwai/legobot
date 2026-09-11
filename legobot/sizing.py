@@ -3,8 +3,8 @@ from typing import Callable
 
 import trimesh
 
-from .parts import BRICK_ASPECT
-from .pipeline import BRICK_MM, Build
+from .parts import STUD_LDU, Vocabulary
+from .pipeline import STUD_MM, Build
 
 MIN_GRID, MAX_GRID = 6, 120
 
@@ -13,18 +13,18 @@ def fit_parts(build_at: Callable[[int], Build], target: int) -> Build:
     return _fit(build_at, lambda b: b.part_count, target, MIN_GRID, MAX_GRID)
 
 
-def fit_height(build_at: Callable[[int], Build], mesh_path: str, height_cm: float) -> Build:
-    estimate = _grid_estimate_for_height(mesh_path, height_cm)
+def fit_height(build_at: Callable[[int], Build], mesh_path: str, height_cm: float, vocabulary: Vocabulary) -> Build:
+    estimate = _grid_estimate_for_height(mesh_path, height_cm, vocabulary)
     return _fit(build_at, lambda b: b.size_mm[2], height_cm * 10, estimate - 3, estimate + 3)
 
 
-def _grid_estimate_for_height(mesh_path: str, height_cm: float) -> int:
+def _grid_estimate_for_height(mesh_path: str, height_cm: float, vocabulary: Vocabulary) -> int:
     mesh = trimesh.load(mesh_path, force="mesh")
     width, length, height = mesh.extents
-    layers = height_cm * 10 / BRICK_MM
-    # Модель сжимается по вертикали в BRICK_ASPECT раз, чтобы воксель стал пропорциями кирпича;
-    # шаг сетки — сжатая высота, делённая на число слоёв.
-    pitch = height / BRICK_ASPECT / layers
+    layers = height_cm * 10 / (STUD_MM * vocabulary.height / STUD_LDU)
+    # Модель масштабируется по вертикали в aspect раз, чтобы воксель стал пропорциями детали;
+    # шаг сетки — масштабированная высота, делённая на число слоёв.
+    pitch = height / vocabulary.aspect / layers
     return round(max(width, length) / pitch)
 
 

@@ -23,7 +23,7 @@ for line in open(sys.argv[1]):
     lo, hi = bbox(t[14][:-4])
     w = np.array(list(itertools.product(*zip(lo, hi)))) @ M.T + pos
     lo, hi = w.min(0), w.max(0)
-    lo[1] = max(lo[1], hi[1] - 24)  # тело без штырьков
+    lo[1] = max(lo[1], hi[1] - 24)  # тело без штырьков (у пластин тело 8, штырьки 4 — тоже отрезаются)
     boxes.append((lo, hi))
 n = 0
 for (alo, ahi), (blo, bhi) in itertools.combinations(boxes, 2):

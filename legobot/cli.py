@@ -5,6 +5,8 @@ from functools import partial
 from pathlib import Path
 
 from .colors import load_palette
+from .fixtures import WHEELS
+from .parts import VOCABULARIES
 from .ldraw import write_ldr
 from .pipeline import Build, build
 from .sizing import fit_height, fit_parts
@@ -19,21 +21,24 @@ def main() -> None:
     size.add_argument("--grid", type=int, help="штырьков по длинной стороне")
     size.add_argument("--parts", type=int, help="желаемое число деталей")
     size.add_argument("--height", type=float, help="желаемая высота, см")
+    ap.add_argument("--unit", choices=VOCABULARIES, default="plates", help="из чего класть: plates (точнее) или bricks")
     ap.add_argument("--color", type=int, default=YELLOW, help="код цвета LDraw, если у меша нет своего цвета")
+    ap.add_argument("--wheels", choices=WHEELS, help="найти арки и поставить колёса из библиотеки")
     ap.add_argument("-o", "--out", help="куда писать .ldr")
     args = ap.parse_args()
 
-    build_at = partial(build, args.mesh, default_color=args.color)
+    vocabulary = VOCABULARIES[args.unit]
+    build_at = partial(build, args.mesh, default_color=args.color, vocabulary=vocabulary, wheels=args.wheels)
     if args.parts:
         result = fit_parts(build_at, args.parts)
     elif args.height:
-        result = fit_height(build_at, args.mesh, args.height)
+        result = fit_height(build_at, args.mesh, args.height, vocabulary)
     else:
         result = build_at(args.grid or 30)
 
     out = Path(args.out) if args.out else Path("out") / f"{Path(args.mesh).stem}_g{result.grid}.ldr"
     out.parent.mkdir(parents=True, exist_ok=True)
-    write_ldr(result.bricks, str(out), out.stem)
+    write_ldr(result.bricks, str(out), out.stem, result.fixtures)
     print(_summary(result))
     print("->", out)
 
@@ -43,9 +48,10 @@ def _summary(r: Build) -> str:
     w, l, h = r.size_mm
     parts = Counter(b.part.label for b in r.bricks)
     return (
-        f"сетка {r.grid}, {'зеркальная кладка' if r.mirrored else 'модель несимметрична'}\n"
+        f"сетка {r.grid}, {r.vocabulary.name}, {'зеркальная кладка' if r.mirrored else 'модель несимметрична'}\n"
         f"размер {w / 10:.1f} x {l / 10:.1f} x {h / 10:.1f} см, слоёв {len({b.layer for b in r.bricks})}\n"
-        f"деталей {r.part_count}: " + ", ".join(f"{k} x{n}" for k, n in sorted(parts.items())) + "\n"
+        f"деталей {r.part_count}: " + ", ".join(f"{k} x{n}" for k, n in sorted(parts.items()))
+        + (f" + {len(r.fixtures)} фикс. ({len(r.fixtures) // 3} колёс)" if r.fixtures else "") + "\n"
         f"цвета: " + ", ".join(f"{names.get(c, c)} x{n}" for c, n in r.colors.most_common())
     )
 
