@@ -4,7 +4,7 @@ from collections import Counter
 from functools import partial
 from pathlib import Path
 
-from .colors import load_palette
+from .colors import code_by_name, load_palette
 from .fixtures import WHEEL_BY_PART
 from .ldraw import write_ldr
 from .parts import VOCABULARIES
@@ -28,20 +28,30 @@ def main() -> None:
     ap.add_argument("--color", type=int, default=YELLOW, help="код цвета LDraw, если у модели нет своего цвета")
     ap.add_argument("--colors", type=int, default=4, help="до скольких цветов сводить цвет модели")
     ap.add_argument("--symmetric", action="store_true", help="зеркальная кладка, даже если меш кривоват (фото)")
+    ap.add_argument("--recolor", action="append", default=[], metavar="OLD=NEW",
+                    help="заменить подобранный цвет: --recolor Dark_Red=Orange (имена из LDConfig или коды)")
     ap.add_argument("--wheels", nargs="?", const="auto", choices=["auto", *WHEEL_BY_PART],
                     help="найти арки и поставить колёса: auto — подобрать по арке, или номер детали")
     ap.add_argument("--no-tiles", action="store_true", help="не заменять верхние пластины тайлами")
     ap.add_argument("--resolution", type=int, default=1024, choices=[512, 1024, 1536], help="детализация нейросети для фото")
+    ap.add_argument("--backend", choices=["hf", "kaggle"], default="hf", help="где считать фото→3D: HF Space (быстро, квота) или Kaggle (пачкой)")
+    ap.add_argument("--variants", type=int, default=1, help="сколько вариаций (seed) сгенерировать из фото")
     ap.add_argument("-o", "--out", help="куда писать .io (рядом ляжет .ldr)")
     ap.add_argument("--open", action="store_true", help="открыть результат в Studio")
     args = ap.parse_args()
 
-    mesh_path = _mesh_from_input(args.input, args.resolution)
+    mesh_paths = _meshes_from_input(args.input, args.resolution, args.backend, args.variants)
 
     vocabulary = VOCABULARIES[args.unit]
+    for variant, mesh_path in mesh_paths.items():
+        _build_one(args, mesh_path, variant, vocabulary)
+
+
+def _build_one(args, mesh_path: str, variant: str, vocabulary) -> None:
     build_at = partial(build, mesh_path, default_color=args.color, vocabulary=vocabulary,
                        wheels=args.wheels, tiles=not args.no_tiles, max_colors=args.colors,
-                       force_symmetric=args.symmetric)
+                       force_symmetric=args.symmetric,
+                       recolor_map={code_by_name(a): code_by_name(b) for a, b in (r.split("=") for r in args.recolor)})
     if args.parts:
         result = fit_parts(build_at, args.parts)
     elif args.height:
@@ -49,7 +59,8 @@ def main() -> None:
     else:
         result = build_at(args.grid or 30)
 
-    io_path = Path(args.out) if args.out else _model_dir(args.input) / f"{Path(args.input).stem}_g{result.grid}.io"
+    suffix = f"_{variant}" if variant else ""
+    io_path = Path(args.out) if args.out else _model_dir(args.input) / f"{Path(args.input).stem}{suffix}_g{result.grid}.io"
     io_path.parent.mkdir(parents=True, exist_ok=True)
     ldr_path = io_path.with_suffix(".ldr")
     write_ldr(result.bricks, str(ldr_path), io_path.stem, result.fixtures)
@@ -67,18 +78,27 @@ def _model_dir(input_path: str) -> Path:
     return d
 
 
-def _mesh_from_input(path: str, resolution: int) -> str:
-    """Фото прогоняется через нейросеть один раз; результат лежит в out/<имя>/<имя>.ply."""
+def _meshes_from_input(path: str, resolution: int, backend: str, variants: int) -> dict[str, str]:
+    """{вариант: меш}. Для 3D-файла — он сам. Для фото — по одному мешу на seed, с кэшем в out/<имя>/."""
     src = Path(path)
     if src.suffix.lower() not in IMAGE_SUFFIXES:
-        return str(src)
-    cached = _model_dir(path) / f"{src.stem}.ply"
-    if cached.exists():
-        print(f"меш из фото уже есть: {cached}")
-        return str(cached)
-    from .photo import mesh_from_photo  # импорт здесь: gradio_client нужен только для фото
-    print("фото → 3D через TRELLIS.2, обычно 1–3 минуты…")
-    return mesh_from_photo(str(src), str(cached), resolution=resolution)
+        return {"": str(src)}
+    seeds = list(range(variants))
+    model_dir = _model_dir(path)
+    cached = {f"s{seed}": model_dir / f"{src.stem}_s{seed}.ply" for seed in seeds}
+    missing = {v: p for v, p in cached.items() if not p.exists()}
+    if not missing:
+        print("меши из фото уже есть:", ", ".join(str(p) for p in cached.values()))
+    elif backend == "kaggle":
+        from .kaggle3d import meshes_from_photos
+        print(f"фото → 3D на Kaggle, seeds {seeds}; сборка стека 30–60 минут…")
+        meshes_from_photos([str(src)], str(model_dir), resolution=resolution, seeds=tuple(seeds))
+    else:
+        from .photo import mesh_from_photo  # импорт здесь: gradio_client нужен только для фото
+        for variant, ply in missing.items():
+            print(f"фото → 3D через TRELLIS.2 ({variant}), обычно 1–3 минуты…")
+            mesh_from_photo(str(src), str(ply), resolution=resolution, seed=int(variant[1:]))
+    return {v: str(p) for v, p in cached.items() if p.exists()}
 
 
 def _summary(r: Build) -> str:

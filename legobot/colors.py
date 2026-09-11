@@ -48,20 +48,57 @@ def load_palette(common_only: bool = True) -> tuple[LdrawColor, ...]:
     return tuple(palette)
 
 
+LIGHTNESS_WEIGHT = 0.3  # при кластеризации яркость важна меньше оттенка: тень на жёлтом — всё ещё жёлтый
+
+
 def nearest_codes(rgb: np.ndarray, max_colors: int = 4) -> np.ndarray:
-    """rgb: uint8 [N, 3] -> коды LDraw [N]. Сначала k-means до max_colors доминирующих цветов,
-    затем каждый — к ближайшему цвету палитры в Lab."""
+    """rgb: uint8 [N, 3] -> коды LDraw [N]. Сначала k-means до max_colors доминирующих цветов
+    (в Lab с приглушённой яркостью, чтобы тени не становились отдельными цветами),
+    затем центр каждого кластера — к ближайшему цвету палитры."""
     rgb = rgb.reshape(-1, 3)
     if len(rgb) == 0:
         return np.zeros(0, dtype=int)
     lab = _rgb_to_lab(rgb)
+    weighted = lab * np.array([LIGHTNESS_WEIGHT, 1.0, 1.0])
     k = min(max_colors, len(np.unique(rgb, axis=0)))
-    centers, labels = kmeans2(lab, k, minit="++", seed=0)
+    _, labels = kmeans2(weighted, k, minit="++", seed=0)
     palette = load_palette()
     palette_lab = _rgb_to_lab(np.array([c.rgb for c in palette]))
     codes = np.array([c.code for c in palette])
-    center_codes = codes[((centers[:, None, :] - palette_lab[None, :, :]) ** 2).sum(-1).argmin(1)]
+    center_codes = np.zeros(k, dtype=int)
+    for i in range(k):
+        members = lab[labels == i] if (labels == i).any() else lab
+        center_codes[i] = _match_cluster(members, palette_lab, codes)
     return center_codes[labels]
+
+
+BLACK = 0
+DARK_L, ACHROMATIC = 45.0, 15.0
+
+
+def _match_cluster(members: np.ndarray, palette_lab: np.ndarray, codes: np.ndarray) -> int:
+    """Тёмное и бесцветное — чёрный (глаза, контуры). Остальное — по светлой половине кластера:
+    тени темнее настоящего цвета, блики ближе к нему."""
+    center = members.mean(0)
+    if center[0] < DARK_L and np.hypot(center[1], center[2]) < ACHROMATIC:
+        return BLACK
+    bright = members[members[:, 0] >= np.median(members[:, 0])].mean(0)
+    return int(codes[((bright - palette_lab) ** 2).sum(1).argmin()])
+
+
+def recolor(codes: np.ndarray, mapping: dict[int, int]) -> np.ndarray:
+    """Ручная замена цветов после подбора: {старый код: новый код}."""
+    out = codes.copy()
+    for old, new in mapping.items():
+        out[codes == old] = new
+    return out
+
+
+def code_by_name(name: str) -> int:
+    for c in load_palette(common_only=False):
+        if c.name.lower() == name.lower() or str(c.code) == name:
+            return c.code
+    raise ValueError(f"нет такого цвета: {name}")
 
 
 def _rgb_to_lab(rgb: np.ndarray) -> np.ndarray:

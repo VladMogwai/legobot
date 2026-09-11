@@ -3,3 +3,7 @@ out/
 __pycache__/
 .DS_Store
 .env
+corpus/*.mpd
+kaggle/photos/*.jp*g
+kaggle/photos/*.png
+kaggle/photos/config.json

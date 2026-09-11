@@ -4,7 +4,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from .colors import nearest_codes
+from .colors import nearest_codes, recolor
 from .finish import tile_exposed_tops
 from .fixtures import WHEEL_BY_PART, Fixture, wheel_fixtures
 from .layout import ANY_COLOR, EXPOSED_TOP, PlacedBrick, layout_bricks
@@ -43,9 +43,30 @@ class Build:
         return Counter(b.color for b in self.bricks)
 
 
+def _despeckle(codes: np.ndarray, surface: np.ndarray, passes: int = 1) -> np.ndarray:
+    """Поверхностный воксель, цвет которого не поддерживает большинство соседей по поверхности,
+    перекрашивается в цвет большинства. Убирает крапины от теней и шума текстуры."""
+    codes = codes.copy()
+    offsets = [(dx, dy, dz) for dx in (-1, 0, 1) for dy in (-1, 0, 1) for dz in (-1, 0, 1) if (dx, dy, dz) != (0, 0, 0)]
+    for _ in range(passes):
+        changed = codes.copy()
+        for x, y, z in np.argwhere(surface):
+            votes = Counter()
+            for dx, dy, dz in offsets:
+                nx, ny, nz = x + dx, y + dy, z + dz
+                if 0 <= nx < codes.shape[0] and 0 <= ny < codes.shape[1] and 0 <= nz < codes.shape[2] and surface[nx, ny, nz]:
+                    votes[codes[nx, ny, nz]] += 1
+            if votes:
+                top, n = votes.most_common(1)[0]
+                if top != codes[x, y, z] and n > sum(votes.values()) * 0.6:
+                    changed[x, y, z] = top
+        codes = changed
+    return codes
+
+
 def build(mesh_path: str, grid: int, default_color: int, vocabulary: Vocabulary,
           wheels: str | None = None, tiles: bool = True, max_colors: int = 4,
-          force_symmetric: bool = False) -> Build:
+          force_symmetric: bool = False, recolor_map: dict[int, int] | None = None) -> Build:
     """wheels: None — без колёс, "auto" — подобрать по арке, иначе номер детали колеса.
     max_colors — до скольких цветов сводить цвет меша. force_symmetric — зеркалить даже кривой меш."""
     model = voxelize_mesh(mesh_path, grid, vocabulary.aspect, force_symmetric)
@@ -65,6 +86,9 @@ def build(mesh_path: str, grid: int, default_color: int, vocabulary: Vocabulary,
     if model.colors is not None:
         surface = voxels & ~interior(voxels)
         codes[surface] = nearest_codes(model.colors[surface], max_colors)
+        codes = _despeckle(codes, surface)
+        if recolor_map:
+            codes[surface] = recolor(codes[surface], recolor_map)
         body_color = Counter(codes[surface].tolist()).most_common(1)[0][0]
 
     if tiles:
