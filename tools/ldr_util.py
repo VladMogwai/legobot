@@ -1,7 +1,8 @@
 """Чтение .ldr обратно в кирпичи по каталогу деталей: (x, z, layer, w, l, color)."""
+from legobot.finish import TILES
 from legobot.parts import VOCABULARIES
 
-_PARTS = {p.number: p for v in VOCABULARIES.values() for p in v.parts}
+_PARTS = {p.number: p for v in VOCABULARIES.values() for p in v.parts} | {t.number: t for t in TILES.values()}
 
 
 def load_bricks(path):

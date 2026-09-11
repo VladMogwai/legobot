@@ -21,6 +21,8 @@ MIN_SUPPORT = 0.5   # доля площади, которая должна ле�
 NO_BRICK = -1
 GROUND = 0          # id «земли» — сплошной опоры под нулевым слоем
 ANY_COLOR = -1      # воксель без требования к цвету (внутренний, снаружи не виден)
+EXPOSED_TOP = 1 << 16  # флаг в коде цвета: над вокселем пусто. Деталь не смешивает открытые и накрытые клетки,
+                       # чтобы открытые пластины целиком заменялись тайлами
 
 
 @dataclass(frozen=True)
@@ -168,14 +170,17 @@ def _mirror_fits(free, colors, x0, x1, z0, z1):
 
 
 def _single_color(region) -> bool:
-    """Все воксели с требованием к цвету — одного цвета."""
+    """Все воксели с требованием к цвету — одного цвета; открытые сверху клетки не смешиваются с накрытыми."""
+    exposed = (region != ANY_COLOR) & ((region & EXPOSED_TOP) != 0)
+    if exposed.any() and not exposed.all():
+        return False
     required = region[region != ANY_COLOR]
     return required.size == 0 or (required == required[0]).all()
 
 
 def _brick_color(region, default_color) -> int:
     required = region[region != ANY_COLOR]
-    return int(required[0]) if required.size else default_color
+    return int(required[0]) & ~EXPOSED_TOP if required.size else default_color
 
 
 def _brick(vocabulary, w, l, x, z, k, color):

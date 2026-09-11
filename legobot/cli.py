@@ -5,7 +5,7 @@ from functools import partial
 from pathlib import Path
 
 from .colors import load_palette
-from .fixtures import WHEELS
+from .fixtures import WHEEL_BY_PART
 from .parts import VOCABULARIES
 from .ldraw import write_ldr
 from .pipeline import Build, build
@@ -23,12 +23,15 @@ def main() -> None:
     size.add_argument("--height", type=float, help="желаемая высота, см")
     ap.add_argument("--unit", choices=VOCABULARIES, default="plates", help="из чего класть: plates (точнее) или bricks")
     ap.add_argument("--color", type=int, default=YELLOW, help="код цвета LDraw, если у меша нет своего цвета")
-    ap.add_argument("--wheels", choices=WHEELS, help="найти арки и поставить колёса из библиотеки")
+    ap.add_argument("--wheels", nargs="?", const="auto", choices=["auto", *WHEEL_BY_PART],
+                    help="найти арки и поставить колёса: auto — подобрать по арке, или номер детали")
+    ap.add_argument("--no-tiles", action="store_true", help="не заменять верхние пластины тайлами")
     ap.add_argument("-o", "--out", help="куда писать .ldr")
     args = ap.parse_args()
 
     vocabulary = VOCABULARIES[args.unit]
-    build_at = partial(build, args.mesh, default_color=args.color, vocabulary=vocabulary, wheels=args.wheels)
+    build_at = partial(build, args.mesh, default_color=args.color, vocabulary=vocabulary,
+                       wheels=args.wheels, tiles=not args.no_tiles)
     if args.parts:
         result = fit_parts(build_at, args.parts)
     elif args.height:

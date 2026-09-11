@@ -5,8 +5,9 @@ from dataclasses import dataclass
 import numpy as np
 
 from .colors import nearest_codes
-from .fixtures import WHEELS, Fixture, wheel_fixtures
-from .layout import ANY_COLOR, PlacedBrick, layout_bricks
+from .finish import tile_exposed_tops
+from .fixtures import WHEEL_BY_PART, Fixture, wheel_fixtures
+from .layout import ANY_COLOR, EXPOSED_TOP, PlacedBrick, layout_bricks
 from .parts import STUD_LDU, Vocabulary
 from .voxelize import VoxelModel, drop_floating, interior, symmetrize, voxelize_mesh
 
@@ -42,14 +43,17 @@ class Build:
         return Counter(b.color for b in self.bricks)
 
 
-def build(mesh_path: str, grid: int, default_color: int, vocabulary: Vocabulary, wheels: str | None = None) -> Build:
+def build(mesh_path: str, grid: int, default_color: int, vocabulary: Vocabulary,
+          wheels: str | None = None, tiles: bool = True) -> Build:
+    """wheels: None — без колёс, "auto" — подобрать по арке, иначе номер детали колеса."""
     model = voxelize_mesh(mesh_path, grid, vocabulary.aspect)
     mirrored = model.symmetric
     if mirrored:
         model = symmetrize(model)
     fixtures: list[Fixture] = []
     if wheels:
-        fixtures, cleared = wheel_fixtures(model, vocabulary.height, WHEELS[wheels])
+        spec = None if wheels == "auto" else WHEEL_BY_PART[wheels]
+        fixtures, cleared = wheel_fixtures(model, vocabulary.height, spec)
         model.occupancy &= ~cleared
     model = drop_floating(model)
 
@@ -61,7 +65,13 @@ def build(mesh_path: str, grid: int, default_color: int, vocabulary: Vocabulary,
         codes[surface] = nearest_codes(model.colors[surface])
         body_color = Counter(codes[surface].tolist()).most_common(1)[0][0]
 
+    if tiles:
+        exposed = voxels.copy()
+        exposed[:, :, :-1] &= ~voxels[:, :, 1:]
+        codes[exposed] = np.where(codes[exposed] == ANY_COLOR, body_color, codes[exposed]) | EXPOSED_TOP
     bricks = layout_bricks(voxels, codes, body_color, vocabulary, mirrored=mirrored)
     covered = sum(b.part.area for b in bricks)
     assert covered == int(voxels.sum()), f"покрыто {covered} из {int(voxels.sum())} вокселей"
+    if tiles:
+        bricks = tile_exposed_tops(bricks, voxels)
     return Build(bricks, model, grid, mirrored, vocabulary, fixtures)

@@ -32,15 +32,27 @@ class WheelSpec:
     width: float     # LDU
 
 
-WHEELS = {
-    "city": WheelSpec("56904c01", 107.1, 38.0),      # обычная машина, ~5.4 штырька
-    "technic": WheelSpec("3739c01", 205.2, 60.0),    # крупная, ~10 штырьков
-}
+# Колёса с осевым отверстием, по возрастанию диаметра; размеры измерены по геометрии библиотеки.
+WHEELS = (
+    WheelSpec("3482c02", 108.3, 26.0),    # узкое классическое
+    WheelSpec("56904c01", 107.1, 38.0),   # обычная машина, ~5.4 штырька
+    WheelSpec("6595c02", 124.1, 70.0),    # широкое VR
+    WheelSpec("32004bc01", 170.0, 60.0),  # Model Team
+    WheelSpec("3739c01", 205.2, 60.0),    # Technic 24x43, ~10 штырьков
+)
+WHEEL_BY_PART = {w.part: w for w in WHEELS}
+
+
+def pick_wheel(arch_diameter: float) -> WheelSpec:
+    """Самое большое колесо, которое влезает в арку (с зазором в полштырька)."""
+    fitting = [w for w in WHEELS if w.diameter <= arch_diameter + STUD_LDU / 2]
+    return max(fitting, key=lambda w: w.diameter) if fitting else WHEELS[0]
 
 AXLE_BRICK = "32064a"   # Technic Brick 1 x 2 with Axlehole; отверстие на 10 LDU ниже верха
 AXLE = "4519"           # Technic Axle 3, длина 60 вдоль X
 AXLE_LENGTH = 60
 AXLE_BRICK_HEIGHT = 24
+GROUND_CLEARANCE = STUD_LDU  # насколько низ кузова выше низа колёс
 
 
 @dataclass
@@ -52,13 +64,31 @@ class Arch:
     radius: float      # LDU
 
 
-def wheel_fixtures(model: VoxelModel, layer_ldu: int, wheel: WheelSpec) -> tuple[list[Fixture], np.ndarray]:
-    """Возвращает детали колёс и маску вокселей, которые надо освободить под них."""
+def wheel_fixtures(model: VoxelModel, layer_ldu: int, wheel: WheelSpec | None = None) -> tuple[list[Fixture], np.ndarray]:
+    """Возвращает детали колёс и маску вокселей, которые надо освободить под них.
+
+    Колесо подбирается по арке (или задаётся явно), одно на всю машину.
+    Все колёса стоят на одной земле, кузов — на клиренс выше неё. Арки задают только
+    положение вдоль кузова; их высота у разных арок читается по-разному.
+    """
+    arches = _find_arches(model.occupancy, layer_ldu)
+    if not arches:
+        return [], np.zeros(model.shape, dtype=bool)
+    if wheel is None:
+        wheel = pick_wheel(2 * float(np.median([a.radius for a in arches])))
+    ground_y = _ground(model.occupancy, layer_ldu) + GROUND_CLEARANCE
     fixtures, cleared = [], np.zeros(model.shape, dtype=bool)
-    for arch in _find_arches(model.occupancy, layer_ldu):
+    for arch in arches:
+        arch.y_center = ground_y - wheel.diameter / 2
         fixtures.extend(_wheel_assembly(arch, wheel))
         cleared |= _clearance(model.shape, layer_ldu, arch, wheel)
     return fixtures, cleared
+
+
+def _ground(occ: np.ndarray, layer_ldu: int) -> float:
+    """Y нижней грани самого нижнего занятого слоя (в LDraw Y растёт вниз)."""
+    lowest = int(np.nonzero(occ.any(axis=(0, 1)))[0].min())
+    return -lowest * layer_ldu + layer_ldu
 
 
 def _find_arches(occ: np.ndarray, layer_ldu: int) -> list[Arch]:

@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 sys.path.insert(0, __file__.rsplit('/', 1)[0]); sys.path.insert(0, '.')
 from legobot.colors import load_palette
 from ldr_util import load_bricks, load_fixtures
-from legobot.fixtures import WHEELS
+from legobot.fixtures import WHEEL_BY_PART
 
 rgb = {c.code: np.array(c.rgb) / 255 for c in load_palette()}
 bricks, height = load_bricks(sys.argv[1])
@@ -17,7 +17,7 @@ vol = np.zeros((nx, nz, nk), bool); fc = np.zeros((nx, nz, nk, 3))
 for x, z, k, w, l, color in bricks:
     vol[x:x + w, z:z + l, k] = True; fc[x:x + w, z:z + l, k] = rgb[color]
 # колёса рисуем дисками из вокселей по их реальному диаметру
-specs = {w.part: w for w in WHEELS.values()}
+specs = WHEEL_BY_PART
 X, Z, Y = np.meshgrid((np.arange(nx) + .5) * 20, (np.arange(nz) + .5) * 20, -np.arange(nk) * height + height / 2, indexing="ij")
 for part, color, (px, py, pz), _ in load_fixtures(sys.argv[1]):
     if part in specs:

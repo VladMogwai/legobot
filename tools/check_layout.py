@@ -3,10 +3,11 @@ import sys
 import numpy as np
 from legobot.voxelize import drop_floating, voxelize_mesh
 from legobot.layout import layout_bricks
+from legobot.parts import BRICKS
 
-v = drop_floating(voxelize_mesh(sys.argv[1], int(sys.argv[2]))).occupancy
+v = drop_floating(voxelize_mesh(sys.argv[1], int(sys.argv[2]), BRICKS.aspect)).occupancy
 nx, nz, nl = v.shape
-bricks = layout_bricks(v, np.zeros(v.shape, int), 14)
+bricks = layout_bricks(v, np.zeros(v.shape, int), 14, BRICKS)
 ids = np.full((nx, nz, nl), -1, int)
 for i, b in enumerate(bricks):
     ids[b.x:b.x+b.width, b.z:b.z+b.length, b.layer] = i
