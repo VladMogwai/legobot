@@ -49,7 +49,7 @@ def main() -> None:
     else:
         result = build_at(args.grid or 30)
 
-    io_path = Path(args.out) if args.out else OUT_DIR / f"{Path(args.input).stem}_g{result.grid}.io"
+    io_path = Path(args.out) if args.out else _model_dir(args.input) / f"{Path(args.input).stem}_g{result.grid}.io"
     io_path.parent.mkdir(parents=True, exist_ok=True)
     ldr_path = io_path.with_suffix(".ldr")
     write_ldr(result.bricks, str(ldr_path), io_path.stem, result.fixtures)
@@ -60,17 +60,23 @@ def main() -> None:
         open_in_studio(str(io_path))
 
 
+def _model_dir(input_path: str) -> Path:
+    """Каждая модель — своя папка: out/<имя>/ с мешем, .ldr, .io и рендерами."""
+    d = OUT_DIR / Path(input_path).stem
+    d.mkdir(parents=True, exist_ok=True)
+    return d
+
+
 def _mesh_from_input(path: str, resolution: int) -> str:
-    """Фото прогоняется через нейросеть один раз; результат лежит в out/<имя>.ply."""
+    """Фото прогоняется через нейросеть один раз; результат лежит в out/<имя>/<имя>.ply."""
     src = Path(path)
     if src.suffix.lower() not in IMAGE_SUFFIXES:
         return str(src)
-    cached = OUT_DIR / f"{src.stem}.ply"
+    cached = _model_dir(path) / f"{src.stem}.ply"
     if cached.exists():
         print(f"меш из фото уже есть: {cached}")
         return str(cached)
     from .photo import mesh_from_photo  # импорт здесь: gradio_client нужен только для фото
-    OUT_DIR.mkdir(exist_ok=True)
     print("фото → 3D через TRELLIS.2, обычно 1–3 минуты…")
     return mesh_from_photo(str(src), str(cached), resolution=resolution)
 

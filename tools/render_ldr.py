@@ -30,5 +30,5 @@ for i, (elev, azim, title) in enumerate([(15, -35, "3/4"), (0, -90, "front"), (0
     ax.voxels(vol, facecolors=fc, edgecolor="k", linewidth=0.1)
     ax.view_init(elev, azim); ax.set_box_aspect((nx, nz, nk * aspect)); ax.set_axis_off(); ax.set_title(title)
 plt.tight_layout()
-out = sys.argv[2] if len(sys.argv) > 2 else sys.argv[1].replace(".ldr", ".png")
+out = sys.argv[2] if len(sys.argv) > 2 else sys.argv[1].rsplit(".", 1)[0] + ".png"
 plt.savefig(out, dpi=110); print("->", out)
