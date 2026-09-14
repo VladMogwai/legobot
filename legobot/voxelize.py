@@ -73,16 +73,24 @@ def _mirror_error(mesh) -> tuple[float, float]:
     return errors[0], errors[1]
 
 
+SURFACE_SAMPLES = 400_000
+
+
 def _sample_colors(mesh, vox, occupancy):
-    """Поверхностные воксели берут цвет ближайшей вершины меша, внутренние — основной цвет поверхности."""
+    """Поверхностные воксели берут цвет ближайшей точки поверхности, внутренние — основной цвет.
+
+    Точки насыпаются по поверхности равномерно, а не берутся из вершин: у мешей вершины
+    сгущаются на мелких деталях (канавки, швы), и ближайшая вершина врёт про цвет."""
     vertex_colors = _vertex_colors(mesh)
     if vertex_colors is None:
         return None
+    points, face_ids = trimesh.sample.sample_surface(mesh, SURFACE_SAMPLES, seed=0)
+    point_colors = vertex_colors[mesh.faces[face_ids]].mean(axis=1).astype(np.uint8)
     surface = occupancy & ~interior(occupancy)
     idx = np.argwhere(surface)
     centers = trimesh.transform_points(idx.astype(float), vox.transform)
-    _, nearest = cKDTree(mesh.vertices).query(centers)
-    sampled = vertex_colors[nearest]
+    _, nearest = cKDTree(points).query(centers)
+    sampled = point_colors[nearest]
     colors = np.zeros(occupancy.shape + (3,), dtype=np.uint8)
     colors[occupancy] = _dominant(sampled)
     colors[tuple(idx.T)] = sampled
@@ -100,10 +108,14 @@ def _vertex_colors(mesh):
 
 
 def interior(occupancy: np.ndarray) -> np.ndarray:
-    """Воксели, со всех шести сторон закрытые другими вокселями: снаружи их не видно."""
+    """Воксели, со всех шести сторон закрытые другими вокселями: снаружи их не видно.
+    Края массива считаются пустыми (без заворачивания, как у np.roll)."""
+    padded = np.pad(occupancy, 1)
     inner = occupancy.copy()
     for axis in range(3):
-        inner &= np.roll(occupancy, 1, axis) & np.roll(occupancy, -1, axis)
+        before = np.roll(padded, 1, axis)[1:-1, 1:-1, 1:-1]
+        after = np.roll(padded, -1, axis)[1:-1, 1:-1, 1:-1]
+        inner &= before & after
     return inner
 
 

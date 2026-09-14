@@ -7,3 +7,4 @@ corpus/*.mpd
 kaggle/photos/*.jp*g
 kaggle/photos/*.png
 kaggle/photos/config.json
+kaggle/photos/hf_token.txt

@@ -12,7 +12,7 @@ import subprocess
 import time
 from pathlib import Path
 
-from .photo import ENV_FILE, _load_z_up
+from .photo import ENV_FILE, _load_z_up, hf_token
 
 ROOT = Path(__file__).resolve().parent.parent
 KERNEL_DIR = ROOT / "kaggle" / "kernel"
@@ -36,17 +36,41 @@ def _kaggle(*args: str) -> str:
     return subprocess.run([KAGGLE, *args], env=env, capture_output=True, text=True, check=False).stdout.strip()
 
 
+DATASET = "vladmogwai/legobot-photos"
+
+
+def _cutout(src: str, dst: Path) -> None:
+    """Вырезает фон локально (rembg) и сохраняет PNG с альфой: модель фона у TRELLIS.2 закрытая,
+    а при готовом альфа-канале пайплайн её не вызывает."""
+    import rembg
+    from PIL import Image
+    Image.open(src).convert("RGB")
+    rembg.remove(Image.open(src)).save(dst)
+
+
+def _wait_dataset_ready(timeout_seconds: int = 300) -> None:
+    started = time.time()
+    while "ready" not in _kaggle("datasets", "status", DATASET).lower():
+        if time.time() - started > timeout_seconds:
+            raise TimeoutError("Kaggle: датасет не стал ready")
+        time.sleep(10)
+    time.sleep(15)  # запас: статус ready появляется чуть раньше, чем версия видна ноутбукам
+
+
 def meshes_from_photos(image_paths: list[str], out_dir: str, resolution: int = 1024, seeds: tuple[int, ...] = (0,),
                        poll_seconds: int = 120, timeout_minutes: int = 180) -> dict[str, str]:
     """Возвращает {имя_s<seed>: путь к PLY}. Блокирует до конца прогона на Kaggle."""
     for old in PHOTOS_DIR.glob("*.*"):
-        if old.suffix.lower() in (".jpg", ".jpeg", ".png", ".webp", ".json") and old.name != "dataset-metadata.json":
+        if old.suffix.lower() in (".jpg", ".jpeg", ".png", ".webp", ".json", ".txt") and old.name != "dataset-metadata.json":
             old.unlink()
     for p in image_paths:
-        shutil.copy(p, PHOTOS_DIR / Path(p).name)
+        _cutout(p, PHOTOS_DIR / f"{Path(p).stem}.png")
     (PHOTOS_DIR / "config.json").write_text(json.dumps({"seeds": list(seeds), "resolution": str(resolution)}))
+    # DINOv3 закрытый: токен HF едет в приватный датасет, Kaggle Secrets из API-запусков не читаются
+    (PHOTOS_DIR / "hf_token.txt").write_text(hf_token() or "")
     print("kaggle: загружаю фото…", flush=True)
     print(_kaggle("datasets", "version", "-p", str(PHOTOS_DIR), "-m", "photos", "--dir-mode", "zip"))
+    _wait_dataset_ready()  # иначе ноутбук привяжется к предыдущей версии датасета
     print("kaggle: запускаю ноутбук…", flush=True)
     print(_kaggle("kernels", "push", "-p", str(KERNEL_DIR)))
 
