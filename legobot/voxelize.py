@@ -47,30 +47,43 @@ def voxelize_mesh(path: str, grid: int, aspect: float, force_symmetric: bool = F
 
 
 def _orient_mirror_axis(mesh, force: bool = False) -> bool:
-    """Если меш симметричен относительно плоскости, перпендикулярной Y, поворачиваем его
-    на 90° вокруг вертикали, чтобы плоскость симметрии стала перпендикулярна X.
-    Возвращает, симметричен ли меш вообще."""
-    error = _mirror_error(mesh)
-    axis = int(np.argmin(error))
-    if error[axis] > SYMMETRY_TOLERANCE and not force:
+    """Находит плоскость симметрии: перебирает поворот вокруг вертикали (нейросетевые меши
+    часто повёрнуты к осям на десятки градусов), затем разворачивает меш так, чтобы плоскость
+    симметрии стала перпендикулярна X. Возвращает, симметричен ли меш вообще."""
+    yaw, axis, error = _best_mirror_alignment(mesh)
+    if error > SYMMETRY_TOLERANCE and not force:
         return False
-    if axis == 1:
-        mesh.apply_transform(trimesh.transformations.rotation_matrix(np.pi / 2, [0, 0, 1]))
+    total = yaw + (90.0 if axis == 1 else 0.0)
+    if total:
+        mesh.apply_transform(trimesh.transformations.rotation_matrix(np.radians(total), [0, 0, 1]))
     return True
 
 
-def _mirror_error(mesh) -> tuple[float, float]:
-    """Для осей X и Y: насколько отражённая поверхность не ложится на меш (90-й перцентиль, в долях размера)."""
-    surface, _ = trimesh.sample.sample_surface(mesh, 200_000, seed=0)
-    probe, _ = trimesh.sample.sample_surface(mesh, 5_000, seed=1)
-    tree = cKDTree(surface)
-    errors = []
-    for axis in (0, 1):
-        mirrored = probe.copy()
-        mirrored[:, axis] = 2 * mesh.bounds[:, axis].mean() - mirrored[:, axis]
-        distance, _ = tree.query(mirrored)
-        errors.append(np.percentile(distance, 90) / mesh.extents[axis])
-    return errors[0], errors[1]
+def _best_mirror_alignment(mesh) -> tuple[float, int, float]:
+    """(поворот в градусах, ось 0|1, ошибка): поворот вокруг Z, при котором отражение
+    относительно серединной плоскости, перпендикулярной оси, ложится на поверхность лучше всего."""
+    surface, _ = trimesh.sample.sample_surface(mesh, 150_000, seed=0)
+    probe, _ = trimesh.sample.sample_surface(mesh, 4_000, seed=1)
+
+    def error_at(yaw: float) -> tuple[float, int]:
+        c, s_ = np.cos(np.radians(yaw)), np.sin(np.radians(yaw))
+        rot = np.array([[c, -s_, 0], [s_, c, 0], [0, 0, 1]])
+        surf, prb = surface @ rot.T, probe @ rot.T
+        tree = cKDTree(surf)
+        best = (np.inf, 0)
+        for axis in (0, 1):
+            mirrored = prb.copy()
+            center = (surf[:, axis].min() + surf[:, axis].max()) / 2
+            mirrored[:, axis] = 2 * center - mirrored[:, axis]
+            distance, _ = tree.query(mirrored)
+            err = float(np.percentile(distance, 90) / np.ptp(surf[:, axis]))
+            best = min(best, (err, axis))
+        return best
+
+    coarse = min(((*error_at(y), y) for y in range(-45, 46, 5)), key=lambda t: t[0])
+    fine = min(((*error_at(y), y) for y in np.arange(coarse[2] - 4, coarse[2] + 4.1, 1.0)), key=lambda t: t[0])
+    err, axis, yaw = fine
+    return float(yaw), int(axis), err
 
 
 SURFACE_SAMPLES = 400_000
