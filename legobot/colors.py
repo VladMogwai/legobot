@@ -76,6 +76,7 @@ def nearest_codes(rgb: np.ndarray, max_colors: int = 4) -> np.ndarray:
 
 BLACK = 0
 DARK_L, ACHROMATIC = 45.0, 15.0
+CHROMA_BOOST = 1.4  # фото тусклее пластика: усиливаем насыщенность перед подбором, чтобы выбирались Red/Blue, а не их бледные соседи
 
 
 def _match_cluster(members: np.ndarray, palette_lab: np.ndarray, codes: np.ndarray) -> int:
@@ -85,7 +86,8 @@ def _match_cluster(members: np.ndarray, palette_lab: np.ndarray, codes: np.ndarr
     if center[0] < DARK_L and np.hypot(center[1], center[2]) < ACHROMATIC:
         return BLACK
     bright = members[members[:, 0] >= np.median(members[:, 0])].mean(0)
-    return int(codes[((bright - palette_lab) ** 2).sum(1).argmin()])
+    boosted = bright * np.array([1.0, CHROMA_BOOST, CHROMA_BOOST])
+    return int(codes[((boosted - palette_lab) ** 2).sum(1).argmin()])
 
 
 def recolor(codes: np.ndarray, mapping: dict[int, int]) -> np.ndarray:

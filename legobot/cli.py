@@ -33,6 +33,8 @@ def main() -> None:
     ap.add_argument("--wheels", nargs="?", const="auto", choices=["auto", *WHEEL_BY_PART],
                     help="найти арки и поставить колёса: auto — подобрать по арке, или номер детали")
     ap.add_argument("--no-tiles", action="store_true", help="не заменять верхние пластины тайлами")
+    ap.add_argument("--mosaic", action="store_true", help="плоская пиксельная фигура: один пиксель = один тайл 1x1")
+    ap.add_argument("--pixels", type=int, help="для --mosaic: пикселей по ширине, если сетка не находится сама")
     ap.add_argument("--resolution", type=int, default=1024, choices=[512, 1024, 1536], help="детализация нейросети для фото")
     ap.add_argument("--backend", choices=["hf", "kaggle"], default="hf", help="где считать фото→3D: HF Space (быстро, квота) или Kaggle (пачкой)")
     ap.add_argument("--variants", type=int, default=1, help="сколько вариаций (seed) сгенерировать из фото")
@@ -44,7 +46,33 @@ def main() -> None:
 
     vocabulary = VOCABULARIES[args.unit]
     for variant, mesh_path in mesh_paths.items():
-        _build_one(args, mesh_path, variant, vocabulary)
+        if args.mosaic:
+            _build_mosaic(args, mesh_path, variant)
+        else:
+            _build_one(args, mesh_path, variant, vocabulary)
+
+
+def _build_mosaic(args, mesh_path: str, variant: str) -> None:
+    from .mosaic import mosaic_bricks, mosaic_from_mesh
+    mosaic = mosaic_from_mesh(mesh_path, max_colors=args.colors, pixels_wide=args.pixels)
+    bricks = mosaic_bricks(mosaic)
+    if args.recolor:
+        mapping = {code_by_name(a): code_by_name(b) for a, b in (r.split("=") for r in args.recolor)}
+        bricks = [b.__class__(**{**b.__dict__, "color": mapping.get(b.color, b.color)}) for b in bricks]
+    suffix = f"_{variant}" if variant else ""
+    io_path = Path(args.out) if args.out else _model_dir(args.input) / f"{Path(args.input).stem}{suffix}_mosaic.io"
+    io_path.parent.mkdir(parents=True, exist_ok=True)
+    ldr_path = io_path.with_suffix(".ldr")
+    write_ldr(bricks, str(ldr_path), io_path.stem)
+    write_io(str(ldr_path), str(io_path))
+    names = {c.code: c.name for c in load_palette(common_only=False)}
+    colors = Counter(b.color for b in bricks if b.layer == 1)
+    print(f"мозаика {mosaic.width}x{mosaic.height} пикселей, шаг сетки {mosaic.pitch_px:.1f} px растра")
+    print(f"деталей {len(bricks)}: тайлов 1x1 {sum(colors.values())}, подложка {len(bricks) - sum(colors.values())}")
+    print("цвета: " + ", ".join(f"{names.get(c, c)} x{n}" for c, n in colors.most_common()))
+    print("->", io_path)
+    if args.open:
+        open_in_studio(str(io_path))
 
 
 def _build_one(args, mesh_path: str, variant: str, vocabulary) -> None:
