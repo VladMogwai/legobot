@@ -7,7 +7,10 @@ import sys
 import time
 
 t0 = time.time()
-os.chdir("/kaggle/working")
+# Всё тяжёлое — во временную папку: Kaggle сохраняет /kaggle/working как результат целиком.
+WORK = "/kaggle/tmp"
+os.makedirs(WORK, exist_ok=True)
+os.chdir(WORK)
 run = lambda cmd: subprocess.run(cmd, shell=True, check=True)
 
 # --- 1. TRELLIS.2 и его CUDA-расширения ---
@@ -16,30 +19,37 @@ run = lambda cmd: subprocess.run(cmd, shell=True, check=True)
 EIGEN_SHA = "21e4582d1739107337a03460c81412981130373e"
 if not os.path.isdir("TRELLIS.2"):
     run("git clone -q -b main https://github.com/microsoft/TRELLIS.2.git")
-os.chdir("TRELLIS.2")
+os.chdir(f"{WORK}/TRELLIS.2")
 eigen_dir = "o-voxel/third_party/eigen"
 if not os.path.exists(os.path.join(eigen_dir, "Eigen")):
     run(f"rm -rf {eigen_dir} && mkdir -p {eigen_dir}")
     run(f"curl -sL https://github.com/eigen-mirror/eigen/archive/{EIGEN_SHA}.tar.gz | tar xz -C {eigen_dir} --strip-components=1")
 print("eigen ok:", os.path.exists(os.path.join(eigen_dir, "Eigen", "Dense")), flush=True)
-run("bash setup.sh --basic --flash-attn --nvdiffrast --nvdiffrec --cumesh --o-voxel --flexgemm > /kaggle/working/setup.log 2>&1 || (tail -50 /kaggle/working/setup.log; exit 1)")
+# flash-attn на Kaggle собирается из исходников ~9 часов и на T4 всё равно не работает.
+# Вместо него xformers: готовое колесо, и его понимают обе части TRELLIS — плотная и разреженная.
+# Ставим ДО сборки расширений: xformers тянет свой torch, а расширения должны собираться под него.
+run("pip install -q xformers --index-url https://download.pytorch.org/whl/cu124 > /kaggle/working/setup.log 2>&1 || pip install -q xformers >> /kaggle/working/setup.log 2>&1")
+run("python -c 'import torch, xformers, xformers.ops; print(\"torch\", torch.__version__, \"xformers\", xformers.__version__)'")
+run("bash setup.sh --basic --nvdiffrast --nvdiffrec --cumesh --o-voxel --flexgemm >> /kaggle/working/setup.log 2>&1 || (tail -80 /kaggle/working/setup.log; exit 1)")
+run("python -c 'import o_voxel, nvdiffrast, cumesh; print(\"extensions ok\")'")
 print(f"setup done in {time.time() - t0:.0f}s", flush=True)
 
-# --- 2. T4 не умеет flash-attn: заменяем на встроенный attention ---
-patch = "trellis2/modules/attention/full_attn.py"
-src = open(patch).read()
-if "flash_attn.flash_attn_func(q, k, v)" in src:
-    src = src.replace(
-        "out = flash_attn.flash_attn_func(q, k, v)",
-        "import torch.nn.functional as F; out = F.scaled_dot_product_attention(q.transpose(1, 2), k.transpose(1, 2), v.transpose(1, 2)).transpose(1, 2)",
-    )
-    open(patch, "w").write(src)
-os.environ["ATTN_BACKEND"] = "math"
+# --- 2. Бэкенд внимания ---
+os.environ["ATTN_BACKEND"] = "xformers"
 os.environ["OPENCV_IO_ENABLE_OPENEXR"] = "1"
 os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
-sys.path.insert(0, "/kaggle/working/TRELLIS.2")
+sys.path.insert(0, f"{WORK}/TRELLIS.2")
 
-# --- 3. Пайплайн ---
+# --- 3. Логин в Hugging Face: энкодер DINOv3 у TRELLIS.2 закрытый, нужен токен с принятыми условиями ---
+try:
+    from kaggle_secrets import UserSecretsClient
+    from huggingface_hub import login
+    login(token=UserSecretsClient().get_secret("HF"))
+    print("HF login ok", flush=True)
+except Exception as e:  # noqa: BLE001
+    print("HF login skipped:", e, flush=True)
+
+# --- 4. Пайплайн ---
 import torch
 from PIL import Image
 import o_voxel
@@ -55,7 +65,7 @@ for name, model in getattr(pipeline, "models", {}).items():
         print("fp16 skip", name, e)
 print(f"pipeline ready at {time.time() - t0:.0f}s, VRAM {torch.cuda.memory_allocated() / 1e9:.1f} GB", flush=True)
 
-# --- 4. Параметры прогона: config.json в датасете (seeds, resolution) ---
+# --- 5. Параметры прогона: config.json в датасете (seeds, resolution) ---
 import json
 config = {"seeds": [0], "resolution": "1024"}
 if os.path.exists("/kaggle/input/legobot-photos/config.json"):
