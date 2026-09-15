@@ -29,7 +29,7 @@ def main() -> None:
     size.add_argument("--height", type=float, help="желаемая высота, см")
     size.add_argument("--grid", type=int, help="штырьков по длинной стороне (низкоуровневый параметр)")
     ap.add_argument("--estimate", action="store_true", help="не собирать, а показать таблицу «деталей → размер»")
-    ap.add_argument("--unit", choices=VOCABULARIES, default="bricks", help="из чего класть: bricks (объёмные фигуры) или plates (низкие формы, машины; втрое точнее по высоте, но деталей больше)")
+    ap.add_argument("--unit", choices=VOCABULARIES, default="plates", help="из чего класть: plates (втрое точнее по высоте — круглые формы, машины) или bricks (угловатые вещи; на тот же бюджет деталей модель крупнее)")
     ap.add_argument("--color", type=int, default=YELLOW, help="код цвета LDraw, если у модели нет своего цвета")
     ap.add_argument("--colors", type=int, default=4, help="до скольких цветов сводить цвет модели")
     ap.add_argument("--symmetric", action="store_true", help="зеркальная кладка, даже если меш кривоват (фото)")
