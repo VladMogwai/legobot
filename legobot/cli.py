@@ -9,10 +9,12 @@ from .fixtures import WHEEL_BY_PART
 from .ldraw import write_ldr
 from .parts import VOCABULARIES
 from .pipeline import Build, build
-from .sizing import fit_height, fit_parts
+from .sizing import fit_height, fit_parts, grid_for_size
 from .studio import open_in_studio, write_io
 
 YELLOW = 14
+DEFAULT_PARTS = 400          # ориентир: модели на 300–500 деталей
+ESTIMATE_PARTS = [200, 300, 400, 500, 700, 1000]
 IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png", ".webp"}
 OUT_DIR = Path("out")
 
@@ -21,10 +23,12 @@ def main() -> None:
     ap = argparse.ArgumentParser(prog="legobot")
     ap.add_argument("input", help="фото (jpg/png/webp) или 3D-файл (STL/OBJ/PLY/GLB, ось Z — вертикаль)")
     size = ap.add_mutually_exclusive_group()
-    size.add_argument("--grid", type=int, help="штырьков по длинной стороне")
-    size.add_argument("--parts", type=int, help="желаемое число деталей")
+    size.add_argument("--parts", type=int, help="желаемое число деталей (по умолчанию 400)")
+    size.add_argument("--size", type=float, help="длина самой длинной стороны, см")
     size.add_argument("--height", type=float, help="желаемая высота, см")
-    ap.add_argument("--unit", choices=VOCABULARIES, default="plates", help="из чего класть: plates (точнее) или bricks")
+    size.add_argument("--grid", type=int, help="штырьков по длинной стороне (низкоуровневый параметр)")
+    ap.add_argument("--estimate", action="store_true", help="не собирать, а показать таблицу «деталей → размер»")
+    ap.add_argument("--unit", choices=VOCABULARIES, default="bricks", help="из чего класть: bricks (объёмные фигуры) или plates (низкие формы, машины; втрое точнее по высоте, но деталей больше)")
     ap.add_argument("--color", type=int, default=YELLOW, help="код цвета LDraw, если у модели нет своего цвета")
     ap.add_argument("--colors", type=int, default=4, help="до скольких цветов сводить цвет модели")
     ap.add_argument("--symmetric", action="store_true", help="зеркальная кладка, даже если меш кривоват (фото)")
@@ -80,12 +84,17 @@ def _build_one(args, mesh_path: str, variant: str, vocabulary) -> None:
                        wheels=args.wheels, tiles=not args.no_tiles, max_colors=args.colors,
                        force_symmetric=args.symmetric,
                        recolor_map={code_by_name(a): code_by_name(b) for a, b in (r.split("=") for r in args.recolor)})
-    if args.parts:
-        result = fit_parts(build_at, args.parts)
+    if args.estimate:
+        _print_estimate(build_at)
+        return
+    if args.size:
+        result = build_at(grid_for_size(args.size))
     elif args.height:
         result = fit_height(build_at, mesh_path, args.height, vocabulary)
+    elif args.grid:
+        result = build_at(args.grid)
     else:
-        result = build_at(args.grid or 30)
+        result = fit_parts(build_at, args.parts or DEFAULT_PARTS)
 
     suffix = f"_{variant}" if variant else ""
     io_path = Path(args.out) if args.out else _model_dir(args.input) / f"{Path(args.input).stem}{suffix}_g{result.grid}.io"
@@ -127,6 +136,16 @@ def _meshes_from_input(path: str, resolution: int, backend: str, variants: int) 
             print(f"фото → 3D через TRELLIS.2 ({variant}), обычно 1–3 минуты…")
             mesh_from_photo(str(src), str(ply), resolution=resolution, seed=int(variant[1:]))
     return {v: str(p) for v, p in cached.items() if p.exists()}
+
+
+def _print_estimate(build_at) -> None:
+    print(f"{'цель':>6} {'деталей':>8} {'Ш x Д x В, см':>20}  {'из них 1x1':>10}")
+    for target in ESTIMATE_PARTS:
+        r = fit_parts(build_at, target)
+        w, l, h = r.size_mm
+        ones = sum(1 for b in r.bricks if b.part.area == 1)
+        print(f"{target:6d} {r.part_count:8d} {w / 10:6.1f} x {l / 10:5.1f} x {h / 10:5.1f}  {ones:10d}")
+    print("выбери: --parts N (по умолчанию 400), --size СМ или --height СМ")
 
 
 def _summary(r: Build) -> str:

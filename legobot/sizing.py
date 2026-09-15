@@ -9,6 +9,11 @@ from .pipeline import STUD_MM, Build
 MIN_GRID, MAX_GRID = 6, 120
 
 
+def grid_for_size(size_cm: float) -> int:
+    """Сетка (штырьков по длинной стороне) для заданной длины этой стороны в сантиметрах."""
+    return max(MIN_GRID, round(size_cm * 10 / STUD_MM))
+
+
 def fit_parts(build_at: Callable[[int], Build], target: int) -> Build:
     return _fit(build_at, lambda b: b.part_count, target, MIN_GRID, MAX_GRID)
 
