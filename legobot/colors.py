@@ -64,6 +64,7 @@ def nearest_codes(rgb: np.ndarray, max_colors: int = 4) -> np.ndarray:
     weighted = lab * np.array([LIGHTNESS_WEIGHT, 1.0, 1.0])
     k = min(max_colors, len(np.unique(rgb, axis=0)))
     _, labels = kmeans2(weighted, k, minit="++", seed=0)
+    labels = _merge_same_hue(lab, labels, k)
     palette = load_palette()
     palette_lab = _rgb_to_lab(np.array([c.rgb for c in palette]))
     codes = np.array([c.code for c in palette])
@@ -76,6 +77,29 @@ def nearest_codes(rgb: np.ndarray, max_colors: int = 4) -> np.ndarray:
 
 BLACK = 0
 DARK_L, ACHROMATIC = 45.0, 15.0
+SAME_HUE_DEG = 20.0  # кластеры одного оттенка (свет и тень одного цвета) сливаются
+
+
+def _merge_same_hue(lab: np.ndarray, labels: np.ndarray, k: int) -> np.ndarray:
+    """Тень и свет одного цвета — один цвет: сливаем хроматические кластеры с близким оттенком
+    в тот, где больше вокселей."""
+    centers = np.stack([lab[labels == i].mean(0) if (labels == i).any() else np.zeros(3) for i in range(k)])
+    sizes = np.bincount(labels, minlength=k)
+    hue = np.degrees(np.arctan2(centers[:, 2], centers[:, 1]))
+    chroma = np.hypot(centers[:, 1], centers[:, 2])
+    target = np.arange(k)
+    for i in np.argsort(sizes):                     # от малых к большим: малый вливается в больший
+        if chroma[i] < ACHROMATIC:
+            continue
+        for j in np.argsort(-sizes):
+            if j == i or chroma[j] < ACHROMATIC or sizes[j] <= sizes[i]:
+                continue
+            if abs((hue[i] - hue[j] + 180) % 360 - 180) < SAME_HUE_DEG:
+                target[i] = j
+                break
+    while not np.array_equal(target[target], target):  # цепочки слияний
+        target = target[target]
+    return target[labels]
 CHROMA_BOOST = 1.4  # фото тусклее пластика: усиливаем насыщенность перед подбором, чтобы выбирались Red/Blue, а не их бледные соседи
 
 

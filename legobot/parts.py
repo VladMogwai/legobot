@@ -6,6 +6,10 @@
 """
 from dataclasses import dataclass
 
+from functools import lru_cache
+from pathlib import Path
+
+LIBRARY = Path("/Applications/Studio 2.0/ldraw")
 STUD_LDU = 20         # шаг штырьков
 BRICK_HEIGHT_LDU = 24
 PLATE_HEIGHT_LDU = 8  # пластина — треть кирпича
@@ -65,3 +69,14 @@ PLATES = Vocabulary("plates", _plates(
 ))
 
 VOCABULARIES = {v.name: v for v in (BRICKS, PLATES)}
+
+
+@lru_cache
+def part_name(number: str) -> str:
+    """Официальное имя детали из заголовка .dat в библиотеке Studio, например «Brick 2 x 4»."""
+    for folder in ("parts", "UnOfficial/parts"):
+        path = LIBRARY / folder / f"{number}.dat"
+        if path.exists():
+            with open(path, encoding="utf-8", errors="ignore") as f:
+                return " ".join(f.readline().strip().lstrip("0 ").split())
+    return number

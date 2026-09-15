@@ -6,6 +6,7 @@ from pathlib import Path
 
 from .colors import code_by_name, load_palette
 from .fixtures import WHEEL_BY_PART
+from .instructions import bill_of_materials, split_steps, write_bom, write_pdf
 from .ldraw import write_ldr
 from .parts import VOCABULARIES
 from .pipeline import Build, build
@@ -42,7 +43,8 @@ def main() -> None:
     ap.add_argument("--resolution", type=int, default=1024, choices=[512, 1024, 1536], help="детализация нейросети для фото")
     ap.add_argument("--backend", choices=["hf", "kaggle"], default="hf", help="где считать фото→3D: HF Space (быстро, квота) или Kaggle (пачкой)")
     ap.add_argument("--variants", type=int, default=1, help="сколько вариаций (seed) сгенерировать из фото")
-    ap.add_argument("-o", "--out", help="куда писать .io (рядом ляжет .ldr)")
+    ap.add_argument("-o", "--out", help="куда писать .io (рядом лягут .ldr, список деталей и PDF)")
+    ap.add_argument("--no-instructions", action="store_true", help="не делать PDF и список деталей")
     ap.add_argument("--open", action="store_true", help="открыть результат в Studio")
     args = ap.parse_args()
 
@@ -75,6 +77,8 @@ def _build_mosaic(args, mesh_path: str, variant: str) -> None:
     print(f"деталей {len(bricks)}: тайлов 1x1 {sum(colors.values())}, подложка {len(bricks) - sum(colors.values())}")
     print("цвета: " + ", ".join(f"{names.get(c, c)} x{n}" for c, n in colors.most_common()))
     print("->", io_path)
+    if not args.no_instructions:
+        _write_instructions(bricks, [], io_path)
     if args.open:
         open_in_studio(str(io_path))
 
@@ -104,8 +108,19 @@ def _build_one(args, mesh_path: str, variant: str, vocabulary) -> None:
     write_io(str(ldr_path), str(io_path))
     print(_summary(result))
     print("->", io_path)
+    if not args.no_instructions:
+        _write_instructions(result.bricks, result.fixtures, io_path)
     if args.open:
         open_in_studio(str(io_path))
+
+
+def _write_instructions(bricks, fixtures, io_path: Path) -> None:
+    bom_path, pdf_path = io_path.with_suffix(".csv"), io_path.with_suffix(".pdf")
+    write_bom(bill_of_materials(bricks, fixtures), str(bom_path))
+    steps = split_steps(bricks)
+    write_pdf(bricks, steps, str(pdf_path), io_path.stem, fixtures)
+    print(f"-> {bom_path}  ({len(bill_of_materials(bricks, fixtures))} типов деталей)")
+    print(f"-> {pdf_path}  ({len(steps)} шагов)")
 
 
 def _model_dir(input_path: str) -> Path:
