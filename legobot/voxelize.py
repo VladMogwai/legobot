@@ -19,6 +19,8 @@ class VoxelModel:
     occupancy: np.ndarray          # bool [x, y, z], z — вверх
     colors: np.ndarray | None      # uint8 [x, y, z, 3]; None — меш без цвета
     symmetric: bool                # меш симметричен относительно плоскости, перпендикулярной X
+    normals: np.ndarray | None = None   # float32 [x, y, z, 3], нормаль поверхности у поверхностных вокселей
+                                        # (в штырьках по всем осям, z вверх), нули — внутри
 
     @property
     def shape(self):
@@ -39,10 +41,11 @@ def voxelize_mesh(path: str, grid: int, aspect: float, force_symmetric: bool = F
     pitch = mesh.extents[:2].max() / grid
     occupancy, origin = _occupancy(mesh, pitch)
     colors = _sample_colors(mesh, occupancy, origin, pitch)
+    normals = _sample_normals(mesh, occupancy, origin, pitch, aspect)
 
     center_x = mesh.bounds[:, 0].mean()
     center_index = (center_x - origin[0]) / pitch
-    model = VoxelModel(occupancy, colors, symmetric)
+    model = VoxelModel(occupancy, colors, symmetric, normals)
     return _align_mirror_axis(model, center_index)
 
 
@@ -128,6 +131,30 @@ def _sample_colors(mesh, occupancy, origin, pitch):
     return colors
 
 
+def _sample_normals(mesh, occupancy, origin, pitch, aspect):
+    """Средняя нормаль меша в каждом поверхностном вокселе (по точкам поверхности, попавшим в него;
+    если не попало ни одной — по ближайшей). Меш растянут по вертикали в 1/aspect раз, поэтому
+    вертикальную компоненту возвращаем в исходный масштаб."""
+    points, face_ids = trimesh.sample.sample_surface(mesh, SURFACE_SAMPLES, seed=0)
+    normals = mesh.face_normals[face_ids].copy()
+    normals[:, 2] /= aspect
+    normals /= np.linalg.norm(normals, axis=1, keepdims=True)
+    idx = np.round((points - origin) / pitch).astype(int)
+    inside = np.all((idx >= 0) & (idx < occupancy.shape), axis=1)
+    summed = np.zeros(occupancy.shape + (3,))
+    np.add.at(summed, tuple(idx[inside].T), normals[inside])
+    surface = occupancy & ~interior(occupancy)
+    cells = np.argwhere(surface)
+    empty = np.linalg.norm(summed[tuple(cells.T)], axis=1) < 1e-9
+    if empty.any():
+        _, nearest = cKDTree(points).query(origin + cells[empty] * pitch)
+        summed[tuple(cells[empty].T)] = normals[nearest]
+    out = np.zeros(occupancy.shape + (3,), dtype=np.float32)
+    n = summed[tuple(cells.T)]
+    out[tuple(cells.T)] = n / np.maximum(np.linalg.norm(n, axis=1, keepdims=True), 1e-9)
+    return out
+
+
 def _vertex_colors(mesh):
     visual = mesh.visual
     if hasattr(visual, "to_color"):  # текстура -> цвета вершин
@@ -163,23 +190,29 @@ def _align_mirror_axis(model: VoxelModel, center_index: float) -> VoxelModel:
     if pad == 0:
         return model
     left, right = (0, pad) if target > current else (pad, 0)
+    pad4 = lambda a: None if a is None else np.pad(a, ((left, right), (0, 0), (0, 0), (0, 0)))
     occupancy = np.pad(model.occupancy, ((left, right), (0, 0), (0, 0)))
-    colors = None if model.colors is None else np.pad(model.colors, ((left, right), (0, 0), (0, 0), (0, 0)))
-    return VoxelModel(occupancy, colors, model.symmetric)
+    return VoxelModel(occupancy, pad4(model.colors), model.symmetric, pad4(model.normals))
 
 
 def symmetrize(model: VoxelModel) -> VoxelModel:
     """Выравнивает модель по зеркалу: воксель есть, если он есть с любой из сторон;
     цвет правой половины — отражение левой."""
     occ = model.occupancy
-    colors = model.colors
-    if colors is not None:
-        mirrored = np.flip(colors, axis=0)
-        # Воксель, появившийся только из отражения, берёт цвет отражения.
-        colors = np.where(occ[..., None], colors, mirrored)
-        half = occ.shape[0] // 2
-        colors[half:] = np.flip(colors, axis=0)[half:]
-    return VoxelModel(occ | np.flip(occ, axis=0), colors, model.symmetric)
+    half = occ.shape[0] // 2
+
+    def mirror(field, flip_x=False):
+        if field is None:
+            return None
+        mirrored = np.flip(field, axis=0)
+        if flip_x:
+            mirrored = mirrored * np.array([-1, 1, 1], dtype=field.dtype)
+        # Воксель, появившийся только из отражения, берёт значение отражения.
+        field = np.where(occ[..., None], field, mirrored)
+        field[half:] = np.flip(field, axis=0)[half:] * (np.array([-1, 1, 1], dtype=field.dtype) if flip_x else 1)
+        return field
+
+    return VoxelModel(occ | np.flip(occ, axis=0), mirror(model.colors), model.symmetric, mirror(model.normals, flip_x=True))
 
 
 def drop_floating(model: VoxelModel) -> VoxelModel:
@@ -193,5 +226,5 @@ def drop_floating(model: VoxelModel) -> VoxelModel:
         above[:, :, :-1] = v[:, :, 1:]
         keep = v & (below | above)
         if keep.sum() == v.sum():
-            return VoxelModel(keep, model.colors, model.symmetric)
+            return VoxelModel(keep, model.colors, model.symmetric, model.normals)
         v = keep

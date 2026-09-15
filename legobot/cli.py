@@ -38,6 +38,7 @@ def main() -> None:
     ap.add_argument("--wheels", nargs="?", const="auto", choices=["auto", *WHEEL_BY_PART],
                     help="найти арки и поставить колёса: auto — подобрать по арке, или номер детали")
     ap.add_argument("--no-tiles", action="store_true", help="не заменять верхние пластины тайлами")
+    ap.add_argument("--slopes", action="store_true", help="закрывать ступеньки скосами (только пластины)")
     ap.add_argument("--mosaic", action="store_true", help="плоская пиксельная фигура: один пиксель = один тайл 1x1")
     ap.add_argument("--pixels", type=int, help="для --mosaic: пикселей по ширине, если сетка не находится сама")
     ap.add_argument("--resolution", type=int, default=1024, choices=[512, 1024, 1536], help="детализация нейросети для фото")
@@ -86,7 +87,7 @@ def _build_mosaic(args, mesh_path: str, variant: str) -> None:
 def _build_one(args, mesh_path: str, variant: str, vocabulary) -> None:
     build_at = partial(build, mesh_path, default_color=args.color, vocabulary=vocabulary,
                        wheels=args.wheels, tiles=not args.no_tiles, max_colors=args.colors,
-                       force_symmetric=args.symmetric,
+                       force_symmetric=args.symmetric, slopes=args.slopes,
                        recolor_map={code_by_name(a): code_by_name(b) for a, b in (r.split("=") for r in args.recolor)})
     if args.estimate:
         _print_estimate(build_at)
@@ -104,12 +105,12 @@ def _build_one(args, mesh_path: str, variant: str, vocabulary) -> None:
     io_path = Path(args.out) if args.out else _model_dir(args.input) / f"{Path(args.input).stem}{suffix}_g{result.grid}.io"
     io_path.parent.mkdir(parents=True, exist_ok=True)
     ldr_path = io_path.with_suffix(".ldr")
-    write_ldr(result.bricks, str(ldr_path), io_path.stem, result.fixtures)
+    write_ldr(result.bricks, str(ldr_path), io_path.stem, result.fixtures, result.slopes)
     write_io(str(ldr_path), str(io_path))
     print(_summary(result))
     print("->", io_path)
     if not args.no_instructions:
-        _write_instructions(result.bricks, result.fixtures, io_path)
+        _write_instructions(result.bricks + result.slopes, result.fixtures, io_path)
     if args.open:
         open_in_studio(str(io_path))
 
@@ -171,6 +172,7 @@ def _summary(r: Build) -> str:
         f"сетка {r.grid}, {r.vocabulary.name}, {'зеркальная кладка' if r.mirrored else 'модель несимметрична'}\n"
         f"размер {w / 10:.1f} x {l / 10:.1f} x {h / 10:.1f} см, слоёв {len({b.layer for b in r.bricks})}\n"
         f"деталей {r.part_count}: " + ", ".join(f"{k} x{n}" for k, n in sorted(parts.items()))
+        + (f" + скосов {len(r.slopes)}: " + ", ".join(f"{k} x{n}" for k, n in sorted(Counter(s.slope.number for s in r.slopes).items())) if r.slopes else "")
         + (f" + {len(r.fixtures)} фикс. ({len(r.fixtures) // 3} колёс)" if r.fixtures else "") + "\n"
         f"цвета: " + ", ".join(f"{names.get(c, c)} x{n}" for c, n in r.colors.most_common())
     )

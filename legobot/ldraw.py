@@ -7,15 +7,18 @@ from itertools import groupby
 from .fixtures import Fixture
 from .layout import PlacedBrick
 from .parts import STUD_LDU
+from .slopes import PlacedSlope
 
 _IDENTITY = "1.000000 0.000000 0.000000 0.000000 1.000000 0.000000 0.000000 0.000000 1.000000"
 _ROTATE_90 = "0.000000 0.000000 1.000000 0.000000 1.000000 0.000000 -1.000000 0.000000 0.000000"
 
 
-def write_ldr(bricks: list[PlacedBrick], path: str, name: str, fixtures: list[Fixture] = ()) -> None:
+def write_ldr(bricks: list[PlacedBrick], path: str, name: str, fixtures: list[Fixture] = (),
+              slopes: list[PlacedSlope] = ()) -> None:
     lines = [f"0 FILE {name}.ldr", f"0 {name}", f"0 Name:  {name}", "0 Author:  legobot"]
-    for _, layer_bricks in groupby(sorted(bricks, key=lambda b: b.layer), key=lambda b: b.layer):
-        lines.extend(_brick_line(b) for b in layer_bricks)
+    parts = sorted([*bricks, *slopes], key=lambda b: b.layer)   # скос — на своём нижнем слое
+    for _, layer_parts in groupby(parts, key=lambda b: b.layer):
+        lines.extend(p.ldraw_line() if isinstance(p, PlacedSlope) else _brick_line(p) for p in layer_parts)
         lines.append("0 STEP")  # слой = шаг инструкции
     if fixtures:
         lines.extend(_fixture_line(f) for f in fixtures)

@@ -64,25 +64,38 @@ class _Components:
 
 
 def layout_bricks(voxels: np.ndarray, colors: np.ndarray, default_color: int, vocabulary: Vocabulary,
-                  mirrored: bool = False) -> list[PlacedBrick]:
+                  mirrored: bool = False, fixed: np.ndarray | None = None) -> list[PlacedBrick]:
     """voxels: bool [x, y, z], z — вертикаль. colors: код цвета LDraw на каждый воксель той же формы,
     ANY_COLOR — воксель без требования. Кирпич одноцветный: все его воксели с требованием одного цвета;
-    если требований нет — default_color. mirrored — зеркальная кладка относительно середины X."""
+    если требований нет — default_color. mirrored — зеркальная кладка относительно середины X.
+    fixed: int той же формы, -1 — свободно, иначе номер заранее поставленной детали (скос):
+    её клетки укладка не покрывает, но считает опорой и связью."""
     nx, nz, nlayers = voxels.shape
+    if fixed is None:
+        fixed = np.full(voxels.shape, -1)
     footprints = {(p.width, p.length) for p in vocabulary.parts} | {(p.length, p.width) for p in vocabulary.parts}
     placed: list[PlacedBrick] = []
     components = _Components()
     components.add()  # GROUND
+    fixed_ids: dict[int, int] = {}
     below_ids = np.full((nx, nz), GROUND)
     empty = np.zeros((nx, nz), dtype=bool)
     for k in range(nlayers):
-        layer = voxels[:, :, k]
-        if not layer.any():
-            below_ids = np.full((nx, nz), NO_BRICK)
-            continue
+        layer = voxels[:, :, k] & (fixed[:, :, k] < 0)
         above = voxels[:, :, k + 1] if k + 1 < nlayers else empty
-        below_ids = _layout_layer(layer, colors[:, :, k], default_color, below_ids, above, k,
-                                  placed, components, mirrored, vocabulary, footprints)
+        if layer.any():
+            ids = _layout_layer(layer, colors[:, :, k], default_color, below_ids, above, k,
+                                placed, components, mirrored, vocabulary, footprints)
+        else:
+            ids = np.full((nx, nz), NO_BRICK)
+        for f in np.unique(fixed[:, :, k][fixed[:, :, k] >= 0]):
+            cid = fixed_ids.setdefault(int(f), components.add())
+            cells = fixed[:, :, k] == f
+            for under_id in np.unique(below_ids[cells]):
+                if under_id != NO_BRICK:
+                    components.union(cid, int(under_id))
+            ids[cells] = cid
+        below_ids = ids
     return placed
 
 

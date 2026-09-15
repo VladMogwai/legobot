@@ -9,6 +9,7 @@ from .finish import tile_exposed_tops
 from .fixtures import WHEEL_BY_PART, Fixture, wheel_fixtures
 from .layout import ANY_COLOR, EXPOSED_TOP, PlacedBrick, layout_bricks
 from .parts import STUD_LDU, Vocabulary
+from .slopes import PlacedSlope, find_slopes
 from .voxelize import VoxelModel, drop_floating, interior, symmetrize, voxelize_mesh
 
 STUD_MM = 8.0
@@ -22,6 +23,7 @@ class Build:
     mirrored: bool
     vocabulary: Vocabulary
     fixtures: list[Fixture]
+    slopes: list[PlacedSlope]
 
     @property
     def layer_mm(self) -> float:
@@ -29,7 +31,7 @@ class Build:
 
     @property
     def part_count(self) -> int:
-        return len(self.bricks) + len(self.fixtures)
+        return len(self.bricks) + len(self.slopes) + len(self.fixtures)
 
     @property
     def size_mm(self) -> tuple[float, float, float]:
@@ -66,9 +68,11 @@ def _despeckle(codes: np.ndarray, surface: np.ndarray, passes: int = 1) -> np.nd
 
 def build(mesh_path: str, grid: int, default_color: int, vocabulary: Vocabulary,
           wheels: str | None = None, tiles: bool = True, max_colors: int = 4,
-          force_symmetric: bool = False, recolor_map: dict[int, int] | None = None) -> Build:
+          force_symmetric: bool = False, recolor_map: dict[int, int] | None = None,
+          slopes: bool = False) -> Build:
     """wheels: None — без колёс, "auto" — подобрать по арке, иначе номер детали колеса.
-    max_colors — до скольких цветов сводить цвет меша. force_symmetric — зеркалить даже кривой меш."""
+    max_colors — до скольких цветов сводить цвет меша. force_symmetric — зеркалить даже кривой меш.
+    slopes — закрывать ступеньки скосами (только при кладке пластинами)."""
     model = voxelize_mesh(mesh_path, grid, vocabulary.aspect, force_symmetric)
     mirrored = model.symmetric
     if mirrored:
@@ -91,13 +95,19 @@ def build(mesh_path: str, grid: int, default_color: int, vocabulary: Vocabulary,
             codes[surface] = recolor(codes[surface], recolor_map)
         body_color = Counter(codes[surface].tolist()).most_common(1)[0][0]
 
+    placed_slopes: list[PlacedSlope] = []
+    fixed = None
+    if slopes:
+        assert vocabulary.name == "plates", "скосы рассчитаны на кладку пластинами"
+        placed_slopes, fixed = find_slopes(voxels, codes, body_color, mirrored, ANY_COLOR, model.normals)
+
     if tiles:
         exposed = voxels.copy()
         exposed[:, :, :-1] &= ~voxels[:, :, 1:]
         codes[exposed] = np.where(codes[exposed] == ANY_COLOR, body_color, codes[exposed]) | EXPOSED_TOP
-    bricks = layout_bricks(voxels, codes, body_color, vocabulary, mirrored=mirrored)
-    covered = sum(b.part.area for b in bricks)
+    bricks = layout_bricks(voxels, codes, body_color, vocabulary, mirrored=mirrored, fixed=fixed)
+    covered = sum(b.part.area for b in bricks) + (int((fixed >= 0).sum()) if fixed is not None else 0)
     assert covered == int(voxels.sum()), f"покрыто {covered} из {int(voxels.sum())} вокселей"
     if tiles:
         bricks = tile_exposed_tops(bricks, voxels)
-    return Build(bricks, model, grid, mirrored, vocabulary, fixtures)
+    return Build(bricks, model, grid, mirrored, vocabulary, fixtures, placed_slopes)

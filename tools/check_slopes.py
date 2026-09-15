@@ -9,7 +9,7 @@ from legobot.slopes import FACINGS, SLOPES, PlacedSlope, _ROTATION
 from tools.ldraw_geometry import points
 
 ok = True
-lines = ["0 FILE slopes.ldr", "0 slopes", "0 Author:  legobot"]
+lines = ["0 FILE slopes_test.ldr", "0 slopes_test", "0 Name:  slopes_test", "0 Author:  legobot"]   # заголовок как у write_ldr
 row = 0
 for slope in SLOPES.values():
     for col, facing in enumerate(FACINGS):
@@ -38,7 +38,7 @@ for slope in SLOPES.values():
         lines.append(p.ldraw_line())
         # опорная пластина под задней колонкой и пластина-ориентир перед губкой
         for cx, cz, j in p.columns():
-            lines.append(f"1 4 {(cx + 0.5) * STUD_LDU:.6f} {-(p.layer - 1) * PLATE_HEIGHT_LDU:.6f} {(cz + 0.5) * STUD_LDU:.6f} 1 0 0 0 1 0 0 0 1 3024.dat")
+            lines.append(f"1 4 {(cx + 0.5) * STUD_LDU:.6f} {-(p.layer - 1) * PLATE_HEIGHT_LDU:.6f} {(cz + 0.5) * STUD_LDU:.6f} 1.000000 0.000000 0.000000 0.000000 1.000000 0.000000 0.000000 0.000000 1.000000 3024.dat")
     row += 1
 lines += ["0 STEP", "0 NOFILE"]
 out = sys.argv[1] if len(sys.argv) > 1 else "out/slopes_test.ldr"
