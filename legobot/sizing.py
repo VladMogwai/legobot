@@ -14,6 +14,12 @@ def grid_for_size(size_cm: float) -> int:
     return max(MIN_GRID, round(size_cm * 10 / STUD_MM))
 
 
+def fit_size(build_at: Callable[[int], Build], size_cm: float) -> Build:
+    """Длинная сторона по фактическому замеру: вокселизатор может добавить клетку на границе."""
+    estimate = grid_for_size(size_cm)
+    return _fit(build_at, lambda b: max(b.size_mm[:2]), size_cm * 10, estimate - 2, estimate + 1)
+
+
 def fit_parts(build_at: Callable[[int], Build], target: int) -> Build:
     return _fit(build_at, lambda b: b.part_count, target, MIN_GRID, MAX_GRID)
 

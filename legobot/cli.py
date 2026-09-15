@@ -9,7 +9,7 @@ from .fixtures import WHEEL_BY_PART
 from .ldraw import write_ldr
 from .parts import VOCABULARIES
 from .pipeline import Build, build
-from .sizing import fit_height, fit_parts, grid_for_size
+from .sizing import fit_height, fit_parts, fit_size
 from .studio import open_in_studio, write_io
 
 YELLOW = 14
@@ -88,7 +88,7 @@ def _build_one(args, mesh_path: str, variant: str, vocabulary) -> None:
         _print_estimate(build_at)
         return
     if args.size:
-        result = build_at(grid_for_size(args.size))
+        result = fit_size(build_at, args.size)
     elif args.height:
         result = fit_height(build_at, mesh_path, args.height, vocabulary)
     elif args.grid:
