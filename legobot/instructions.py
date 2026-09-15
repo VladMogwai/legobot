@@ -156,11 +156,12 @@ def _draw_iso(ax, bricks, new, aspect, rgb, shift=(0.0, 0.0)):
                 polys.append([P(*p) for p in pts]); fills.append(fill); edges.append(fill); widths.append(0.4)   # обводка в цвет: без щелей между клетками
 
             def edge(p, q, dx, dy, dz):
-                """Линия по ребру, если сосед за ним — не та же деталь (иначе грань продолжается)."""
+                """Линия по ребру, если сосед за ним — не та же деталь (иначе грань продолжается).
+                Красная — только на границе новых деталей с остальным: общий контур группы, как в Studio."""
                 j = cells.get((x + dx, y + dy, k + dz))
                 if j == i:
                     return
-                c, w = _LINE_NEW if (i in new or j in new) else line
+                c, w = _LINE_NEW if (i in new) != (j in new) else line
                 segs.append([P(*p), P(*q)]); seg_colors.append(c); seg_widths.append(w)
 
             if (x, y, k + 1) not in cells:                                            # верх
@@ -169,8 +170,7 @@ def _draw_iso(ax, bricks, new, aspect, rgb, shift=(0.0, 0.0)):
                 edge((x, y, z1), (x + 1, y, z1), 0, -1, 0); edge((x, y + 1, z1), (x + 1, y + 1, z1), 0, 1, 0)
                 for pts, shade in _stud(x + 0.5, y + 0.5, z1):
                     polys.append([P(*p) for p in pts]); fills.append(np.clip(color * shade, 0, 1))
-                    c, w = _LINE_NEW if i in new else line
-                    edges.append(c); widths.append(w * 0.6)
+                    edges.append(line[0]); widths.append(line[1] * 0.6)
             if (x - 1, y, k) not in cells:                                            # левая грань
                 face([(x, y, z0), (x, y + 1, z0), (x, y + 1, z1), (x, y, z1)], _SHADE_LEFT)
                 edge((x, y, z0), (x, y, z1), 0, -1, 0); edge((x, y + 1, z0), (x, y + 1, z1), 0, 1, 0)
