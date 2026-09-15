@@ -11,6 +11,7 @@ from scipy.spatial import cKDTree
 
 
 SYMMETRY_TOLERANCE = 0.02  # 90-й перцентиль расстояния от отражённой поверхности до меша, в долях ширины
+SUBSAMPLE = 3  # подвокселей на ребро при оценке заполнения
 
 
 @dataclass
@@ -36,12 +37,11 @@ def voxelize_mesh(path: str, grid: int, aspect: float, force_symmetric: bool = F
     # Масштабируем по вертикали, чтобы кубический воксель соответствовал пропорциям детали.
     mesh.apply_scale([1.0, 1.0, 1.0 / aspect])
     pitch = mesh.extents[:2].max() / grid
-    vox = mesh.voxelized(pitch).fill()
-    occupancy = vox.matrix
-    colors = _sample_colors(mesh, vox, occupancy)
+    occupancy, origin = _occupancy(mesh, pitch)
+    colors = _sample_colors(mesh, occupancy, origin, pitch)
 
     center_x = mesh.bounds[:, 0].mean()
-    center_index = (center_x - vox.transform[0, 3]) / pitch
+    center_index = (center_x - origin[0]) / pitch
     model = VoxelModel(occupancy, colors, symmetric)
     return _align_mirror_axis(model, center_index)
 
@@ -89,7 +89,25 @@ def _best_mirror_alignment(mesh) -> tuple[float, int, float]:
 SURFACE_SAMPLES = 400_000
 
 
-def _sample_colors(mesh, vox, occupancy):
+def _occupancy(mesh, pitch):
+    """Воксель занят, если внутри меша не меньше половины его объёма.
+
+    trimesh.voxelized помечает любой воксель, которого поверхность хоть краешком коснулась:
+    форма раздувается на полвокселя и покрывается случайными буграми. Поэтому считаем на
+    сетке в SUBSAMPLE раз мельче и укрупняем по доле заполнения. Возвращает (occupancy, origin):
+    origin — центр вокселя [0, 0, 0] в координатах меша."""
+    n = SUBSAMPLE
+    fine = mesh.voxelized(pitch / n).fill()
+    m = fine.matrix
+    pad = [(0, (-s) % n) for s in m.shape]
+    m = np.pad(m, pad)
+    blocks = m.reshape(m.shape[0] // n, n, m.shape[1] // n, n, m.shape[2] // n, n)
+    occupancy = blocks.sum(axis=(1, 3, 5)) >= n ** 3 / 2
+    origin = fine.transform[:3, 3] + (n - 1) / 2 * pitch / n
+    return occupancy, origin
+
+
+def _sample_colors(mesh, occupancy, origin, pitch):
     """Поверхностные воксели берут цвет ближайшей точки поверхности, внутренние — основной цвет.
 
     Точки насыпаются по поверхности равномерно, а не берутся из вершин: у мешей вершины
@@ -101,7 +119,7 @@ def _sample_colors(mesh, vox, occupancy):
     point_colors = vertex_colors[mesh.faces[face_ids]].mean(axis=1).astype(np.uint8)
     surface = occupancy & ~interior(occupancy)
     idx = np.argwhere(surface)
-    centers = trimesh.transform_points(idx.astype(float), vox.transform)
+    centers = origin + idx * pitch
     _, nearest = cKDTree(points).query(centers)
     sampled = point_colors[nearest]
     colors = np.zeros(occupancy.shape + (3,), dtype=np.uint8)
