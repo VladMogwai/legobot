@@ -21,6 +21,7 @@ class VoxelModel:
     symmetric: bool                # меш симметричен относительно плоскости, перпендикулярной X
     normals: np.ndarray | None = None   # float32 [x, y, z, 3], нормаль поверхности у поверхностных вокселей
                                         # (в штырьках по всем осям, z вверх), нули — внутри
+    fraction: np.ndarray | None = None  # float32 [x, y, z], доля объёма вокселя внутри меша
 
     @property
     def shape(self):
@@ -39,13 +40,13 @@ def voxelize_mesh(path: str, grid: int, aspect: float, force_symmetric: bool = F
     # Масштабируем по вертикали, чтобы кубический воксель соответствовал пропорциям детали.
     mesh.apply_scale([1.0, 1.0, 1.0 / aspect])
     pitch = mesh.extents[:2].max() / grid
-    occupancy, origin = _occupancy(mesh, pitch)
+    occupancy, fraction, origin = _occupancy(mesh, pitch)
     colors = _sample_colors(mesh, occupancy, origin, pitch)
     normals = _sample_normals(mesh, occupancy, origin, pitch, aspect)
 
     center_x = mesh.bounds[:, 0].mean()
     center_index = (center_x - origin[0]) / pitch
-    model = VoxelModel(occupancy, colors, symmetric, normals)
+    model = VoxelModel(occupancy, colors, symmetric, normals, fraction)
     return _align_mirror_axis(model, center_index)
 
 
@@ -97,17 +98,17 @@ def _occupancy(mesh, pitch):
 
     trimesh.voxelized помечает любой воксель, которого поверхность хоть краешком коснулась:
     форма раздувается на полвокселя и покрывается случайными буграми. Поэтому считаем на
-    сетке в SUBSAMPLE раз мельче и укрупняем по доле заполнения. Возвращает (occupancy, origin):
-    origin — центр вокселя [0, 0, 0] в координатах меша."""
+    сетке в SUBSAMPLE раз мельче и укрупняем по доле заполнения. Возвращает (occupancy, fraction, origin):
+    fraction — доля заполнения, origin — центр вокселя [0, 0, 0] в координатах меша."""
     n = SUBSAMPLE
     fine = mesh.voxelized(pitch / n).fill()
     m = fine.matrix
     pad = [(0, (-s) % n) for s in m.shape]
     m = np.pad(m, pad)
     blocks = m.reshape(m.shape[0] // n, n, m.shape[1] // n, n, m.shape[2] // n, n)
-    occupancy = blocks.sum(axis=(1, 3, 5)) >= n ** 3 / 2
+    fraction = blocks.sum(axis=(1, 3, 5)).astype(np.float32) / n ** 3
     origin = fine.transform[:3, 3] + (n - 1) / 2 * pitch / n
-    return occupancy, origin
+    return fraction >= 0.5, fraction, origin
 
 
 def _sample_colors(mesh, occupancy, origin, pitch):
@@ -190,9 +191,8 @@ def _align_mirror_axis(model: VoxelModel, center_index: float) -> VoxelModel:
     if pad == 0:
         return model
     left, right = (0, pad) if target > current else (pad, 0)
-    pad4 = lambda a: None if a is None else np.pad(a, ((left, right), (0, 0), (0, 0), (0, 0)))
-    occupancy = np.pad(model.occupancy, ((left, right), (0, 0), (0, 0)))
-    return VoxelModel(occupancy, pad4(model.colors), model.symmetric, pad4(model.normals))
+    pad = lambda a: None if a is None else np.pad(a, ((left, right),) + ((0, 0),) * (a.ndim - 1))
+    return VoxelModel(pad(model.occupancy), pad(model.colors), model.symmetric, pad(model.normals), pad(model.fraction))
 
 
 def symmetrize(model: VoxelModel) -> VoxelModel:
@@ -204,15 +204,16 @@ def symmetrize(model: VoxelModel) -> VoxelModel:
     def mirror(field, flip_x=False):
         if field is None:
             return None
-        mirrored = np.flip(field, axis=0)
-        if flip_x:
-            mirrored = mirrored * np.array([-1, 1, 1], dtype=field.dtype)
+        sign = np.array([-1, 1, 1], dtype=field.dtype) if flip_x else 1
+        mirrored = np.flip(field, axis=0) * sign
         # Воксель, появившийся только из отражения, берёт значение отражения.
-        field = np.where(occ[..., None], field, mirrored)
-        field[half:] = np.flip(field, axis=0)[half:] * (np.array([-1, 1, 1], dtype=field.dtype) if flip_x else 1)
+        occ_ = occ if field.ndim == 3 else occ[..., None]
+        field = np.where(occ_, field, mirrored)
+        field[half:] = (np.flip(field, axis=0) * sign)[half:]
         return field
 
-    return VoxelModel(occ | np.flip(occ, axis=0), mirror(model.colors), model.symmetric, mirror(model.normals, flip_x=True))
+    return VoxelModel(occ | np.flip(occ, axis=0), mirror(model.colors), model.symmetric,
+                      mirror(model.normals, flip_x=True), mirror(model.fraction))
 
 
 def drop_floating(model: VoxelModel) -> VoxelModel:
@@ -226,5 +227,5 @@ def drop_floating(model: VoxelModel) -> VoxelModel:
         above[:, :, :-1] = v[:, :, 1:]
         keep = v & (below | above)
         if keep.sum() == v.sum():
-            return VoxelModel(keep, model.colors, model.symmetric, model.normals)
+            return VoxelModel(keep, model.colors, model.symmetric, model.normals, model.fraction)
         v = keep

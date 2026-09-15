@@ -72,7 +72,7 @@ def build(mesh_path: str, grid: int, default_color: int, vocabulary: Vocabulary,
           slopes: bool = False) -> Build:
     """wheels: None — без колёс, "auto" — подобрать по арке, иначе номер детали колеса.
     max_colors — до скольких цветов сводить цвет меша. force_symmetric — зеркалить даже кривой меш.
-    slopes — закрывать ступеньки скосами (только при кладке пластинами)."""
+    slopes — закрывать ступеньки скосами."""
     model = voxelize_mesh(mesh_path, grid, vocabulary.aspect, force_symmetric)
     mirrored = model.symmetric
     if mirrored:
@@ -98,15 +98,15 @@ def build(mesh_path: str, grid: int, default_color: int, vocabulary: Vocabulary,
     placed_slopes: list[PlacedSlope] = []
     fixed = None
     if slopes:
-        assert vocabulary.name == "plates", "скосы рассчитаны на кладку пластинами"
-        placed_slopes, fixed = find_slopes(voxels, codes, body_color, mirrored, ANY_COLOR, model.normals)
+        placed_slopes, fixed = find_slopes(voxels, codes, body_color, mirrored, ANY_COLOR, vocabulary.height,
+                                           model.normals, model.fraction)
 
     if tiles:
         exposed = voxels.copy()
         exposed[:, :, :-1] &= ~voxels[:, :, 1:]
         codes[exposed] = np.where(codes[exposed] == ANY_COLOR, body_color, codes[exposed]) | EXPOSED_TOP
     bricks = layout_bricks(voxels, codes, body_color, vocabulary, mirrored=mirrored, fixed=fixed)
-    covered = sum(b.part.area for b in bricks) + (int((fixed >= 0).sum()) if fixed is not None else 0)
+    covered = sum(b.part.area for b in bricks) + (int(((fixed >= 0) & voxels).sum()) if fixed is not None else 0)
     assert covered == int(voxels.sum()), f"покрыто {covered} из {int(voxels.sum())} вокселей"
     if tiles:
         bricks = tile_exposed_tops(bricks, voxels)

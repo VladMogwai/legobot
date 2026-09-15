@@ -38,7 +38,7 @@ def main() -> None:
     ap.add_argument("--wheels", nargs="?", const="auto", choices=["auto", *WHEEL_BY_PART],
                     help="найти арки и поставить колёса: auto — подобрать по арке, или номер детали")
     ap.add_argument("--no-tiles", action="store_true", help="не заменять верхние пластины тайлами")
-    ap.add_argument("--slopes", action="store_true", help="закрывать ступеньки скосами (только пластины)")
+    ap.add_argument("--slopes", action="store_true", help="закрывать ступеньки скосами")
     ap.add_argument("--mosaic", action="store_true", help="плоская пиксельная фигура: один пиксель = один тайл 1x1")
     ap.add_argument("--pixels", type=int, help="для --mosaic: пикселей по ширине, если сетка не находится сама")
     ap.add_argument("--resolution", type=int, default=1024, choices=[512, 1024, 1536], help="детализация нейросети для фото")

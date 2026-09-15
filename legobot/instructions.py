@@ -238,7 +238,7 @@ def _units(b, aspect) -> list[_Unit]:
                 for x in range(b.x, b.x + b.width) for y in range(b.z, b.z + b.length)]
     dx, dz = FACINGS[b.facing]
     z0 = b.layer * aspect
-    profile = b.slope.profile()
+    profile = b.slope.profile(b.layer_ldu)
     out = []
     for x, y, j in b.columns():
         hb, hf = profile[j]
@@ -248,7 +248,7 @@ def _units(b, aspect) -> list[_Unit]:
             s = s if (dx + dz) > 0 else s + 1
             return z0 + (hb + (hf - hb) * s) * aspect
         heights = (h(x, y), h(x + 1, y), h(x + 1, y + 1), h(x, y + 1))
-        out.append(_Unit(x, y, b.layer, b.slope.layers, z0, heights, hb == hf, j, b.facing))
+        out.append(_Unit(x, y, b.layer, b.layers, z0, heights, hb == hf, j, b.facing))
     return out
 
 
@@ -282,7 +282,7 @@ def _callout(fig, step, rgb):
         b = next(b for b in step if b.part.number == l.number and b.color == l.color)
         if isinstance(b, PlacedSlope):
             sl = b.slope   # скос — гранью к зрителю, вправо-вниз
-            parts.append((PlacedSlope(sl, 0, sl.depth - 1, sl.layers - 1, "-z", b.color), sl.width, sl.depth, l.quantity))
+            parts.append((PlacedSlope(sl, 0, sl.depth - 1, b.layers - 1, "-z", b.color, b.layer_ldu), sl.width, sl.depth, l.quantity))
         else:
             w, d = max(b.width, b.length), min(b.width, b.length)   # длинной стороной вправо
             parts.append((PlacedBrick(b.part, 0, 0, 0, b.part.width < b.part.length, b.color), w, d, l.quantity))

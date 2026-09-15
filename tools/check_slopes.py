@@ -14,7 +14,7 @@ row = 0
 for slope in SLOPES.values():
     for col, facing in enumerate(FACINGS):
         x, z, top = col * 8, row * 8, 4
-        p = PlacedSlope(slope, x, z, top, facing, 14)
+        p = PlacedSlope(slope, x, z, top, facing, 14, PLATE_HEIGHT_LDU)
         cells = p.cells()
         # ожидаемый бокс из клеток
         xs = [c[0] for c in cells]; zs = [c[1] for c in cells]; ks = [c[2] for c in cells]
