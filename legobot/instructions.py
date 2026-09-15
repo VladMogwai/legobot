@@ -104,12 +104,13 @@ class _Scene:
             new = b in step
             for face, shade in _box_faces(b.x, b.z, b.layer, b.width, b.length):
                 faces.append(face); colors.append(np.clip(color * shade, 0, 1))
-                edges.append(OUTLINE if new else (0, 0, 0, 0.5)); widths.append(1.6 if new else 0.4)
+                edges.append(OUTLINE if new else (0, 0, 0, 0.8)); widths.append(1.8 if new else 0.7)
             for x in range(b.x, b.x + b.width):
                 for z in range(b.z, b.z + b.length):
                     if b.layer + 1 >= self.nk or not occupied[x, z, b.layer + 1]:
-                        faces.append(_stud(x, z, b.layer + 1)); colors.append(np.clip(color * 0.9, 0, 1))
-                        edges.append((0, 0, 0, 0.35)); widths.append(0.3)
+                        for face, shade in _stud_faces(x, z, b.layer + 1):
+                            faces.append(face); colors.append(np.clip(color * shade, 0, 1))
+                            edges.append((0, 0, 0, 0.6)); widths.append(0.5)
         if faces:
             ax.add_collection3d(Poly3DCollection(faces, facecolors=colors, edgecolors=edges, linewidths=widths))
         if zoom and shown:
@@ -127,13 +128,19 @@ class _Scene:
         ax.view_init(32, -52); ax.set_axis_off()
 
 
-_STUD_R, _STUD_H = 0.3, 0.12
+_STUD_R, _STUD_H = 0.3, 0.2
 _OCTAGON = [(np.cos(a), np.sin(a)) for a in np.linspace(0, 2 * np.pi, 8, endpoint=False)]
 
 
-def _stud(x, z, k):
-    """Штырёк — восьмиугольник чуть выше верхней грани (сплошной цилиндр не нужен, вид сверху-сбоку)."""
-    return [(x + 0.5 + _STUD_R * cx, z + 0.5 + _STUD_R * cz, k + _STUD_H) for cx, cz in _OCTAGON]
+def _stud_faces(x, z, k):
+    """Штырёк — восьмигранная призма на верхней грани: крышка и стенки, с затенением."""
+    cx, cz = x + 0.5, z + 0.5
+    ring = [(cx + _STUD_R * a, cz + _STUD_R * b) for a, b in _OCTAGON]
+    faces = [([(px, pz, k + _STUD_H) for px, pz in ring], 1.0)]
+    for i in range(8):
+        (ax_, az), (bx, bz) = ring[i], ring[(i + 1) % 8]
+        faces.append(([(ax_, az, k), (bx, bz, k), (bx, bz, k + _STUD_H), (ax_, az, k + _STUD_H)], 0.75))
+    return faces
 
 
 def _box_faces(x, z, k, w, l):
@@ -150,33 +157,74 @@ def _box_faces(x, z, k, w, l):
     ]
 
 
+# --- Плашка деталей: изометрия в 2D, один масштаб на всех страницах ---
+_ISO_C, _ISO_S = np.cos(np.radians(30)), np.sin(np.radians(30))
+_BRICK_H = 1.2       # высота кирпича в штырьках
+_CALLOUT_UNIT = 0.9  # см на штырёк в плашке
+
+
+def _iso(x, y, z):
+    """Точка (x — вправо-вниз, y — вправо-вверх, z — вверх) -> 2D."""
+    return ((x - y) * _ISO_C, (x + y) * _ISO_S + z)
+
+
 def _callout(fig, step, rgb):
-    """Голубая плашка слева внизу: картинка каждой детали шага и «N×»."""
-    from matplotlib.patches import FancyBboxPatch
+    """Плашка слева внизу: детали шага в изометрии, один масштаб на всех страницах, «N×» под каждой."""
+    from matplotlib.patches import Rectangle
     lines = bill_of_materials(step)
-    n = len(lines)
-    cell_w = 0.09
-    box_w = 0.02 + cell_w * n
-    box = FancyBboxPatch((0.03, 0.05), box_w, 0.2, boxstyle="round,pad=0.005", transform=fig.transFigure,
-                         facecolor=CALLOUT_BG, edgecolor="#8fb8d8", linewidth=1, zorder=-1)
-    fig.patches.append(box)
-    for i, line in enumerate(lines):
-        brick = next(b for b in step if b.part.number == line.number and b.color == line.color)
-        ax = fig.add_axes([0.035 + i * cell_w, 0.09, cell_w - 0.005, 0.15], projection="3d")
-        ax.patch.set_alpha(0)
-        w, l = brick.part.width, brick.part.length
-        from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+    parts = [(next(b for b in step if b.part.number == l.number and b.color == l.color), l) for l in lines]
+    gap = 1.4
+    widths = [max(b.width, b.length) for b, _ in parts]
+    total_w = sum(w * _ISO_C + 2 * _ISO_C for w in widths) + gap * (len(parts) + 1)   # в штырьках, по горизонтали
+    fig_w, fig_h = fig.get_size_inches()
+    box_w = total_w * _CALLOUT_UNIT / 2.54 / fig_w
+    box_h = 0.22
+    ax = fig.add_axes([0.03, 0.04, box_w, box_h])
+    ax.set_xlim(0, total_w); ax.set_ylim(-0.6, box_h * fig_h * 2.54 / _CALLOUT_UNIT - 0.6)
+    ax.set_aspect("equal"); ax.set_xticks([]); ax.set_yticks([])
+    ax.set_facecolor(CALLOUT_BG)
+    for side in ax.spines.values():
+        side.set_linewidth(1.8)
+    x = gap
+    for (brick, line), w in zip(parts, widths):
+        l = min(brick.part.width, brick.part.length)
         color = rgb.get(line.color, GROUND_RGB)
-        faces = [f for f, _ in _box_faces(0, 0, 0, w, l)]
-        shades = [np.clip(color * sh, 0, 1) for _, sh in _box_faces(0, 0, 0, w, l)]
-        for sx in range(w):
-            for sz in range(l):
-                faces.append(_stud(sx, sz, 1)); shades.append(np.clip(color * 0.9, 0, 1))
-        ax.add_collection3d(Poly3DCollection(faces, facecolors=shades, edgecolors=(0, 0, 0, 0.5), linewidths=0.4))
-        side = max(w, l)
-        ax.set_xlim(0, side); ax.set_ylim(0, side); ax.set_zlim(0, side * 0.6)
-        ax.set_box_aspect((side, side, side * 0.6)); ax.view_init(32, -52); ax.set_axis_off()
-        fig.text(0.035 + i * cell_w + 0.005, 0.065, f"{line.quantity}×", fontsize=9)
+        # кирпич кладём так, чтобы его левый нижний угол в изометрии оказался в точке x
+        origin_x = x + l * _ISO_C     # сдвиг, т.к. -y уводит влево
+        ax.set_autoscale_on(False)
+        # рисуем в локальных координатах: смещаем через трансформацию точек
+        u0, _ = _iso(0, 0, 0)
+        _draw_iso_brick_at(ax, origin_x, 0.9, w, l, color)
+        ax.text(x + 0.2, -0.35, f"{line.quantity}×", fontsize=11, weight="bold")
+        x += w * _ISO_C + 2 * _ISO_C + gap
+
+
+def _draw_iso_brick_at(ax, u_left, v_bottom, w, l, color):
+    """Кирпич w×l, у которого левый нижний угол проекции стоит в (u_left, v_bottom)."""
+    from matplotlib.patches import Polygon
+    corner = _iso(0, l, 0)  # самая левая точка (x=0, y=l, z=0)
+    lowest = _iso(0, 0, 0)  # самая нижняя точка
+    du, dv = u_left - corner[0], v_bottom - lowest[1]
+
+    def P(x, y, z):
+        u, v = _iso(x, y, z); return (u + du, v + dv)
+    h = _BRICK_H
+    # видны верх и две грани, обращённые к зрителю: y=0 (уходит вправо) и x=0 (уходит влево)
+    for pts, shade in (
+        ([(0, 0, h), (w, 0, h), (w, l, h), (0, l, h)], 1.0),
+        ([(0, 0, 0), (w, 0, 0), (w, 0, h), (0, 0, h)], 0.8),
+        ([(0, 0, 0), (0, l, 0), (0, l, h), (0, 0, h)], 0.62),
+    ):
+        ax.add_patch(Polygon([P(*p) for p in pts], closed=True, facecolor=np.clip(color * shade, 0, 1), edgecolor="black", linewidth=1.2))
+    for sx in range(w):
+        for sy in range(l):
+            cx, cy, r, sh = sx + 0.5, sy + 0.5, 0.3, 0.2
+            ring = [(cx + r * np.cos(a), cy + r * np.sin(a)) for a in np.linspace(0, 2 * np.pi, 24, endpoint=False)]
+            low = [P(px, py, h) for px, py in ring]; top = [P(px, py, h + sh) for px, py in ring]
+            i0 = int(np.argmin([p[1] for p in low])); order = [(i0 + k) % 24 for k in range(-6, 7)]
+            ax.add_patch(Polygon([low[i] for i in order] + [top[i] for i in reversed(order)], closed=True,
+                                 facecolor=np.clip(color * 0.75, 0, 1), edgecolor="black", linewidth=0.9))
+            ax.add_patch(Polygon(top, closed=True, facecolor=np.clip(color * 0.95, 0, 1), edgecolor="black", linewidth=0.9))
 
 
 def _cover(pdf, plt, scene, bricks, title, total):
