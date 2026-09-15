@@ -1,14 +1,15 @@
 """Файл .io для Studio и его открытие.
 
-.io — zip: model.ldr + .info. Такой файл Studio открывает двойным кликом,
-в отличие от .ldr, который надо импортировать через меню.
+.io — zip: model.ldr + .info. Studio не объявляет типы документов в Info.plist, поэтому
+`open`/двойной клик отвечают «cannot open files in the Stud.io Format». Зато при старте
+Studio берёт файлы из аргументов командной строки — так и открываем (каждый раз новое окно).
 """
 import json
 import subprocess
 import zipfile
 from pathlib import Path
 
-STUDIO_APP = "/Applications/Studio 2.0/Studio.app"
+STUDIO_BINARY = "/Applications/Studio 2.0/Studio.app/Contents/MacOS/Studio"
 STUDIO_VERSION = "2.26.8_1"
 PARTS_DB_VERSION = 200
 
@@ -23,4 +24,5 @@ def write_io(ldr_path: str, io_path: str) -> str:
 
 
 def open_in_studio(io_path: str) -> None:
-    subprocess.run(["open", "-a", STUDIO_APP, io_path], check=True)
+    subprocess.Popen([STUDIO_BINARY, str(Path(io_path).resolve())],
+                     stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
