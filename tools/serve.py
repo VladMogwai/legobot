@@ -22,6 +22,9 @@ CLOUDFLARED = next((p for p in ("/opt/homebrew/bin/cloudflared", "/opt/homebrew/
 
 
 def main() -> None:
+    if _port_busy():
+        print(f"порт {PORT} занят — сервис уже запущен в другом окне. Останови его (Ctrl+C там) или: pkill -f 'uvicorn service.app'")
+        return
     api = subprocess.Popen([sys.executable, "-m", "uvicorn", "service.app:app", "--host", "127.0.0.1", "--port", str(PORT)], cwd=ROOT)
     tunnel = subprocess.Popen([CLOUDFLARED, "tunnel", "--url", f"http://127.0.0.1:{PORT}", "--no-autoupdate"],
                               stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
@@ -41,6 +44,12 @@ def main() -> None:
     except KeyboardInterrupt:
         pass
     _stop(api, tunnel)
+
+
+def _port_busy() -> bool:
+    import socket
+    with socket.socket() as sock:
+        return sock.connect_ex(("127.0.0.1", PORT)) == 0
 
 
 def _publish(url: str) -> None:
