@@ -48,20 +48,20 @@ def main() -> None:
 
 
 def _wait_dns(url: str, timeout: int = 180) -> None:
-    """Имя туннеля новое: пока его не видит DNS этого компьютера, страница покажет «офлайн».
-    Ждём, чтобы не опубликовать адрес раньше, чем он заработает."""
-    import socket
+    """Имя туннеля новое, Cloudflare публикует его в DNS не мгновенно. Если спросить домашний
+    роутер раньше, он запомнит «такого имени нет» на 30 минут (отрицательный TTL trycloudflare) —
+    и страница будет показывать «офлайн». Поэтому ждём появления имени у резолвера 1.1.1.1,
+    не трогая системный, и только потом публикуем адрес."""
     host = url.removeprefix("https://")
     started = time.time()
     while time.time() - started < timeout:
-        try:
-            socket.getaddrinfo(host, 443)
-            print("адрес виден в DNS")
+        out = subprocess.run(["dig", "+short", "+time=3", host, "@1.1.1.1"], capture_output=True, text=True).stdout.strip()
+        if out:
+            time.sleep(5)   # запас на остальные резолверы
+            print("адрес опубликован в DNS")
             return
-        except socket.gaierror:
-            time.sleep(5)
-    print("DNS на этом компьютере пока не видит адрес туннеля (роутер отстаёт). Публикую всё равно: "
-          "у других он обычно уже работает; здесь помогает DNS 1.1.1.1 в настройках сети или подождать пару минут.")
+        time.sleep(3)
+    print("DNS так и не отдал имя туннеля за 3 минуты; публикую как есть")
 
 
 def _port_busy() -> bool:
