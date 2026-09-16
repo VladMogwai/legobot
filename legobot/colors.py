@@ -109,13 +109,14 @@ def flat_codes(rgb: np.ndarray, max_colors: int, black: np.ndarray | None = None
     palette = studio_palette(common_only)
     palette_lab = _rgb_to_lab(np.array([c.rgb for c in palette]))
     codes = np.array([c.code for c in palette])
-    darkest = int(np.argmin(centers[:, 0]))
+    basic = np.array([c.name in BASIC_COLORS for c in palette])
     center_codes = []
-    for i, c in enumerate(centers):
-        if outline_black and i == darkest and c[0] < DARK_L and np.hypot(c[1], c[2]) < ACHROMATIC:
-            center_codes.append(BLACK)   # самый тёмный кластер — контур, на фигурке он чёрный; волосы — отдельно
+    for c in centers:
+        if outline_black and c[0] < DARK_L and np.hypot(c[1], c[2]) < ACHROMATIC:
+            center_codes.append(BLACK)   # тёмное и бесцветное — контур, чёрный пластик, тени: всё чёрным
             continue
         dist = np.sqrt(((c - palette_lab) ** 2).sum(1))
+        dist[basic] -= BASIC_BONUS       # фигурки красят базовыми цветами, а не «тёмно-лиловым»
         if np.hypot(c[1], c[2]) > ACHROMATIC:
             hue = np.degrees(np.arctan2(c[2], c[1]))
             pal_hue = np.degrees(np.arctan2(palette_lab[:, 2], palette_lab[:, 1]))
@@ -128,6 +129,10 @@ def flat_codes(rgb: np.ndarray, max_colors: int, black: np.ndarray | None = None
 
 MAX_HUE_DIFF = 35  # градусов: цветной пиксель подбирается только среди пластика того же оттенка
 MERGE_DE = 7.0     # кластеры ближе этого — один цвет, разбитый освещением (k-means дробит крупные)
+BASIC_BONUS = 4.0  # ΔE: фора базовым цветам
+BASIC_COLORS = {"Black", "White", "Red", "Blue", "Yellow", "Green", "Orange", "Tan", "Dark_Bluish_Gray", "Light_Bluish_Gray",
+                "Bright_Pink", "Medium_Azure", "Dark_Blue", "Dark_Red", "Bright_Green", "Lime", "Reddish_Brown", "Dark_Tan",
+                "Bright_Light_Orange", "Bright_Light_Blue", "Medium_Blue", "Light_Flesh", "Dark_Pink"}
 
 
 def _merge_close(centers: np.ndarray, labels: np.ndarray) -> tuple[np.ndarray, np.ndarray]:

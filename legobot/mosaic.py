@@ -163,10 +163,13 @@ def standing_bricks(mosaic: Mosaic) -> list[PlacedBrick]:
     wall_bricks += layout_bricks(bridge | wall, wall_color, back_color, BRICKS, fixed=fixed)
     fixed = _fixed(front.shape, wall_bricks)
     bricks = wall_bricks + layout_bricks(front | bridge | wall, colors, back_color, BRICKS, fixed=fixed)
-    # Одиночная клетка стенки над пустотой и под пустотой ни к чему не крепится — такой кирпич
-    # убираем (пиксель перед ним держится за соседей по ряду).
+    # Одиночная клетка над пустотой и под пустотой ни к чему не крепится: сначала убираем такие
+    # кирпичи стенки (пиксель перед ними обычно держится за соседей), потом — оставшиеся
+    # висящие пиксели (одиночный выступ без соседей сверху и снизу не собрать без боковых штырьков).
     loose = _loose_pieces(bricks)
-    return [b for i, b in enumerate(bricks) if not (i in loose and i < len(wall_bricks))]
+    bricks = [b for i, b in enumerate(bricks) if not (i in loose and i < len(wall_bricks))]
+    loose = _loose_pieces(bricks)
+    return [b for i, b in enumerate(bricks) if i not in loose]
 
 
 def _fixed(shape, bricks: list[PlacedBrick]) -> np.ndarray:

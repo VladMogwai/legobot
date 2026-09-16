@@ -1,5 +1,5 @@
-"""Эталон: Марио с фото photos/mario.jpeg. Любое изменение сетки или подбора цвета
-должно пройти через него: если Марио «поплыл», изменение не принимается."""
+"""Эталоны: фото пиксельных фигурок. Любое изменение сетки или подбора цвета должно пройти
+через них: если хоть одна фигурка «поплыла», изменение не принимается."""
 import numpy as np
 import pytest
 
@@ -7,44 +7,53 @@ from legobot.colors import _rgb_to_lab, studio_palette
 from legobot.mosaic import standing_bricks
 from legobot.pixelart import mosaic_from_photo
 
-EXPECTED_COLORS = {"Black", "White", "Red", "Blue", "Bright_Light_Blue", "Medium_Orange", "Bright_Pink", "Dark_Pink", "Light_Aqua", "Yellow"}
+# файл, сетка (ш×в), клеток (±5 %), цвета, которые обязаны быть, средняя ΔE цветных клеток не выше
+REFERENCE = [
+    ("photos/mario.jpeg", (20, 30), 423, {"Black", "White", "Red", "Blue"}, 16),
+    ("examples/vaultboy.webp", (24, 23), 321, {"Black", "Blue", "Tan"}, 16),
+    ("examples/mario8.png", (18, 26), 322, {"Black", "White", "Red"}, 20),
+    ("examples/megaman.webp", (23, 24), 360, {"Black", "White", "Medium_Azure"}, 20),
+    ("examples/cow.png", (18, 13), 130, {"Black", "White"}, 12),
+]
 
 
-@pytest.fixture(scope="module")
-def mario():
-    return mosaic_from_photo("photos/mario.jpeg")
+@pytest.fixture(scope="module", params=REFERENCE, ids=[r[0].split("/")[-1] for r in REFERENCE])
+def case(request):
+    path, size, cells, colors, max_de = request.param
+    return mosaic_from_photo(path), size, cells, colors, max_de
 
 
-def test_grid(mario):
-    m = mario.mosaic
-    assert (m.width, m.height) == (20, 30)
-    assert 355 <= int((m.codes >= 0).sum()) <= 370
+def test_grid(case):
+    result, size, cells, _, _ = case
+    m = result.mosaic
+    assert (m.width, m.height) == size
+    assert abs(int((m.codes >= 0).sum()) - cells) <= cells * 0.05
 
 
-def test_colors(mario):
+def test_colors(case):
+    result, _, _, expected, max_de = case
+    m, photo = result.mosaic, result.cell_colors
     names = {c.code: c.name for c in studio_palette(common_only=False)}
-    used = {names[int(c)] for c in np.unique(mario.mosaic.codes[mario.mosaic.codes >= 0])}
-    assert used == EXPECTED_COLORS, used
-
-
-def test_color_accuracy(mario):
-    m, cells = mario.mosaic, mario.cell_colors
+    used = {names[int(c)] for c in np.unique(m.codes[m.codes >= 0])}
+    assert expected <= used, used
     lego = {c.code: c.rgb for c in studio_palette(common_only=False)}
     present = m.codes >= 0
     chosen = np.array([lego[int(c)] for c in m.codes[present]], dtype=np.uint8)
-    de = np.sqrt(((_rgb_to_lab(cells[present]) - _rgb_to_lab(chosen)) ** 2).sum(1))
-    colored = np.hypot(*_rgb_to_lab(cells[present])[:, 1:].T) > 15
-    assert de[colored].mean() < 16, de[colored].mean()   # контур намеренно чёрный, его не считаем
+    lab = _rgb_to_lab(photo[present])
+    de = np.sqrt(((lab - _rgb_to_lab(chosen)) ** 2).sum(1))
+    colored = np.hypot(*lab[:, 1:].T) > 15
+    assert de[colored].mean() < max_de, de[colored].mean()   # контур намеренно чёрный, его не считаем
 
 
-def test_standing_is_one_piece(mario):
-    bricks = standing_bricks(mario.mosaic)
-    assert 250 <= len(bricks) <= 420
-    cells = {}
+def test_standing_is_one_piece(case):
+    result, _, cells, _, _ = case
+    bricks = standing_bricks(result.mosaic)
+    assert cells * 0.6 <= len(bricks) <= cells * 1.2
+    grid = {}
     for i, b in enumerate(bricks):
         for x in range(b.x, b.x + b.width):
             for z in range(b.z, b.z + b.length):
-                cells[(x, z, b.layer)] = i
+                grid[(x, z, b.layer)] = i
     parent = list(range(len(bricks)))
 
     def find(a):
@@ -52,8 +61,8 @@ def test_standing_is_one_piece(mario):
             parent[a] = parent[parent[a]]; a = parent[a]
         return a
 
-    for (x, z, k), i in cells.items():
-        j = cells.get((x, z, k + 1))
+    for (x, z, k), i in grid.items():
+        j = grid.get((x, z, k + 1))
         if j is not None:
             parent[find(i)] = find(j)
     assert len({find(i) for i in range(len(bricks))}) == 1

@@ -3,9 +3,11 @@
 
 Фон вырезает rembg. Швы между пикселями дают два семейства прямых; их точки схода задают
 гомографию, после которой сетка становится прямоугольной. Шаг сетки по каждой оси — из
-автокорреляции профиля градиента, фаза — где линии сетки. Фигурка объёмная, и сбоку видна
-её боковая грань из чёрного пластика; она заметно темнее напечатанного чёрного контура
-спрайта (тот тёмно-серый), поэтому отделяется порогом яркости.
+автокорреляции профиля градиента, фаза — где линии сетки. Фигурка объёмная: сбоку и снизу
+видны чёрный пластик боковин и основание. Их не отличить от чёрного контура спрайта по цвету,
+зато отличает геометрия: силуэт = передняя грань, сдвинутая вдоль ребра на несколько клеток.
+Сдвиг подбирается так, чтобы срезались только тёмные клетки, а новый край силуэта оставался
+тёмным (контур спрайта): срез больше нужного обнажил бы цветные клетки.
 """
 from dataclasses import dataclass
 
@@ -19,7 +21,9 @@ from .preferences import preferences
 
 RECTIFIED_PX = 900          # длинная сторона выправленного изображения
 MIN_PITCH, MAX_PITCH = 10, 80
-SIDE_BRIGHTNESS = 0.2       # яркость (0..1), ниже которой клетка — чёрный пластик (бок, просветы), а не пиксель
+DARK_L, DARK_CHROMA = 0.45, 0.15   # «тёмная и бесцветная» клетка: чёрный контур спрайта или чёрный пластик
+MAX_SIDE = 4                       # боковая грань не шире стольких клеток
+BASE_MIN_WIDTH = 0.6               # подставка: сплошной тёмный нижний ряд не уже такой доли ширины фигурки
 
 
 @dataclass
@@ -99,9 +103,11 @@ def _rectify(rgb, mask):
     pts = pts[:, :2] / pts[:, 2:3]
     lo, hi = pts.min(0), pts.max(0)
     scale = RECTIFIED_PX / (hi - lo).max()
-    flip = np.linalg.det(_jacobian(H, center)) < 0       # гомография отразила картинку
-    fit = np.array([[-scale if flip else scale, 0, (hi[0] if flip else -lo[0]) * scale + 20],
-                    [0, scale, -lo[1] * scale + 20], [0, 0, 1]])
+    J = _jacobian(H, center)                            # гомография может отразить любую из осей
+    sx = -scale if J[0, 0] < 0 else scale
+    sy = -scale if J[1, 1] < 0 else scale
+    fit = np.array([[sx, 0, (hi[0] if sx < 0 else -lo[0]) * scale + 20],
+                    [0, sy, (hi[1] if sy < 0 else -lo[1]) * scale + 20], [0, 0, 1]])
     tf = transform.ProjectiveTransform(matrix=fit @ H)
     shape = (int((hi - lo)[1] * scale + 40), int((hi - lo)[0] * scale + 40))
     rect = transform.warp(rgb, tf.inverse, output_shape=shape)
@@ -169,21 +175,67 @@ def _sample_cells(rect, rmask, pitch_x, pitch_y, phase_x, phase_y):
 def _anchors(colors, present, front):
     """Опорные точки уровней: чёрный — пластик боковой грани (если виден), белый — самые
     светлые клетки спрайта (если они близки к белому)."""
-    gray = color.rgb2gray(colors / 255.0)
+    rgb = colors / 255.0
+    gray = color.rgb2gray(rgb)
+    chroma = rgb.max(axis=2) - rgb.min(axis=2)
     side = present & ~front
-    black = np.median(colors[side], axis=0) if side.sum() >= 3 else None
-    bright = colors[front][gray[front] >= np.quantile(gray[front], 0.97)]
-    white = np.median(bright, axis=0) if gray[front].max() > 0.85 else None
+    # чёрный — самое тёмное из срезанного (пластик), а не среднее: в срез могут попасть и клетки контура
+    black = np.median(colors[side][gray[side] <= np.quantile(gray[side], 0.3)], axis=0) if side.sum() >= 3 else None
+    # белый — только бесцветные светлые клетки; кремовое лицо за белый не сойдёт
+    whitish = front & (gray > 0.85) & (chroma < 0.12)
+    white = np.median(colors[whitish], axis=0) if whitish.sum() >= 3 else None
     return black, white
 
 
 def _front_face(colors, present):
-    """Клетки передней грани: всё, что не чёрный пластик боковой грани, одним связным куском
-    (обрывки по краям — блики на боковой грани)."""
+    """Передняя грань: силуэт, «сжатый» на вектор ребра (см. описание модуля), одним связным куском."""
     from scipy import ndimage
-    front = present & (color.rgb2gray(colors / 255.0) >= SIDE_BRIGHTNESS)
-    labels, n = ndimage.label(front)
+    rgb = colors / 255.0
+    dark = present & (color.rgb2gray(rgb) < DARK_L) & ((rgb.max(axis=2) - rgb.min(axis=2)) < DARK_CHROMA)
+    best, best_score = present, 0
+    for ex in range(-MAX_SIDE, MAX_SIDE + 1):
+        for ey in range(-MAX_SIDE, MAX_SIDE + 1):
+            if (ex, ey) == (0, 0):
+                continue
+            front = present.copy()
+            steps = max(abs(ex), abs(ey))
+            for t in range(1, steps + 1):
+                front &= _shift(present, round(ex * t / steps), round(ey * t / steps))
+            removed = present & ~front
+            edge = front & ndimage.binary_dilation(removed)          # клетки, ставшие краем
+            score = int((removed & dark).sum()) - 3 * int((removed & ~dark).sum()) - 2 * int((edge & ~dark).sum())
+            if score > best_score:
+                best, best_score = front, score
+    best = _drop_base(best, dark)
+    labels, n = ndimage.label(best)
     if n > 1:
-        sizes = ndimage.sum(front, labels, range(1, n + 1))
-        front = labels == (int(np.argmax(sizes)) + 1)
+        sizes = ndimage.sum(best, labels, range(1, n + 1))
+        best = labels == (int(np.argmax(sizes)) + 1)
+    return best
+
+
+def _drop_base(front, dark):
+    """Подставка: нижние ряды, целиком тёмные и сплошные (без просвета между ногами) на большую
+    часть ширины фигурки. Контур под ботинками — не подставка: у него есть разрыв."""
+    front = front.copy()
+    width = int(np.diff(np.nonzero(front.any(axis=1))[0][[0, -1]])[0]) + 1 if front.any() else 0
+    for y in range(front.shape[1] - 1, -1, -1):
+        row = front[:, y]
+        if not row.any():
+            continue
+        xs = np.nonzero(row)[0]
+        solid = xs[-1] - xs[0] + 1 == len(xs)                     # без разрывов
+        if row.sum() == (row & dark[:, y]).sum() and solid and len(xs) >= BASE_MIN_WIDTH * width:
+            front[:, y] = False
+        else:
+            break
     return front
+
+
+def _shift(a, dx, dy):
+    """a, сдвинутый так, что out[c] = a[c + (dx, dy)] (за краем — False)."""
+    out = np.zeros_like(a)
+    xs = slice(max(0, dx), a.shape[0] + min(0, dx)); ys = slice(max(0, dy), a.shape[1] + min(0, dy))
+    xd = slice(max(0, -dx), a.shape[0] + min(0, -dx)); yd = slice(max(0, -dy), a.shape[1] + min(0, -dy))
+    out[xd, yd] = a[xs, ys]
+    return out
