@@ -12,8 +12,9 @@ REFERENCE = [
     ("photos/mario.jpeg", (20, 30), 423, {"Black", "White", "Red", "Blue"}, 16),
     ("examples/vaultboy.webp", (24, 23), 321, {"Black", "Blue", "Tan"}, 16),
     ("examples/mario8.png", (18, 26), 322, {"Black", "White", "Red"}, 20),
-    ("examples/megaman.webp", (23, 24), 360, {"Black", "White", "Medium_Azure"}, 20),
+    ("examples/megaman.webp", (23, 24), 360, {"Black", "White", "Medium_Azure"}, 22),   # тёмно-синие тени на контуре — чёрные
     ("examples/cow.png", (54, 54), 542, {"Black", "White"}, 12),   # рисунок: пиксель 17.6 px, спрайт 55 клеток
+    ("examples/purple-phantom.png", (46, 54), 1421, {"Black", "Dark_Purple"}, 18),   # обводка тёмно-лиловая (15, 1, 42) — чёрная
 ]
 
 
@@ -48,7 +49,7 @@ def test_colors(case):
 def test_standing_is_one_piece(case):
     result, _, cells, _, _ = case
     bricks = standing_bricks(result.mosaic)
-    assert cells * 0.6 <= len(bricks) <= cells * 1.2
+    assert cells * 0.4 <= len(bricks) <= cells * 1.2   # большие однотонные поля сливаются в 2×8
     grid = {}
     for i, b in enumerate(bricks):
         for x in range(b.x, b.x + b.width):

@@ -113,7 +113,7 @@ def flat_codes(rgb: np.ndarray, max_colors: int, black: np.ndarray | None = None
     basic = np.array([c.name in BASIC_COLORS for c in palette])
     center_codes = []
     for c in centers:
-        if outline_black and c[0] < DARK_L and np.hypot(c[1], c[2]) < ACHROMATIC:
+        if outline_black and _is_black(c):
             center_codes.append(BLACK)   # тёмное и бесцветное — контур, чёрный пластик, тени: всё чёрным
             continue
         dist = np.sqrt(((c - palette_lab) ** 2).sum(1))
@@ -159,6 +159,12 @@ def _merge_close(centers: np.ndarray, labels: np.ndarray) -> tuple[np.ndarray, n
 
 BLACK = 0
 DARK_L, ACHROMATIC = 45.0, 15.0
+NEAR_BLACK_L = 10.0  # светлота, ниже которой цвет чёрный при любом оттенке: у RGB (15, 1, 42) в Lab
+                     # «высокая» насыщенность, но глазом это чёрная обводка, а не Dark_Blue
+
+
+def _is_black(lab: np.ndarray) -> bool:
+    return lab[0] < NEAR_BLACK_L or (lab[0] < DARK_L and np.hypot(lab[1], lab[2]) < ACHROMATIC)
 SAME_HUE_DEG = 20.0  # кластеры одного оттенка (свет и тень одного цвета) сливаются
 
 
@@ -189,7 +195,7 @@ def _match_cluster(members: np.ndarray, palette_lab: np.ndarray, codes: np.ndarr
     """Тёмное и бесцветное — чёрный (глаза, контуры). Остальное — по светлой половине кластера:
     тени темнее настоящего цвета, блики ближе к нему."""
     center = members.mean(0)
-    if center[0] < DARK_L and np.hypot(center[1], center[2]) < ACHROMATIC:
+    if _is_black(center):
         return BLACK
     bright = members[members[:, 0] >= np.median(members[:, 0])].mean(0)
     boosted = bright * np.array([1.0, CHROMA_BOOST, CHROMA_BOOST])
