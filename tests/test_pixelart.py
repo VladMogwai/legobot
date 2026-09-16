@@ -13,7 +13,7 @@ REFERENCE = [
     ("examples/vaultboy.webp", (24, 23), 321, {"Black", "Blue", "Tan"}, 16),
     ("examples/mario8.png", (18, 26), 322, {"Black", "White", "Red"}, 20),
     ("examples/megaman.webp", (23, 24), 360, {"Black", "White", "Medium_Azure"}, 20),
-    ("examples/cow.png", (18, 13), 130, {"Black", "White"}, 12),
+    ("examples/cow.png", (54, 54), 542, {"Black", "White"}, 12),   # рисунок: пиксель 17.6 px, спрайт 55 клеток
 ]
 
 

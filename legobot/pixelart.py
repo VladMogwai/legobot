@@ -20,7 +20,10 @@ from .mosaic import Mosaic
 from .preferences import preferences
 
 RECTIFIED_PX = 900          # длинная сторона выправленного изображения
-MIN_PITCH, MAX_PITCH = 10, 80
+MIN_PITCH, MAX_PITCH = 8, 80
+FUNDAMENTAL_RATIO = 0.9           # пик автокорреляции не ниже 90 % от лучшего — тот же период
+FLAT_BORDER_STD = 0.03            # рамка картинки одноцветная — это рисунок на ровном фоне, не фото
+FLAT_BACKGROUND_TOLERANCE = 0.12  # насколько цвет должен отличаться от фона, чтобы быть объектом
 DARK_L, DARK_CHROMA = 0.45, 0.15   # «тёмная и бесцветная» клетка: чёрный контур спрайта или чёрный пластик
 MAX_SIDE = 4                       # боковая грань не шире стольких клеток
 BASE_MIN_WIDTH = 0.6               # подставка: сплошной тёмный нижний ряд не уже такой доли ширины фигурки
@@ -80,18 +83,52 @@ NOTICEABLE_DE = 20  # ΔE, с которого разница цветов бр�
 
 
 def _cutout(path):
+    """(rgb 0..1, маска объекта). Рисунок на ровном фоне (пиксель-арт, скриншот): фон — цвет
+    рамки, маска — всё, что от него отличается, и линии сетки строго горизонтальны/вертикальны;
+    rembg тут только вредит (съедает тонкие линии). Иначе — фото, фон вырезает rembg
+    (у товарного фото на белом рамка тоже ровная, но швы идут под углом перспективы)."""
+    image = Image.open(path).convert("RGB")
+    rgb = np.asarray(image).astype(float) / 255
+    inset = max(2, min(rgb.shape[:2]) // 100)                 # у самого края бывает тёмная кромка
+    border = np.concatenate([rgb[inset], rgb[-1 - inset], rgb[:, inset], rgb[:, -1 - inset]])
+    if border.std(axis=0).max() < FLAT_BORDER_STD:
+        background = np.median(border, axis=0)
+        flat_mask = np.abs(rgb - background).max(axis=2) > FLAT_BACKGROUND_TOLERANCE
+        if 0.02 < flat_mask.mean() < 0.9 and is_flat(rgb, flat_mask):
+            return rgb, flat_mask
     import rembg
-    rgba = np.asarray(rembg.remove(Image.open(path).convert("RGB")))
+    rgba = np.asarray(rembg.remove(image))
     return rgba[..., :3].astype(float) / 255, rgba[..., 3] > 128
 
 
-def _rectify(rgb, mask):
-    """Гомография по точкам схода двух семейств линий сетки; отражение убирается."""
+def is_flat(rgb, mask) -> bool:
+    """Плоская картинка: линии сетки строго горизонтальны и вертикальны — выправлять нечего."""
+    try:
+        segs, angle = _segments(rgb, mask)
+    except ValueError:
+        return False
+    axis_aligned = (np.minimum(angle, 180 - angle) < 1.5) | (np.abs(angle - 90) < 1.5)
+    return axis_aligned.mean() > 0.9
+
+
+def _segments(rgb, mask):
+    """Отрезки линий (Хаф) на швах сетки и их углы в градусах (0..180)."""
     gray = color.rgb2gray(rgb)
     edges = feature.canny(gray, sigma=1.5, low_threshold=0.05, high_threshold=0.15)
     edges &= morphology.erosion(mask, morphology.disk(3))
     segs = np.array(transform.probabilistic_hough_line(edges, threshold=8, line_length=25, line_gap=2, rng=0), dtype=float)
+    if len(segs) == 0:
+        raise ValueError("не нашёл линии сетки на фото")
     angle = np.degrees(np.arctan2(segs[:, 1, 1] - segs[:, 0, 1], segs[:, 1, 0] - segs[:, 0, 0])) % 180
+    return segs, angle
+
+
+def _rectify(rgb, mask):
+    """Гомография по точкам схода двух семейств линий сетки; отражение убирается.
+    Плоская картинка возвращается как есть — любое выправление только сдвинет её сетку."""
+    if is_flat(rgb, mask):
+        return rgb, mask
+    segs, angle = _segments(rgb, mask)
     horizontal = (angle < 20) | (angle > 175)
     vertical = (angle > 70) & (angle < 110)
     if horizontal.sum() < 5 or vertical.sum() < 5:
@@ -144,7 +181,10 @@ def _grid(rect, rmask):
         peaks = [(ac[l], l) for l in range(MIN_PITCH, MAX_PITCH) if ac[l] > ac[l - 1] and ac[l] >= ac[l + 1]]
         if not peaks:
             raise ValueError("не нашёл шаг пиксельной сетки")
-        l = max(peaks)[1]
+        # основной период — наименьший из пиков, почти равных лучшему: у чистого пиксель-арта
+        # пики на 2p, 3p не ниже пика на p
+        top = max(peaks)[0]
+        l = min(l for v, l in peaks if v >= top * FUNDAMENTAL_RATIO)
         a, b, c = ac[l - 1], ac[l], ac[l + 1]
         pitch = l + 0.5 * (a - c) / (a - 2 * b + c)              # субпиксельно, по параболе
         n = int((len(profile) - MAX_PITCH) / pitch)
