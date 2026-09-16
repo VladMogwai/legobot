@@ -18,10 +18,10 @@ from .mosaic import Mosaic
 
 RECTIFIED_PX = 900          # длинная сторона выправленного изображения
 MIN_PITCH, MAX_PITCH = 10, 80
-SIDE_BRIGHTNESS = 0.12      # яркость (0..1), ниже которой клетка — боковая грань, а не пиксель
+SIDE_BRIGHTNESS = 0.2       # яркость (0..1), ниже которой клетка — чёрный пластик (бок, просветы), а не пиксель
 
 
-def mosaic_from_photo(image_path: str, max_colors: int = 12) -> Mosaic:
+def mosaic_from_photo(image_path: str, max_colors: int = 16) -> Mosaic:
     rgb, mask = _cutout(image_path)
     rect, rmask = _rectify(rgb, mask)
     pitch_x, pitch_y, phase_x, phase_y = _grid(rect, rmask)

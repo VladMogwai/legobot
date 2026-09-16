@@ -88,10 +88,7 @@ def flat_codes(rgb: np.ndarray, max_colors: int) -> np.ndarray:
     codes = np.array([c.code for c in palette])
     common = np.array([c.code in COMMON_COLORS for c in palette])
     center_codes = []
-    for c in centers:
-        if c[0] < DARK_L and np.hypot(c[1], c[2]) < ACHROMATIC:
-            center_codes.append(BLACK)
-            continue
+    for c in centers:   # тёмно-серый контур остаётся серым: чёрный рядом с тёмно-синим сливается в кашу
         dist = np.sqrt(((c - palette_lab) ** 2).sum(1))
         dist[~common] += RARE_MARGIN
         center_codes.append(int(codes[dist.argmin()]))

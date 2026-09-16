@@ -15,7 +15,7 @@ from .studio import open_in_studio, write_io
 
 YELLOW = 14
 DEFAULT_PARTS = 400          # ориентир: модели на 300–500 деталей
-DEFAULT_COLORS, MOSAIC_COLORS = 4, 12
+DEFAULT_COLORS, MOSAIC_COLORS = 4, 16   # у пиксель-арта оттенков больше, чем кажется: свет/тень каждого цвета
 ESTIMATE_PARTS = [200, 300, 400, 500, 700, 1000]
 IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png", ".webp"}
 OUT_DIR = Path("out")
@@ -32,7 +32,7 @@ def main() -> None:
     ap.add_argument("--estimate", action="store_true", help="не собирать, а показать таблицу «деталей → размер»")
     ap.add_argument("--unit", choices=VOCABULARIES, default="plates", help="из чего класть: plates (втрое точнее по высоте — круглые формы, машины) или bricks (угловатые вещи; на тот же бюджет деталей модель крупнее)")
     ap.add_argument("--color", type=int, default=YELLOW, help="код цвета LDraw, если у модели нет своего цвета")
-    ap.add_argument("--colors", type=int, help="до скольких цветов сводить цвет модели (объём — 4, мозаика — 12)")
+    ap.add_argument("--colors", type=int, help="до скольких цветов сводить цвет модели (объём — 4, мозаика — 16)")
     ap.add_argument("--symmetric", action="store_true", help="зеркальная кладка, даже если меш кривоват (фото)")
     ap.add_argument("--recolor", action="append", default=[], metavar="OLD=NEW",
                     help="заменить подобранный цвет: --recolor Dark_Red=Orange (имена из LDConfig или коды)")
