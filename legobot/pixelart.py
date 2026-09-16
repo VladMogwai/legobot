@@ -117,20 +117,28 @@ def _despeckle_codes(codes: np.ndarray) -> np.ndarray:
 
 
 def _grey_tones(cells: np.ndarray, codes: np.ndarray) -> np.ndarray:
-    """Режим «контраст» для тёмных и блёклых картинок: у пластика четыре серых тона, а в такой
-    картинке пять оттенков почти чёрного, и все они легли бы в один. Бесцветные клетки
-    раскладываются по тонам по рангу яркости (доли — GREY_SHARES), цветные остаются как есть."""
-    from .colors import _rgb_to_lab, code_by_name
+    """Режим «контраст» для тёмных и блёклых картинок: бесцветные клетки раскладываются по четырём
+    серым тонам пластика по светлоте, растянутой так, чтобы самое тёмное в картинке стало чёрным,
+    а самое светлое — белым (2-й и 98-й перцентили). Тёмная картинка остаётся тёмной, но
+    светотень внутри неё расходится по тонам, а не сваливается в один. Цветные клетки — как есть."""
+    from .colors import _rgb_to_lab, code_by_name, studio_palette
     lab = _rgb_to_lab(cells)
     grey = np.hypot(lab[:, 1], lab[:, 2]) < 15
     out = codes.copy()
     if grey.sum() < 2:
         return out
-    ranks = np.argsort(np.argsort(lab[grey, 0])) / (grey.sum() - 1)
-    tones = np.array([code_by_name(n) for n in GREY_TONES])
-    edges = np.cumsum(GREY_SHARES)[:-1]
-    out[grey] = tones[np.searchsorted(edges, ranks, side="right")]
+    L = lab[grey, 0]
+    lo, hi = np.quantile(L, 0.02), np.quantile(L, 0.98)
+    stretched = np.clip((L - lo) / max(hi - lo, 1e-3), 0, 1) * 100
+    tones = [code_by_name(n) for n in GREY_TONES]
+    tone_L = np.array([_rgb_to_lab(np.array([[*c.rgb]], dtype=np.uint8))[0, 0] for c in studio_palette(False) if c.code in tones])
+    tone_L = np.array([tone_L[[c.code for c in studio_palette(False) if c.code in tones].index(t)] for t in tones])
+    edges = (tone_L[:-1] + tone_L[1:]) / 2
+    out[grey] = np.array(tones)[np.searchsorted(edges, stretched)]
     return out
+
+
+GREY_TONES = ("Black", "Dark_Bluish_Gray", "Light_Bluish_Gray", "White")
 
 
 GREY_TONES = ("Black", "Dark_Bluish_Gray", "Light_Bluish_Gray", "White")
