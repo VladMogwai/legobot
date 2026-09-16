@@ -5,6 +5,7 @@ PDF-инструкция, список деталей, картинка само
 на диске в WORK_DIR. Состояние — в памяти: для одного процесса на Space этого достаточно.
 """
 import logging
+import os
 import shutil
 import threading
 import uuid
@@ -15,7 +16,8 @@ from pathlib import Path
 import numpy as np
 from fastapi import Body, FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
+from fastapi.staticfiles import StaticFiles
 
 from legobot.instructions import bill_of_materials, split_steps, write_bom, write_pdf
 from legobot.inventory import read_model
@@ -30,7 +32,10 @@ from legobot.studio import write_io
 
 VOLUME_PARTS = 400   # бюджет деталей объёмной фигурки
 
-WORK_DIR = Path("/tmp/legobot")
+ROOT = Path(__file__).resolve().parent.parent
+WEB_DIR = ROOT / "web" / "public"
+WORK_DIR = Path(os.environ.get("LEGOBOT_WORK", "/tmp/legobot"))
+LOCAL = os.environ.get("LEGOBOT_LOCAL") == "1"      # десктоп: тот же компьютер, есть Studio
 MAX_UPLOAD = 15 * 1024 * 1024
 FILES = {"model.io": "application/octet-stream", "model.mpd": "text/plain", "model.ldr": "text/plain",
          "instructions.pdf": "application/pdf", "parts.csv": "text/csv", "check.png": "image/png"}
@@ -123,7 +128,32 @@ def get_file(job_id: str, name: str):
 
 @app.get("/health")
 def health() -> dict:
-    return {"ok": True, "jobs": len(jobs)}
+    return {"ok": True, "jobs": len(jobs), "local": LOCAL}
+
+
+@app.get("/config.js")
+def config_js() -> Response:
+    """Страница, отданная самим сервисом, ходит к нему же."""
+    return Response("window.LEGOBOT_API = location.origin;\n", media_type="application/javascript")
+
+
+@app.post("/jobs/{job_id}/open")
+def open_job_in_studio(job_id: str) -> dict:
+    """Открыть результат в Studio — только когда сервис и Studio на одной машине."""
+    if not LOCAL:
+        raise HTTPException(403, "сервис не на этой машине")
+    path = WORK_DIR / job_id / "model.io"
+    if not path.exists():
+        raise HTTPException(404, "нет такой модели")
+    from legobot.studio import STUDIO_BINARY, open_in_studio
+    if not Path(STUDIO_BINARY).exists():
+        raise HTTPException(404, "Studio не установлен: /Applications/Studio 2.0")
+    open_in_studio(str(path))
+    return {"ok": True}
+
+
+if WEB_DIR.exists():
+    app.mount("/", StaticFiles(directory=str(WEB_DIR), html=True), name="web")
 
 
 def _cleanup() -> None:

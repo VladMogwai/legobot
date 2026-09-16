@@ -1,0 +1,24 @@
+{
+  "name": "legobot",
+  "productName": "legobot",
+  "version": "0.1.0",
+  "description": "Фото → фигурка из настоящих деталей LEGO",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --mac dir"
+  },
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^25.0.0"
+  },
+  "build": {
+    "appId": "dev.legobot.app",
+    "productName": "legobot",
+    "directories": { "output": "out" },
+    "files": ["main.js", "package.json"],
+    "extraResources": [{ "from": "../dist/legobot-server", "to": "backend" }],
+    "mac": { "target": ["dir"], "category": "public.app-category.graphics-design", "identity": null },
+    "asar": true
+  }
+}

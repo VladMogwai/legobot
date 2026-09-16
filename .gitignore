@@ -9,3 +9,8 @@ kaggle/photos/*.png
 kaggle/photos/config.json
 kaggle/photos/hf_token.txt
 corpus/rebrickable/
+desktop/rembg_home/
+desktop/node_modules/
+desktop/out/
+dist/
+build/

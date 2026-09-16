@@ -91,8 +91,15 @@ async function showResult(files, summary, title) {
   if (files["check.png"]) $("check").src = files["check.png"];
   $("editor").hidden = !summary.grid;
   $("downloads").innerHTML = [
-    ["model.io", "Открыть в Studio (.io)"], ["instructions.pdf", "Инструкция (PDF)"], ["parts.csv", "Список деталей (CSV)"], ["model.mpd", "Модель (LDraw)"],
+    ["model.io", "Скачать .io"], ["instructions.pdf", "Инструкция (PDF)"], ["parts.csv", "Список деталей (CSV)"], ["model.mpd", "Модель (LDraw)"],
   ].map(([f, label]) => `<a href="${files[f]}" download>${label}</a>`).join("");
+  const jobId = files["model.io"].match(/\/jobs\/([^/]+)\//)?.[1];
+  if (local && jobId) {
+    const b = document.createElement("a");
+    b.href = "#"; b.textContent = "Открыть в Studio"; b.className = "primary";
+    b.onclick = async (e) => { e.preventDefault(); const r = await fetch(`${API}/jobs/${jobId}/open`, { method: "POST" }); b.textContent = r.ok ? "Открыто в Studio" : "Studio не найден"; };
+    $("downloads").prepend(b);
+  }
   const rows = await Promise.all(summary.colors.map(async ([name, n]) =>
     `<tr><td>${n}</td><td><i class="swatch" style="background:${await colorHex(name)}"></i>${name.replaceAll("_", " ")}</td></tr>`));
   $("parts").innerHTML = rows.join("");
@@ -100,7 +107,7 @@ async function showResult(files, summary, title) {
 }
 
 // --- жив ли сервис (бэкенд крутится на домашнем Mac) ---
-let online = false;
+let online = false, local = false;
 async function checkHealth() {
   const el = $("health");
   if (!API) { el.textContent = "● бэкенд не подключён"; el.className = "health off"; return; }
@@ -109,6 +116,7 @@ async function checkHealth() {
     setTimeout(() => ctrl.abort(), 8000);
     const r = await fetch(`${API}/health`, { signal: ctrl.signal });
     online = r.ok;
+    if (online) local = !!(await r.json()).local;
   } catch { online = false; }
   el.textContent = online ? "● сервис онлайн" : "● сервис офлайн — Mac выключен или не запущен";
   el.className = "health " + (online ? "on" : "off");
