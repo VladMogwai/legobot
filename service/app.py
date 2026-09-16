@@ -65,7 +65,11 @@ async def create_job(photo: UploadFile = File(...)) -> dict:
     return {"id": job.id, "status": job.status}
 
 
+KEEP_HOURS = 24
+
+
 def _new_job() -> Job:
+    _cleanup()
     job = Job(uuid.uuid4().hex[:12])
     (WORK_DIR / job.id).mkdir(parents=True, exist_ok=True)
     with lock:
@@ -120,6 +124,17 @@ def get_file(job_id: str, name: str):
 @app.get("/health")
 def health() -> dict:
     return {"ok": True, "jobs": len(jobs)}
+
+
+def _cleanup() -> None:
+    """Результаты старше KEEP_HOURS удаляются: диск на Space маленький."""
+    import time
+    cutoff = time.time() - KEEP_HOURS * 3600
+    for folder in WORK_DIR.glob("*"):
+        if folder.is_dir() and folder.stat().st_mtime < cutoff:
+            shutil.rmtree(folder, ignore_errors=True)
+            with lock:
+                jobs.pop(folder.name, None)
 
 
 def _run(job: Job, photo: Path) -> None:
