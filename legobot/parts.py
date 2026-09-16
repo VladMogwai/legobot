@@ -71,9 +71,24 @@ PLATES = Vocabulary("plates", _plates(
 VOCABULARIES = {v.name: v for v in (BRICKS, PLATES)}
 
 
+CATALOG_PARTS = Path(__file__).resolve().parent.parent / "catalog" / "parts.csv"
+
+
+@lru_cache
+def _catalog_names() -> dict[str, str]:
+    import csv
+    if not CATALOG_PARTS.exists():
+        return {}
+    with open(CATALOG_PARTS, newline="") as f:
+        return {row["ldraw"]: row["name"] for row in csv.DictReader(f)}
+
+
 @lru_cache
 def part_name(number: str) -> str:
-    """Официальное имя детали из заголовка .dat в библиотеке Studio, например «Brick 2 x 4»."""
+    """Имя детали, например «Brick 2 x 4»: из каталога, иначе из заголовка .dat библиотеки Studio."""
+    name = _catalog_names().get(number.lower())
+    if name:
+        return name
     for folder in ("parts", "UnOfficial/parts"):
         path = LIBRARY / folder / f"{number}.dat"
         if path.exists():

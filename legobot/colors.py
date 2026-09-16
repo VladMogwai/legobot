@@ -1,4 +1,4 @@
-"""Палитра цветов LDraw из библиотеки Studio и подбор цветов модели.
+"""Палитра цветов LDraw (catalog/colors.csv, собирается tools/catalog.py из Studio) и подбор цветов модели.
 
 Цвета сравниваются в CIELAB — расстояние там соответствует тому, как видит глаз.
 Цвета модели сначала сводятся к нескольким доминирующим (k-means): у модели
@@ -8,11 +8,12 @@ import csv
 import re
 from dataclasses import dataclass
 from functools import lru_cache
+from pathlib import Path
 
 import numpy as np
 from scipy.cluster.vq import kmeans2
 
-LDCONFIG_PATH = "/Applications/Studio 2.0/ldraw/LDConfig.ldr"
+COLORS_CSV = Path(__file__).resolve().parent.parent / "catalog" / "colors.csv"
 
 # Материалы, которые не годятся для обычных деталей: прозрачные, металлики, резина и т.п.
 _SPECIAL = ("ALPHA", "CHROME", "PEARLESCENT", "RUBBER", "MATTE_METALLIC", "METAL", "MATERIAL", "LUMINANCE")
@@ -35,42 +36,33 @@ class LdrawColor:
 
 
 @lru_cache
+def _rows() -> tuple[dict, ...]:
+    with open(COLORS_CSV, newline="") as f:
+        return tuple(csv.DictReader(f))
+
+
+def _color(row, studio: bool = False) -> LdrawColor:
+    hexrgb = row["studio_rgb"] if studio else row["rgb"]
+    return LdrawColor(int(row["code"]), row["name"], tuple(int(hexrgb[i:i + 2], 16) for i in (0, 2, 4)))
+
+
+@lru_cache
 def load_palette(common_only: bool = True) -> tuple[LdrawColor, ...]:
-    """Сплошные цвета из LDConfig.ldr, в порядке файла."""
-    palette = []
-    with open(LDCONFIG_PATH, encoding="utf-8", errors="ignore") as f:
-        for line in f:
-            m = _LINE.match(line)
-            if not m or any(tag in line for tag in _SPECIAL):
-                continue
-            name, code, hexrgb = m.groups()
-            if common_only and int(code) not in COMMON_COLORS:
-                continue
-            rgb = tuple(int(hexrgb[i:i + 2], 16) for i in (0, 2, 4))
-            palette.append(LdrawColor(int(code), name, rgb))
-    return tuple(palette)
+    """Сплошные цвета в порядке LDConfig; common_only — только ходовые."""
+    return tuple(_color(r) for r in _rows() if r["solid"] == "1" and (not common_only or r["common"] == "1"))
 
 
-STUDIO_COLORS_PATH = "/Applications/Studio 2.0/data/StudioColorDefinition.txt"
+@lru_cache
+def all_color_names() -> dict[int, str]:
+    """Все цвета, включая прозрачные и металлики — для чтения чужих моделей."""
+    return {int(r["code"]): r["name"] for r in _rows()}
 
 
 @lru_cache
 def studio_palette(common_only: bool = True) -> tuple[LdrawColor, ...]:
-    """Ходовые цвета с RGB из таблицы Studio — тем, как Studio их рисует. У справочника LDraw
+    """Те же цвета с RGB из таблицы Studio — тем, как Studio их рисует. У справочника LDraw
     часть значений расходится (Light_Purple: #cd6298 против #af3195 в Studio)."""
-    studio = {}
-    try:
-        with open(STUDIO_COLORS_PATH, encoding="utf-8", errors="ignore") as f:
-            for row in csv.DictReader(f, delimiter="\t"):
-                try:
-                    code = int(row["LDraw Color Code"])
-                except (ValueError, TypeError):
-                    continue
-                if row["CategoryName"] == "Solid Colors" and row["RGB value"].startswith("#"):
-                    studio.setdefault(code, tuple(int(row["RGB value"][i:i + 2], 16) for i in (1, 3, 5)))
-    except FileNotFoundError:
-        return load_palette(common_only)
-    return tuple(LdrawColor(c.code, c.name, studio.get(c.code, c.rgb)) for c in load_palette(common_only))
+    return tuple(_color(r, studio=True) for r in _rows() if r["solid"] == "1" and (not common_only or r["common"] == "1"))
 
 
 LIGHTNESS_WEIGHT = 0.3  # при кластеризации яркость важна меньше оттенка: тень на жёлтом — всё ещё жёлтый

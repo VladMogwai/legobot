@@ -10,7 +10,7 @@ from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
 
-from .colors import LDCONFIG_PATH
+from .colors import all_color_names
 from .parts import part_name
 
 IO_PASSWORD = b"soho0909"
@@ -54,7 +54,7 @@ def inventory(ldraw_text: str) -> list[InventoryLine]:
     root = next(iter(submodels))
     counts: Counter = Counter()
     _count(root, submodels, 1, counts, depth=0)
-    names = _color_names()
+    names = all_color_names()
     lines = []
     for (n, c), q in counts.items():
         name = part_name(n)
@@ -63,16 +63,6 @@ def inventory(ldraw_text: str) -> list[InventoryLine]:
             name = f"{part_name(moved.group(1))} (устар. {n})"
         lines.append(InventoryLine(n, name, c, names.get(c, str(c)), q, _category(name)))
     return sorted(lines, key=lambda l: (-l.quantity, l.name))
-
-
-def _color_names() -> dict[int, str]:
-    """Все цвета LDConfig, включая металлики и прозрачные (в палитре сборки их нет)."""
-    names = {}
-    for line in open(LDCONFIG_PATH, encoding="utf-8", errors="ignore"):
-        m = re.match(r"0 !COLOUR (\S+)\s+CODE\s+(\d+)", line)
-        if m:
-            names[int(m.group(2))] = m.group(1)
-    return names
 
 
 def _split_submodels(text: str) -> dict[str, list[str]]:
