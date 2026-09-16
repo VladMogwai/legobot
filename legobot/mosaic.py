@@ -129,13 +129,14 @@ def standing_bricks(mosaic: Mosaic) -> list[PlacedBrick]:
     """Стоячая фигурка. Спереди пиксели, сзади стенка (цвет — в legobot.toml; у Pixel Pals чёрная).
     Глубина STANDING_DEPTH; граница «пиксель/стенка» чередуется по рядам (2+1, 1+2), чтобы
     стенка и пиксели связывались штырьками через ряд, иначе это две несвязанные стены.
-    Выступы без опоры (ухо, край ноги) подпираются столбиком стенки до ближайшей опоры."""
+    Стенка же связывает и соседей по ряду разного цвета: длинный кирпич стенки в соседнем ряду
+    лежит на них обоих."""
     mask = mosaic.codes >= 0
     xs, ys = np.nonzero(mask)
     mask = mask[xs.min():xs.max() + 1, ys.min():ys.max() + 1]
     codes = mosaic.codes[xs.min():xs.max() + 1, ys.min():ys.max() + 1]
     mask, codes = np.flip(mask, axis=1), np.flip(codes, axis=1)      # слой 0 — нижний ряд
-    back = mask | _pillars(mask, codes)
+    back = mask
     back_color = code_by_name(preferences()["mosaic"]["back_color"])
     nx, ny = mask.shape
     voxels = np.zeros((nx, STANDING_DEPTH, ny), dtype=bool)
@@ -147,38 +148,3 @@ def standing_bricks(mosaic: Mosaic) -> list[PlacedBrick]:
         voxels[:, front_depth:, k] |= back[:, k, None]
         colors[:, front_depth:, k] = np.where(back[:, k, None], back_color, ANY_COLOR)
     return layout_bricks(voxels, colors, back_color, BRICKS)
-
-
-def _pillars(mask: np.ndarray, codes: np.ndarray) -> np.ndarray:
-    """Столбики стенки только под кусками, не связанными штырьками с основным телом.
-    Связь — вертикальное соседство (кирпич держится и снизу, и сверху) или одноцветный сосед
-    в ряду (такие сливаются в один кирпич). Висящая на плече рука — связана, подпорка не нужна."""
-    nx, ny = mask.shape
-    labels, _ = ndimage.label(mask, structure=[[0, 1, 0], [0, 1, 0], [0, 1, 0]])
-    parent = {}
-
-    def find(a):
-        while parent.get(a, a) != a:
-            a = parent[a]
-        return a
-
-    for x in range(nx - 1):
-        for y in range(ny):
-            if mask[x, y] and mask[x + 1, y] and codes[x, y] == codes[x + 1, y]:
-                parent[find(labels[x, y])] = find(labels[x + 1, y])
-    roots = np.array([[find(labels[x, y]) if mask[x, y] else -1 for y in range(ny)] for x in range(nx)])
-    main = Counter(roots[mask].tolist()).most_common(1)[0][0]
-    pillars = np.zeros_like(mask)
-    for x in range(nx):
-        for y in range(ny):
-            if not mask[x, y] or roots[x, y] == main:
-                continue
-            below = [yy for yy in range(y - 1, -1, -1) if mask[x, yy] and roots[x, yy] == main]
-            above = [yy for yy in range(y + 1, ny) if mask[x, yy] and roots[x, yy] == main]
-            if not below and not above:
-                continue
-            gap_down = y - below[0] if below else ny
-            gap_up = above[0] - y if above else ny
-            lo, hi = (below[0] + 1, y) if gap_down <= gap_up else (y + 1, above[0])
-            pillars[x, lo:hi] = True
-    return pillars
