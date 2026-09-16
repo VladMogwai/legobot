@@ -1,10 +1,13 @@
-"""Режим мозаики: плоская пиксельная фигура -> один пиксель = один тайл 1x1.
+"""Режим мозаики: пиксельная фигура -> пиксель = деталь.
 
-Берём переднюю грань меша (тонкая ось — нормаль), растеризуем её, находим шаг
-пиксельной сетки по периодичности границ цвета (в пиксель-арте цвет меняется только
-на линиях сетки), снимаем цвет в центре каждой клетки. Сборка: подложка из пластин
-по силуэту и слой тайлов 1x1 по цветам.
+Два варианта сборки. Стоячая (по умолчанию): пиксель — кирпич глубиной STANDING_DEPTH
+штырьков, ряд пикселей — слой кладки, одноцветные соседи в ряду сливаются в 2×4, 2×6, 2×8;
+фигурка стоит сама, как Pixel Pals. Плоская: подложка из пластин по силуэту и тайлы 1x1.
+
+Из 3D-файла: берём переднюю грань меша (тонкая ось — нормаль), растеризуем её, находим шаг
+пиксельной сетки по периодичности границ цвета, снимаем цвет в центре каждой клетки.
 """
+from collections import Counter
 from dataclasses import dataclass
 
 import numpy as np
@@ -14,9 +17,11 @@ from scipy import ndimage
 from .colors import nearest_codes
 from .finish import TILES
 from .layout import ANY_COLOR, PlacedBrick, layout_bricks
-from .parts import PLATES
+from .parts import BRICKS, PLATES
 
 RASTER = 512
+STANDING_DEPTH = 3  # штырьков в глубину у стоячей фигурки: 2 пикселя + 1 стенка (через ряд 1 + 2)
+BACK_COLOR = 0      # чёрная задняя стенка, как у Pixel Pals
 SAMPLES = 1_500_000
 MIN_PITCH, MAX_PITCH = 6, 80  # шаг сетки в пикселях растра
 BLACK = 0
@@ -24,7 +29,7 @@ BLACK = 0
 
 @dataclass
 class Mosaic:
-    codes: np.ndarray   # [W, H] коды LDraw, -1 — пусто
+    codes: np.ndarray   # [W, H] коды LDraw, -1 — пусто; H — сверху вниз
     pitch_px: float
     width: int
     height: int
@@ -117,3 +122,53 @@ def mosaic_bricks(mosaic: Mosaic, base_color: int = BLACK) -> list[PlacedBrick]:
     tiles = [PlacedBrick(tile, x, z, 1, rotated=False, color=int(mosaic.codes[x, z]))
              for x, z in np.argwhere(mask)]
     return base + tiles
+
+
+def standing_bricks(mosaic: Mosaic) -> list[PlacedBrick]:
+    """Стоячая фигурка. Спереди пиксели, сзади стенка цвета BACK_COLOR (у Pixel Pals она чёрная).
+    Глубина STANDING_DEPTH; граница «пиксель/стенка» чередуется по рядам (2+1, 1+2), чтобы
+    стенка и пиксели связывались штырьками через ряд, иначе это две несвязанные стены.
+    Выступы без опоры (ухо, край ноги) подпираются столбиком стенки до ближайшей опоры."""
+    mask = mosaic.codes >= 0
+    xs, ys = np.nonzero(mask)
+    mask = mask[xs.min():xs.max() + 1, ys.min():ys.max() + 1]
+    codes = mosaic.codes[xs.min():xs.max() + 1, ys.min():ys.max() + 1]
+    mask, codes = np.flip(mask, axis=1), np.flip(codes, axis=1)      # слой 0 — нижний ряд
+    back = mask | _pillars(mask, codes)
+    nx, ny = mask.shape
+    voxels = np.zeros((nx, STANDING_DEPTH, ny), dtype=bool)
+    colors = np.full(voxels.shape, ANY_COLOR)
+    for k in range(ny):
+        front_depth = STANDING_DEPTH - 1 if k % 2 == 0 else 1
+        voxels[:, :front_depth, k] = mask[:, k, None]
+        colors[:, :front_depth, k] = codes[:, k, None]
+        voxels[:, front_depth:, k] |= back[:, k, None]
+        colors[:, front_depth:, k] = np.where(back[:, k, None], BACK_COLOR, ANY_COLOR)
+    return layout_bricks(voxels, colors, BACK_COLOR, BRICKS)
+
+
+def _pillars(mask: np.ndarray, codes: np.ndarray) -> np.ndarray:
+    """Столбики под выступами: клетки, не связанные с землёй ни вертикально, ни через
+    одноцветного соседа в ряду (такие сливаются в один кирпич), получают опору из стенки."""
+    nx, ny = mask.shape
+    labels, _ = ndimage.label(mask, structure=[[0, 1, 0], [0, 1, 0], [0, 1, 0]])   # вертикальные связи
+    parent = {}
+
+    def find(a):
+        while parent.get(a, a) != a:
+            a = parent[a]
+        return a
+
+    for x in range(nx - 1):
+        for y in range(ny):
+            if mask[x, y] and mask[x + 1, y] and codes[x, y] == codes[x + 1, y]:
+                parent[find(labels[x, y])] = find(labels[x + 1, y])
+    grounded = {find(labels[x, 0]) for x in range(nx) if mask[x, 0]}
+    pillars = np.zeros_like(mask)
+    for x in range(nx):
+        for y in range(1, ny):
+            if mask[x, y] and not mask[x, y - 1] and find(labels[x, y]) not in grounded:
+                below = [yy for yy in range(y - 1, -1, -1) if mask[x, yy]]
+                for yy in range(below[0] + 1 if below else 0, y):
+                    pillars[x, yy] = True
+    return pillars

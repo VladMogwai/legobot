@@ -7,6 +7,7 @@ from pathlib import Path
 from .colors import code_by_name, load_palette
 from .fixtures import WHEEL_BY_PART
 from .instructions import bill_of_materials, split_steps, write_bom, write_pdf
+from .mosaic import STANDING_DEPTH
 from .ldraw import write_ldr
 from .parts import VOCABULARIES
 from .pipeline import Build, build
@@ -41,6 +42,7 @@ def main() -> None:
     ap.add_argument("--no-tiles", action="store_true", help="не заменять верхние пластины тайлами")
     ap.add_argument("--slopes", action="store_true", help="закрывать ступеньки скосами")
     ap.add_argument("--mosaic", action="store_true", help="плоская пиксельная фигура: один пиксель = один тайл 1x1 (с фото — напрямую, без 3D)")
+    ap.add_argument("--flat", action="store_true", help="для --mosaic: плоская мозаика из тайлов на пластинах вместо стоячей фигурки")
     ap.add_argument("--pixels", type=int, help="для --mosaic: пикселей по ширине, если сетка не находится сама")
     ap.add_argument("--resolution", type=int, default=1024, choices=[512, 1024, 1536], help="детализация нейросети для фото")
     ap.add_argument("--backend", choices=["hf", "kaggle"], default="hf", help="где считать фото→3D: HF Space (быстро, квота) или Kaggle (пачкой)")
@@ -66,13 +68,13 @@ def main() -> None:
 
 
 def _build_mosaic(args, source: str, variant: str) -> None:
-    from .mosaic import mosaic_bricks, mosaic_from_mesh
+    from .mosaic import mosaic_bricks, mosaic_from_mesh, standing_bricks
     if Path(source).suffix.lower() in IMAGE_SUFFIXES:
         from .pixelart import mosaic_from_photo
         mosaic = mosaic_from_photo(source, max_colors=args.colors)
     else:
         mosaic = mosaic_from_mesh(source, max_colors=args.colors, pixels_wide=args.pixels)
-    bricks = mosaic_bricks(mosaic)
+    bricks = mosaic_bricks(mosaic) if args.flat else standing_bricks(mosaic)
     if args.recolor:
         mapping = {code_by_name(a): code_by_name(b) for a, b in (r.split("=") for r in args.recolor)}
         bricks = [b.__class__(**{**b.__dict__, "color": mapping.get(b.color, b.color)}) for b in bricks]
@@ -83,9 +85,15 @@ def _build_mosaic(args, source: str, variant: str) -> None:
     write_ldr(bricks, str(ldr_path), io_path.stem)
     write_io(str(ldr_path), str(io_path))
     names = {c.code: c.name for c in load_palette(common_only=False)}
-    colors = Counter(b.color for b in bricks if b.layer == 1)
     print(f"мозаика {mosaic.width}x{mosaic.height} пикселей, шаг сетки {mosaic.pitch_px:.1f} px растра")
-    print(f"деталей {len(bricks)}: тайлов 1x1 {sum(colors.values())}, подложка {len(bricks) - sum(colors.values())}")
+    if args.flat:
+        colors = Counter(b.color for b in bricks if b.layer == 1)
+        print(f"деталей {len(bricks)}: тайлов 1x1 {sum(colors.values())}, подложка {len(bricks) - sum(colors.values())}")
+    else:
+        colors = Counter(b.color for b in bricks)
+        parts = Counter(b.part.label for b in bricks)
+        print(f"стоячая фигурка {mosaic.width * 0.8:.0f} x {STANDING_DEPTH * 0.8:.1f} x {mosaic.height * 0.96:.0f} см, "
+              f"деталей {len(bricks)}: " + ", ".join(f"{k} x{n}" for k, n in sorted(parts.items())))
     print("цвета: " + ", ".join(f"{names.get(c, c)} x{n}" for c, n in colors.most_common()))
     print("->", io_path)
     if not args.no_instructions:
