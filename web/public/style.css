@@ -47,3 +47,5 @@ button.secondary { background: #e9e7e2; color: var(--ink); }
 .health.on { color: #1a8f3c; }
 .health.off { color: var(--accent); }
 .downloads a.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.options { display: flex; gap: 20px; align-items: center; margin-top: 10px; font-size: 14px; color: var(--muted); flex-wrap: wrap; }
+.options input[type=number] { width: 90px; padding: 4px 6px; border: 1px solid var(--line); border-radius: 6px; margin-left: 6px; }

@@ -26,6 +26,7 @@ FLAT_BORDER_STD = 0.03            # рамка картинки одноцвет
 FLAT_BACKGROUND_TOLERANCE = 0.12  # насколько цвет должен отличаться от фона, чтобы быть объектом
 DARK_L, DARK_CHROMA = 0.45, 0.15   # «тёмная и бесцветная» клетка: чёрный контур спрайта или чёрный пластик
 MAX_SIDE = 4                       # боковая грань не шире стольких клеток
+DOWNSCALE_COVERAGE = 0.35          # при укрупнении клетка есть, если объект занимает хотя бы столько её площади
 BASE_MIN_WIDTH = 0.6               # подставка: сплошной тёмный нижний ряд не уже такой доли ширины фигурки
 
 
@@ -52,6 +53,48 @@ def mosaic_from_photo(image_path: str, max_colors: int = 16, keep_background: bo
     cell_colors = np.zeros_like(colors)
     cell_colors[front] = calibrated
     return PhotoMosaic(Mosaic(codes, (pitch_x + pitch_y) / 2, *present.shape), cell_colors)
+
+
+def mosaic_from_image(image_path: str, width: int, max_colors: int = 12, keep_background: bool = False,
+                      outline: bool = False) -> PhotoMosaic:
+    """Любая картинка → пиксель-арт шириной `width` клеток. Объект (или вся картинка при
+    keep_background) режется на клетки, цвет клетки — медиана её пикселей, потом ближайший
+    пластик. Одиночные клетки без соседей убираются; outline — чёрный контур в одну клетку
+    вокруг силуэта, как у Pixel Pals."""
+    from scipy import ndimage
+    rgb, mask = _cutout(image_path)
+    if keep_background:
+        mask = np.ones_like(mask)
+    ys, xs = np.nonzero(mask)
+    x0, x1, y0, y1 = xs.min(), xs.max() + 1, ys.min(), ys.max() + 1
+    cell = (x1 - x0) / width
+    height = max(1, int(round((y1 - y0) / cell)))
+    colors = np.zeros((width, height, 3), dtype=np.uint8)
+    present = np.zeros((width, height), dtype=bool)
+    for i in range(width):
+        for j in range(height):
+            cx0, cx1 = x0 + int(i * cell), x0 + max(int(i * cell) + 1, int((i + 1) * cell))
+            cy0, cy1 = y0 + int(j * cell), y0 + max(int(j * cell) + 1, int((j + 1) * cell))
+            m = mask[cy0:cy1, cx0:cx1]
+            if m.size == 0 or m.mean() < DOWNSCALE_COVERAGE:
+                continue
+            present[i, j] = True
+            # медиана, а не среднее: клетка «наполовину контур, наполовину заливка» становится
+            # тем, чего в ней больше, а не серой кашей
+            colors[i, j] = (np.median(rgb[cy0:cy1, cx0:cx1][m], axis=0) * 255).astype(np.uint8)
+    neighbours = ndimage.convolve(present.astype(int), [[0, 1, 0], [1, 0, 1], [0, 1, 0]], mode="constant")
+    present &= neighbours >= 2                                   # одиночные клетки и «усы» не собрать
+    if outline:
+        ring = ndimage.binary_dilation(present) & ~present
+        colors[ring] = 0
+        present |= ring
+    codes = np.full(present.shape, -1)
+    codes[present], calibrated = flat_codes(colors[present], max_colors, None, None,
+                                            outline_black=preferences()["mosaic"]["outline_black"],
+                                            common_only=preferences()["mosaic"]["palette"] == "common")
+    cell_colors = np.zeros_like(colors)
+    cell_colors[present] = calibrated
+    return PhotoMosaic(Mosaic(codes, cell, width, height), cell_colors)
 
 
 def write_check(result: PhotoMosaic, path: str) -> str:

@@ -44,6 +44,8 @@ def main() -> None:
     ap.add_argument("--mosaic", action="store_true", help="плоская пиксельная фигура: один пиксель = один тайл 1x1 (с фото — напрямую, без 3D)")
     ap.add_argument("--flat", action="store_true", help="для --mosaic: плоская мозаика из тайлов на пластинах вместо стоячей фигурки")
     ap.add_argument("--background", choices=["cut", "keep"], default="cut", help="для --mosaic с рисунком: отбросить фон (фигурка) или выложить его (панно)")
+    ap.add_argument("--width", type=int, help="для --mosaic: переложить картинку в пиксель-арт такой ширины в клетках (любая картинка, не только пиксельная)")
+    ap.add_argument("--outline", action="store_true", help="для --mosaic --width: чёрный контур в одну клетку вокруг фигуры")
     ap.add_argument("--pixels", type=int, help="для --mosaic: пикселей по ширине, если сетка не находится сама")
     ap.add_argument("--resolution", type=int, default=1024, choices=[512, 1024, 1536], help="детализация нейросети для фото")
     ap.add_argument("--backend", choices=["hf", "kaggle"], default="hf", help="где считать фото→3D: HF Space (быстро, квота) или Kaggle (пачкой)")
@@ -72,8 +74,11 @@ def _build_mosaic(args, source: str, variant: str) -> None:
     from .mosaic import mosaic_bricks, mosaic_from_mesh, standing_bricks
     check = None
     if Path(source).suffix.lower() in IMAGE_SUFFIXES:
-        from .pixelart import mosaic_from_photo, write_check
-        result = mosaic_from_photo(source, max_colors=args.colors, keep_background=args.background == "keep")
+        from .pixelart import mosaic_from_image, mosaic_from_photo, write_check
+        if args.width:
+            result = mosaic_from_image(source, args.width, max_colors=args.colors, keep_background=args.background == "keep", outline=args.outline)
+        else:
+            result = mosaic_from_photo(source, max_colors=args.colors, keep_background=args.background == "keep")
         mosaic, check = result.mosaic, (result, write_check)
     else:
         mosaic = mosaic_from_mesh(source, max_colors=args.colors, pixels_wide=args.pixels)

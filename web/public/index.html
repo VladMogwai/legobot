@@ -25,6 +25,10 @@
         <span id="drop-text">Перетащи фото сюда или нажми, чтобы выбрать</span>
         <img id="preview" alt="" hidden>
       </label>
+      <div class="options">
+        <label>Ширина, клеток <input type="number" id="width" min="0" max="120" placeholder="как есть" title="Пусто — читать сетку картинки как есть; число — переложить любую картинку в пиксель-арт такой ширины"></label>
+        <label><input type="checkbox" id="keep-bg"> выложить фон (панно)</label>
+      </div>
       <button type="submit" id="submit" disabled>Собрать</button>
     </form>
     <p id="status" class="status"></p>

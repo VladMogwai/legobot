@@ -14,7 +14,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 import numpy as np
-from fastapi import Body, FastAPI, File, HTTPException, UploadFile
+from fastapi import Body, FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
@@ -26,7 +26,7 @@ from legobot.mosaic import Mosaic, standing_bricks
 from legobot.pack import pack_model
 from legobot.parts import VOCABULARIES
 from legobot.pipeline import build
-from legobot.pixelart import mosaic_from_photo, write_check
+from legobot.pixelart import mosaic_from_image, mosaic_from_photo, write_check
 from legobot.sizing import fit_parts
 from legobot.studio import write_io
 
@@ -58,7 +58,9 @@ executor = ThreadPoolExecutor(max_workers=1)
 
 
 @app.post("/jobs")
-async def create_job(photo: UploadFile = File(...)) -> dict:
+async def create_job(photo: UploadFile = File(...), width: int = Form(0), background: str = Form("cut")) -> dict:
+    """width > 0 — переложить любую картинку в пиксель-арт такой ширины; 0 — читать её сетку как есть.
+    background=keep — панно с фоном."""
     data = await photo.read()
     if len(data) > MAX_UPLOAD:
         raise HTTPException(413, "файл больше 15 МБ")
@@ -66,7 +68,7 @@ async def create_job(photo: UploadFile = File(...)) -> dict:
     suffix = Path(photo.filename or "photo.jpg").suffix.lower() or ".jpg"
     photo_path = WORK_DIR / job.id / f"photo{suffix}"
     photo_path.write_bytes(data)
-    executor.submit(_run, job, photo_path)
+    executor.submit(_run, job, photo_path, max(0, min(width, 120)), background == "keep")
     return {"id": job.id, "status": job.status}
 
 
@@ -167,11 +169,15 @@ def _cleanup() -> None:
                 jobs.pop(folder.name, None)
 
 
-def _run(job: Job, photo: Path) -> None:
-    """Пиксельная фигурка, если на фото есть сетка пикселей; иначе объёмная через фото→3D."""
+def _run(job: Job, photo: Path, width: int = 0, keep_background: bool = False) -> None:
+    """Пиксельная фигурка, если на фото есть сетка пикселей; иначе объёмная через фото→3D.
+    width > 0 — любая картинка укрупняется до такой ширины в клетках."""
     job.status = "running"
     try:
-        result = mosaic_from_photo(str(photo))
+        if width:
+            result = mosaic_from_image(str(photo), width, keep_background=keep_background)
+        else:
+            result = mosaic_from_photo(str(photo), keep_background=keep_background)
     except ValueError as e:                    # сетки нет — это не пиксель-арт
         log.info("job %s: %s — объёмный путь", job.id, e)
         _run_volume(job, photo)
