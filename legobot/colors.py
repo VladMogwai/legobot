@@ -4,6 +4,7 @@
 Цвета модели сначала сводятся к нескольким доминирующим (k-means): у модели
 из деталей цветов мало, а тени и блики с фото — не цвета.
 """
+import csv
 import re
 from dataclasses import dataclass
 from functools import lru_cache
@@ -50,6 +51,28 @@ def load_palette(common_only: bool = True) -> tuple[LdrawColor, ...]:
     return tuple(palette)
 
 
+STUDIO_COLORS_PATH = "/Applications/Studio 2.0/data/StudioColorDefinition.txt"
+
+
+@lru_cache
+def studio_palette(common_only: bool = True) -> tuple[LdrawColor, ...]:
+    """Ходовые цвета с RGB из таблицы Studio — тем, как Studio их рисует. У справочника LDraw
+    часть значений расходится (Light_Purple: #cd6298 против #af3195 в Studio)."""
+    studio = {}
+    try:
+        with open(STUDIO_COLORS_PATH, encoding="utf-8", errors="ignore") as f:
+            for row in csv.DictReader(f, delimiter="\t"):
+                try:
+                    code = int(row["LDraw Color Code"])
+                except (ValueError, TypeError):
+                    continue
+                if row["CategoryName"] == "Solid Colors" and row["RGB value"].startswith("#"):
+                    studio.setdefault(code, tuple(int(row["RGB value"][i:i + 2], 16) for i in (1, 3, 5)))
+    except FileNotFoundError:
+        return load_palette(common_only)
+    return tuple(LdrawColor(c.code, c.name, studio.get(c.code, c.rgb)) for c in load_palette(common_only))
+
+
 LIGHTNESS_WEIGHT = 0.3  # при кластеризации яркость важна меньше оттенка: тень на жёлтом — всё ещё жёлтый
 
 
@@ -75,31 +98,40 @@ def nearest_codes(rgb: np.ndarray, max_colors: int = 4) -> np.ndarray:
     return center_codes[labels]
 
 
-def flat_codes(rgb: np.ndarray, max_colors: int) -> np.ndarray:
-    """Подбор для пиксель-арта: цвета плоские, теней нет, поэтому без поправок — k-means в Lab
-    как есть и ближайший цвет из всей сплошной палитры; если ходовой цвет почти так же близок
-    (в пределах RARE_MARGIN ΔE), берём его — его проще купить."""
-    rgb = rgb.reshape(-1, 3)
+def flat_codes(rgb: np.ndarray, max_colors: int, black: np.ndarray | None = None,
+               white: np.ndarray | None = None) -> np.ndarray:
+    """Подбор для пиксель-арта: цвета плоские, теней нет. Сначала уровни: что на фото было
+    `black`/`white` (чёрный пластик, белые клетки), становится чёрным/белым — фото бледнее
+    пластика. Потом k-means в Lab, слияние кластеров, разбитых освещением, и ближайший ходовой
+    цвет в значениях Studio; у цветных — только среди своего оттенка (розовый не станет лиловым)."""
+    rgb = rgb.reshape(-1, 3).astype(float)
+    lo = np.zeros(3) if black is None else np.asarray(black, float)
+    hi = np.full(3, 255.0) if white is None else np.asarray(white, float)
+    rgb = np.clip((rgb - lo) / np.maximum(hi - lo, 1) * 255, 0, 255).astype(np.uint8)
     lab = _rgb_to_lab(rgb)
     k = min(max_colors, len(np.unique(rgb, axis=0)))
     centers, labels = kmeans2(lab, k, minit="++", seed=0)
     centers, labels = _merge_close(centers, labels)
-    palette = load_palette(common_only=False)
+    palette = studio_palette()
     palette_lab = _rgb_to_lab(np.array([c.rgb for c in palette]))
     codes = np.array([c.code for c in palette])
-    common = np.array([c.code in COMMON_COLORS for c in palette])
     center_codes = []
     for c in centers:
         if c[0] < DARK_L and np.hypot(c[1], c[2]) < ACHROMATIC:
             center_codes.append(BLACK)   # тёмно-серый контур на фото — это чёрная печать
             continue
         dist = np.sqrt(((c - palette_lab) ** 2).sum(1))
-        dist[~common] += RARE_MARGIN
+        if np.hypot(c[1], c[2]) > ACHROMATIC:
+            hue = np.degrees(np.arctan2(c[2], c[1]))
+            pal_hue = np.degrees(np.arctan2(palette_lab[:, 2], palette_lab[:, 1]))
+            off_hue = (np.abs((pal_hue - hue + 180) % 360 - 180) > MAX_HUE_DIFF) | (np.hypot(palette_lab[:, 1], palette_lab[:, 2]) < ACHROMATIC)
+            if not off_hue.all():
+                dist[off_hue] = np.inf
         center_codes.append(int(codes[dist.argmin()]))
     return np.array(center_codes)[labels]
 
 
-RARE_MARGIN = 4.0  # ΔE: на столько редкий цвет должен быть точнее ходового, чтобы его выбрать
+MAX_HUE_DIFF = 35  # градусов: цветной пиксель подбирается только среди пластика того же оттенка
 MERGE_DE = 7.0     # кластеры ближе этого — один цвет, разбитый освещением (k-means дробит крупные)
 
 

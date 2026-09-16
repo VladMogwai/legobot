@@ -26,9 +26,11 @@ def mosaic_from_photo(image_path: str, max_colors: int = 16) -> Mosaic:
     rect, rmask = _rectify(rgb, mask)
     pitch_x, pitch_y, phase_x, phase_y = _grid(rect, rmask)
     colors, present = _sample_cells(rect, rmask, pitch_x, pitch_y, phase_x, phase_y)
-    present &= _front_face(colors, present)
+    front = _front_face(colors, present)
+    black, white = _anchors(colors, present, front)
     codes = np.full(present.shape, -1)
-    codes[present] = flat_codes(colors[present], max_colors)
+    codes[front] = flat_codes(colors[front], max_colors, black, white)
+    present = front
     return Mosaic(codes, (pitch_x + pitch_y) / 2, *present.shape)
 
 
@@ -121,6 +123,17 @@ def _sample_cells(rect, rmask, pitch_x, pitch_y, phase_x, phase_y):
             present[i, j] = True
             colors[i, j] = (np.median(rect[ys, xs].reshape(-1, 3), axis=0) * 255).astype(np.uint8)
     return colors, present
+
+
+def _anchors(colors, present, front):
+    """Опорные точки уровней: чёрный — пластик боковой грани (если виден), белый — самые
+    светлые клетки спрайта (если они близки к белому)."""
+    gray = color.rgb2gray(colors / 255.0)
+    side = present & ~front
+    black = np.median(colors[side], axis=0) if side.sum() >= 3 else None
+    bright = colors[front][gray[front] >= np.quantile(gray[front], 0.97)]
+    white = np.median(bright, axis=0) if gray[front].max() > 0.85 else None
+    return black, white
 
 
 def _front_face(colors, present):
