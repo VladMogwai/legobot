@@ -21,7 +21,8 @@ from .preferences import preferences
 
 RECTIFIED_PX = 900          # длинная сторона выправленного изображения
 MIN_PITCH, MAX_PITCH = 8, 80
-FUNDAMENTAL_RATIO = 0.9           # пик автокорреляции не ниже 90 % от лучшего — тот же период
+FUNDAMENTAL_RATIO = 0.9           # решётка собирает не меньше 90 % границ от лучшей — тот же период, берём меньший шаг
+EDGE_MIN = 0.2                    # сильная граница — не ниже 20 % от максимума профиля
 FLAT_BORDER_STD = 0.03            # рамка картинки одноцветная — это рисунок на ровном фоне, не фото
 FLAT_BACKGROUND_TOLERANCE = 0.12  # насколько цвет должен отличаться от фона, чтобы быть объектом
 DARK_L, DARK_CHROMA = 0.45, 0.15   # «тёмная и бесцветная» клетка: чёрный контур спрайта или чёрный пластик
@@ -322,14 +323,24 @@ def _grid(rect, rmask):
         peaks = [(ac[l], l) for l in range(MIN_PITCH, MAX_PITCH) if ac[l] > ac[l - 1] and ac[l] >= ac[l + 1]]
         if not peaks:
             raise ValueError("не нашёл шаг пиксельной сетки")
-        # основной период — наименьший из пиков, почти равных лучшему: у чистого пиксель-арта
-        # пики на 2p, 3p не ниже пика на p
-        top = max(peaks)[0]
-        l = min(l for v, l in peaks if v >= top * FUNDAMENTAL_RATIO)
-        a, b, c = ac[l - 1], ac[l], ac[l + 1]
-        pitch = l + 0.5 * (a - c) / (a - 2 * b + c)              # субпиксельно, по параболе
-        n = int((len(profile) - MAX_PITCH) / pitch)
-        phase = max(range(int(pitch)), key=lambda ph: sum(profile[int(round(ph + i * pitch))] for i in range(n)))
+        # Кандидаты — пики автокорреляции. Выбор — по решётке: доля сильных границ профиля,
+        # попавших (±1.5 px) на узлы решётки с шагом-кандидатом при лучшей фазе. Настоящий шаг
+        # собирает все границы; вдвое крупный — половину; вдвое мелкий промахивается на нечётных
+        # узлах. Сам пик автокорреляции врёт: у спрайтов с двухпиксельными деталями пик на 2p выше.
+        top = max(v for v, _ in peaks)
+        edges = [i for i in range(1, len(profile) - 1)
+                 if profile[i] >= profile[i - 1] and profile[i] > profile[i + 1] and profile[i] > profile.max() * EDGE_MIN]
+        options = []
+        for v, l in peaks:
+            if v < top * 0.3:
+                continue
+            a, b, c = ac[l - 1], ac[l], ac[l + 1]
+            pitch = l + 0.5 * (a - c) / (a - 2 * b + c)              # субпиксельно, по параболе
+            fit = lambda ph: np.mean([min((e - ph) % pitch, pitch - (e - ph) % pitch) <= 1.5 for e in edges]) if edges else 0.0
+            phase = max(range(int(pitch)), key=fit)
+            options.append((fit(phase), pitch, phase))
+        best = max(o[0] for o in options)
+        _, pitch, phase = min((o for o in options if o[0] >= best * FUNDAMENTAL_RATIO), key=lambda o: o[1])
         out.append((pitch, phase))
     (pitch_x, phase_x), (pitch_y, phase_y) = out
     return pitch_x, pitch_y, phase_x, phase_y
