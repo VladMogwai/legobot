@@ -36,7 +36,8 @@ def main() -> None:
             break
     if not url:
         print("cloudflared не дал адрес"); _stop(api, tunnel); return
-    print(f"\nсервис доступен по адресу {url}\n")
+    print(f"\nсервис доступен по адресу {url}")
+    _wait_dns(url)
     _publish(url)
     try:
         while api.poll() is None and tunnel.poll() is None:
@@ -44,6 +45,23 @@ def main() -> None:
     except KeyboardInterrupt:
         pass
     _stop(api, tunnel)
+
+
+def _wait_dns(url: str, timeout: int = 180) -> None:
+    """Имя туннеля новое: пока его не видит DNS этого компьютера, страница покажет «офлайн».
+    Ждём, чтобы не опубликовать адрес раньше, чем он заработает."""
+    import socket
+    host = url.removeprefix("https://")
+    started = time.time()
+    while time.time() - started < timeout:
+        try:
+            socket.getaddrinfo(host, 443)
+            print("адрес виден в DNS")
+            return
+        except socket.gaierror:
+            time.sleep(5)
+    print("DNS на этом компьютере пока не видит адрес туннеля (роутер отстаёт). Публикую всё равно: "
+          "у других он обычно уже работает; здесь помогает DNS 1.1.1.1 в настройках сети или подождать пару минут.")
 
 
 def _port_busy() -> bool:
