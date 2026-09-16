@@ -1,0 +1,11 @@
+numpy>=2.0
+scipy>=1.14
+trimesh>=4.4
+scikit-image>=0.24
+rembg>=2.0.60
+onnxruntime>=1.18
+matplotlib>=3.9
+pillow>=10
+fastapi>=0.115
+uvicorn>=0.30
+python-multipart>=0.0.9

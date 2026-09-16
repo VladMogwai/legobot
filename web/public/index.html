@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>legobot — фигурка из фото</title>
+<link rel="stylesheet" href="style.css">
+<script type="importmap">
+{"imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+}}
+</script>
+</head>
+<body>
+<header>
+  <h1>legobot</h1>
+  <p>Фото пиксельной фигурки → модель LEGO: файл для Studio, инструкция, список деталей.</p>
+</header>
+<main>
+  <section class="panel">
+    <form id="form">
+      <label class="drop" id="drop">
+        <input type="file" id="photo" accept="image/*" hidden>
+        <span id="drop-text">Перетащи фото сюда или нажми, чтобы выбрать</span>
+        <img id="preview" alt="" hidden>
+      </label>
+      <button type="submit" id="submit" disabled>Собрать</button>
+    </form>
+    <p id="status" class="status"></p>
+    <p class="hint">Снимай фронтально, при ровном свете, на однотонном фоне; швы между пикселями должны быть видны. Обработка ~40 секунд.</p>
+  </section>
+
+  <section class="result" id="result" hidden>
+    <div class="viewer-wrap">
+      <canvas id="viewer"></canvas>
+      <div class="steps">
+        <input type="range" id="step" min="1" max="1" value="1">
+        <span id="step-label"></span>
+      </div>
+    </div>
+    <aside>
+      <h2 id="title">Результат</h2>
+      <dl id="summary"></dl>
+      <p id="accuracy" class="accuracy"></p>
+      <img id="check" alt="Клетки фото и клетки LEGO">
+      <div class="downloads" id="downloads"></div>
+      <details>
+        <summary>Список деталей</summary>
+        <table id="parts"></table>
+      </details>
+    </aside>
+  </section>
+</main>
+<footer>
+  <a href="https://github.com/VladMogwai/legobot">Код на GitHub</a> · геометрия деталей — библиотека <a href="https://www.ldraw.org">LDraw</a> (CC BY 2.0)
+</footer>
+<script src="config.js"></script>
+<script type="module" src="main.js"></script>
+</body>
+</html>
