@@ -127,9 +127,10 @@ def mosaic_bricks(mosaic: Mosaic, base_color: int = BLACK) -> list[PlacedBrick]:
 
 def standing_bricks(mosaic: Mosaic) -> list[PlacedBrick]:
     """Стоячая фигурка. Спереди пиксели, сзади стенка (цвет и глубина — в legobot.toml).
-    Граница «пиксель/стенка» чередуется по рядам (при глубине 4: 2+2 и 1+3), а в стенке
-    нечётных рядов лежит кирпич глубиной 2 через границу — только так стенка и пиксели
-    связаны штырьками, иначе это две несвязанные стены. Задняя сторона ровная. Глубина ≥ 3.
+    Чётные ряды: пиксели глубиной 2 + стенка 2; нечётные: пиксели 3 (кирпичи 1×3 / 2×3) + стенка 1.
+    Трёхглубокие пиксели пересекают границу стенки соседних рядов — только так стенка и пиксели
+    связаны штырьками, иначе это две несвязанные стены; и каждый пиксель держится ≥ 2 штырьками.
+    Задняя сторона ровная. Глубина 4.
     Стенка же связывает и соседей по ряду разного цвета: длинный кирпич стенки в соседнем ряду
     лежит на них обоих."""
     mask = mosaic.codes >= 0
@@ -143,31 +144,24 @@ def standing_bricks(mosaic: Mosaic) -> list[PlacedBrick]:
     depth = int(prefs.get("depth", STANDING_DEPTH))
     nx, ny = mask.shape
     front = np.zeros((nx, depth, ny), dtype=bool)
-    bridge = np.zeros_like(front)     # кирпичи стенки глубиной 2, пересекающие границу пикселей чётных рядов
     wall = np.zeros_like(front)
     colors = np.full(front.shape, ANY_COLOR)
     for k in range(ny):
-        if k % 2 == 0:
-            front[:, :depth - 2, k] = mask[:, k, None]      # пиксели … | стенка 2
-            wall[:, depth - 2:, k] = back[:, k, None]
-        else:
-            front[:, :depth - 3, k] = mask[:, k, None]      # пиксели на 1 короче, стенка 3: мост (2) + 1
-            bridge[:, depth - 3:depth - 1, k] = back[:, k, None]
-            wall[:, depth - 1:, k] = back[:, k, None]
-        colors[:, :, k] = np.where(front[:, :, k], codes[:, k, None], ANY_COLOR)
-    # Стенка — отдельными проходами, длинными кирпичами: сначала мосты (обязаны быть глубиной 2,
-    # иначе стенка и пиксели не связаны), потом остальная стенка, потом пиксели поверх занятого.
-    wall_color = np.full(front.shape, back_color)
-    wall_bricks = layout_bricks(bridge, wall_color, back_color, BRICKS)
-    fixed = _fixed(front.shape, wall_bricks)
-    wall_bricks += layout_bricks(bridge | wall, wall_color, back_color, BRICKS, fixed=fixed)
-    fixed = _fixed(front.shape, wall_bricks)
-    bricks = wall_bricks + layout_bricks(front | bridge | wall, colors, back_color, BRICKS, fixed=fixed)
+        front_depth = 2 if k % 2 == 0 else 3                   # чётные: пиксели 2 | стенка 2; нечётные: 3 | 1
+        front[:, :front_depth, k] = mask[:, k, None]
+        wall[:, front_depth:, k] = back[:, k, None]
+        colors[:, :front_depth, k] = codes[:, k, None]
+    # Стенка — отдельным проходом, длинными кирпичами, потом пиксели поверх занятого. Пиксели
+    # нечётных рядов глубиной 3 (кирпичи 1×3 и 2×3 есть в словаре) пересекают границу стенки
+    # чётных рядов — так стенка и пиксели связаны штырьками, а каждый пиксель держится ≥ 2 штырьками.
+    wall_bricks = layout_bricks(wall, np.full(front.shape, back_color), back_color, BRICKS)
+    n_wall = len(wall_bricks)
+    bricks = wall_bricks + layout_bricks(front | wall, colors, back_color, BRICKS, fixed=_fixed(front.shape, wall_bricks))
     # Одиночная клетка над пустотой и под пустотой ни к чему не крепится: сначала убираем такие
     # кирпичи стенки (пиксель перед ними обычно держится за соседей), потом — оставшиеся
     # висящие пиксели (одиночный выступ без соседей сверху и снизу не собрать без боковых штырьков).
     loose = _loose_pieces(bricks)
-    bricks = [b for i, b in enumerate(bricks) if not (i in loose and i < len(wall_bricks))]
+    bricks = [b for i, b in enumerate(bricks) if not (i in loose and i < n_wall)]
     loose = _loose_pieces(bricks)
     return [b for i, b in enumerate(bricks) if i not in loose]
 
