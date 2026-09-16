@@ -99,6 +99,24 @@ async function showResult(files, summary, title) {
   await showModel(files["model.mpd"]);
 }
 
+// --- жив ли сервис (бэкенд крутится на домашнем Mac) ---
+let online = false;
+async function checkHealth() {
+  const el = $("health");
+  if (!API) { el.textContent = "● бэкенд не подключён"; el.className = "health off"; return; }
+  try {
+    const ctrl = new AbortController();
+    setTimeout(() => ctrl.abort(), 8000);
+    const r = await fetch(`${API}/health`, { signal: ctrl.signal });
+    online = r.ok;
+  } catch { online = false; }
+  el.textContent = online ? "● сервис онлайн" : "● сервис офлайн — Mac выключен или не запущен";
+  el.className = "health " + (online ? "on" : "off");
+  $("submit").disabled = !file || !online;
+}
+checkHealth();
+setInterval(checkHealth, 30000);
+
 // --- загрузка и опрос ---
 const photo = $("photo"), drop = $("drop");
 photo.addEventListener("change", () => pick(photo.files[0]));
@@ -112,8 +130,8 @@ function pick(f) {
   $("preview").src = URL.createObjectURL(f);
   $("preview").hidden = false;
   $("drop-text").textContent = f.name;
-  $("submit").disabled = !API;
-  if (!API) $("status").textContent = "Бэкенд не подключён: добавь ?api=адрес к ссылке.";
+  $("submit").disabled = !online;
+  if (!online) $("status").textContent = API ? "Сервис сейчас офлайн — попробуй позже." : "Бэкенд не подключён: добавь ?api=адрес к ссылке.";
 }
 
 async function runJob(request, statusEl, title) {

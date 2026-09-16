@@ -43,3 +43,6 @@ td:first-child { text-align: right; color: var(--muted); }
 #grid { display: block; image-rendering: pixelated; cursor: crosshair; }
 .editor-actions { display: flex; gap: 12px; align-items: center; margin-top: 8px; }
 button.secondary { background: #e9e7e2; color: var(--ink); }
+.health { font-size: 13px; font-weight: 500; color: var(--muted); margin-left: 12px; vertical-align: middle; }
+.health.on { color: #1a8f3c; }
+.health.off { color: var(--accent); }

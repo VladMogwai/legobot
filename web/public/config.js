@@ -1,3 +1,2 @@
-// Адрес бэкенда (HF Space с service/app.py). Пусто — страница показывает только демо.
-// Можно переопределить в ссылке: ?api=https://…
-window.LEGOBOT_API = "";
+// Адрес бэкенда; обновляется tools/serve.py при каждом запуске.
+window.LEGOBOT_API = "https://assess-wild-married-ecology.trycloudflare.com";
