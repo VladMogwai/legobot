@@ -35,12 +35,15 @@ class PhotoMosaic:
     cell_colors: np.ndarray   # [W, H, 3] цвет клетки на фото (после калибровки уровней)
 
 
-def mosaic_from_photo(image_path: str, max_colors: int = 16) -> PhotoMosaic:
+def mosaic_from_photo(image_path: str, max_colors: int = 16, keep_background: bool = False) -> PhotoMosaic:
+    """keep_background — панно: у плоского рисунка фон выкладывается как цвет, а не отбрасывается."""
     rgb, mask = _cutout(image_path)
+    if keep_background and is_flat(rgb, mask):
+        mask = np.ones_like(mask)
     rect, rmask = _rectify(rgb, mask)
     pitch_x, pitch_y, phase_x, phase_y = _grid(rect, rmask)
     colors, present = _sample_cells(rect, rmask, pitch_x, pitch_y, phase_x, phase_y)
-    front = _front_face(colors, present)
+    front = present if keep_background else _front_face(colors, present)
     black, white = _anchors(colors, present, front)
     codes = np.full(present.shape, -1)
     prefs = preferences()["mosaic"]

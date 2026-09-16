@@ -23,6 +23,7 @@ COMMON_COLORS = {
     0, 1, 2, 4, 14, 15, 19, 25, 27, 28, 70, 71, 72, 73, 74, 84, 85, 191, 212, 226, 272, 288, 308, 320, 321, 322, 323, 326, 378, 379, 462, 484,
     5, 13, 22, 26, 29, 30, 31, 69, 112,   # розовые, пурпурные, лиловые
     78, 86, 92,                           # телесные: Light_Flesh, Dark_Flesh, Flesh
+    151,                                  # Very_Light_Bluish_Gray — светло-серый фон панно
 }
 
 _LINE = re.compile(r"^0 !COLOUR (\S+)\s+CODE\s+(\d+)\s+VALUE\s+#([0-9A-Fa-f]{6})")
@@ -117,10 +118,13 @@ def flat_codes(rgb: np.ndarray, max_colors: int, black: np.ndarray | None = None
             continue
         dist = np.sqrt(((c - palette_lab) ** 2).sum(1))
         dist[basic] -= BASIC_BONUS       # фигурки красят базовыми цветами, а не «тёмно-лиловым»
-        if np.hypot(c[1], c[2]) > ACHROMATIC:
+        pal_chroma = np.hypot(palette_lab[:, 1], palette_lab[:, 2])
+        if np.hypot(c[1], c[2]) <= ACHROMATIC:
+            dist[pal_chroma > GREY_CHROMA] = np.inf      # серое остаётся серым, а не «светло-бирюзовым»
+        else:
             hue = np.degrees(np.arctan2(c[2], c[1]))
             pal_hue = np.degrees(np.arctan2(palette_lab[:, 2], palette_lab[:, 1]))
-            off_hue = (np.abs((pal_hue - hue + 180) % 360 - 180) > MAX_HUE_DIFF) | (np.hypot(palette_lab[:, 1], palette_lab[:, 2]) < ACHROMATIC)
+            off_hue = (np.abs((pal_hue - hue + 180) % 360 - 180) > MAX_HUE_DIFF) | (pal_chroma < ACHROMATIC)
             if not off_hue.all():
                 dist[off_hue] = np.inf
         center_codes.append(int(codes[dist.argmin()]))
@@ -129,6 +133,7 @@ def flat_codes(rgb: np.ndarray, max_colors: int, black: np.ndarray | None = None
 
 MAX_HUE_DIFF = 35  # градусов: цветной пиксель подбирается только среди пластика того же оттенка
 MERGE_DE = 7.0     # кластеры ближе этого — один цвет, разбитый освещением (k-means дробит крупные)
+GREY_CHROMA = 6.0  # насыщенность в Lab, ниже которой цвет палитры считается серым (Light_Aqua — уже нет)
 BASIC_BONUS = 4.0  # ΔE: фора базовым цветам
 BASIC_COLORS = {"Black", "White", "Red", "Blue", "Yellow", "Green", "Orange", "Tan", "Dark_Bluish_Gray", "Light_Bluish_Gray",
                 "Bright_Pink", "Medium_Azure", "Dark_Blue", "Dark_Red", "Bright_Green", "Lime", "Reddish_Brown", "Dark_Tan",
