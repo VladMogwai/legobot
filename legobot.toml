@@ -2,5 +2,5 @@
 
 [mosaic]
 outline_black = true              # тёмно-серый контур спрайта класть чёрным (печать на фигурке чёрная)
-back_color = "Dark_Bluish_Gray"   # задняя стенка и подпорки стоячей фигурки; "Black" — как у Pixel Pals
+back_color = "Black"              # задняя стенка стоячей фигурки, как у Pixel Pals (выбор из mario_1.io, 16.09)
 palette = "common"                # "common" — только ходовые цвета (проще купить, Studio рисует точно); "all" — вся палитра
