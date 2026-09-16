@@ -75,6 +75,32 @@ def nearest_codes(rgb: np.ndarray, max_colors: int = 4) -> np.ndarray:
     return center_codes[labels]
 
 
+def flat_codes(rgb: np.ndarray, max_colors: int) -> np.ndarray:
+    """Подбор для пиксель-арта: цвета плоские, теней нет, поэтому без поправок — k-means в Lab
+    как есть и ближайший цвет из всей сплошной палитры; если ходовой цвет почти так же близок
+    (в пределах RARE_MARGIN ΔE), берём его — его проще купить."""
+    rgb = rgb.reshape(-1, 3)
+    lab = _rgb_to_lab(rgb)
+    k = min(max_colors, len(np.unique(rgb, axis=0)))
+    centers, labels = kmeans2(lab, k, minit="++", seed=0)
+    palette = load_palette(common_only=False)
+    palette_lab = _rgb_to_lab(np.array([c.rgb for c in palette]))
+    codes = np.array([c.code for c in palette])
+    common = np.array([c.code in COMMON_COLORS for c in palette])
+    center_codes = []
+    for c in centers:
+        if c[0] < DARK_L and np.hypot(c[1], c[2]) < ACHROMATIC:
+            center_codes.append(BLACK)
+            continue
+        dist = np.sqrt(((c - palette_lab) ** 2).sum(1))
+        dist[~common] += RARE_MARGIN
+        center_codes.append(int(codes[dist.argmin()]))
+    return np.array(center_codes)[labels]
+
+
+RARE_MARGIN = 4.0  # ΔE: на столько редкий цвет должен быть точнее ходового, чтобы его выбрать
+
+
 BLACK = 0
 DARK_L, ACHROMATIC = 45.0, 15.0
 SAME_HUE_DEG = 20.0  # кластеры одного оттенка (свет и тень одного цвета) сливаются

@@ -13,7 +13,7 @@ import numpy as np
 from PIL import Image
 from skimage import color, feature, morphology, transform
 
-from .colors import nearest_codes
+from .colors import flat_codes
 from .mosaic import Mosaic
 
 RECTIFIED_PX = 900          # длинная сторона выправленного изображения
@@ -28,7 +28,7 @@ def mosaic_from_photo(image_path: str, max_colors: int = 12) -> Mosaic:
     colors, present = _sample_cells(rect, rmask, pitch_x, pitch_y, phase_x, phase_y)
     present &= _front_face(colors, present)
     codes = np.full(present.shape, -1)
-    codes[present] = nearest_codes(colors[present], max_colors)
+    codes[present] = flat_codes(colors[present], max_colors)
     return Mosaic(codes, (pitch_x + pitch_y) / 2, *present.shape)
 
 
