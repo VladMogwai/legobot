@@ -31,3 +31,15 @@ td { padding: 3px 4px; border-bottom: 1px solid var(--line); }
 td:first-child { text-align: right; color: var(--muted); }
 .swatch { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: -1px; margin-right: 6px; border: 1px solid rgba(0,0,0,.2); }
 @media (max-width: 900px) { .result { grid-template-columns: 1fr; } #viewer { height: 420px; } }
+
+.link { color: var(--accent); cursor: pointer; text-decoration: underline; }
+.editor { margin-top: 16px; }
+.editor h2 { margin: 0 0 4px; font-size: 18px; }
+.palette { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+.palette button { width: 28px; height: 28px; padding: 0; margin: 0; border: 2px solid transparent; border-radius: 6px; background: var(--sw); cursor: pointer; }
+.palette button.selected { border-color: var(--ink); box-shadow: 0 0 0 2px #fff inset; }
+.palette button.erase { background: repeating-linear-gradient(45deg, #fff 0 4px, #ddd 4px 8px); }
+.editor-body { overflow: auto; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
+#grid { display: block; image-rendering: pixelated; cursor: crosshair; }
+.editor-actions { display: flex; gap: 12px; align-items: center; margin-top: 8px; }
+button.secondary { background: #e9e7e2; color: var(--ink); }

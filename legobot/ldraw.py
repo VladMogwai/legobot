@@ -6,7 +6,8 @@ from itertools import groupby
 
 from .fixtures import Fixture
 from .layout import PlacedBrick
-from .parts import STUD_LDU
+from .finish import TILES
+from .parts import STUD_LDU, VOCABULARIES
 from .slopes import PlacedSlope
 
 _IDENTITY = "1.000000 0.000000 0.000000 0.000000 1.000000 0.000000 0.000000 0.000000 1.000000"
@@ -44,3 +45,26 @@ def _brick_line(b: PlacedBrick) -> str:
     cy = -b.layer * b.part.height  # в LDraw вверх — это -Y
     rot = _ROTATE_90 if b.rotated else _IDENTITY
     return f"1 {b.color} {cx:.6f} {cy:.6f} {cz:.6f} {rot} {b.part.number}.dat"
+
+
+_KNOWN = {p.number: p for v in VOCABULARIES.values() for p in v.parts} | {t.number: t for t in TILES.values()}
+
+
+def read_bricks(ldraw_text: str) -> tuple[list[PlacedBrick], int]:
+    """Кирпичи, пластины и тайлы из текста LDraw (например, модели, отредактированной в Studio).
+    Возвращает (детали, сколько строк с незнакомыми деталями пропущено)."""
+    bricks, skipped = [], 0
+    for line in ldraw_text.splitlines():
+        t = line.split()
+        if len(t) < 15 or t[0] != "1":
+            continue
+        part = _KNOWN.get(t[14].lower().removesuffix(".dat"))
+        if part is None:
+            skipped += 1
+            continue
+        color = int(t[1]); cx, cy, cz = map(float, t[2:5]); rot = list(map(float, t[5:14]))
+        rotated = abs(rot[0]) < 0.5
+        w, l = (part.length, part.width) if rotated else (part.width, part.length)
+        bricks.append(PlacedBrick(part, int(round(cx / STUD_LDU - w / 2)), int(round(cz / STUD_LDU - l / 2)),
+                                  int(round(-cy / part.height)), rotated, color))
+    return bricks, skipped

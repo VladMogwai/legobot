@@ -12,16 +12,23 @@ from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from fastapi import FastAPI, File, HTTPException, UploadFile
+import numpy as np
+from fastapi import Body, FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 
 from legobot.instructions import bill_of_materials, split_steps, write_bom, write_pdf
-from legobot.ldraw import write_ldr
-from legobot.mosaic import standing_bricks
+from legobot.inventory import read_model
+from legobot.ldraw import read_bricks, write_ldr
+from legobot.mosaic import Mosaic, standing_bricks
 from legobot.pack import pack_model
+from legobot.parts import VOCABULARIES
+from legobot.pipeline import build
 from legobot.pixelart import mosaic_from_photo, write_check
+from legobot.sizing import fit_parts
 from legobot.studio import write_io
+
+VOLUME_PARTS = 400   # бюджет деталей объёмной фигурки
 
 WORK_DIR = Path("/tmp/legobot")
 MAX_UPLOAD = 15 * 1024 * 1024
@@ -50,14 +57,44 @@ async def create_job(photo: UploadFile = File(...)) -> dict:
     data = await photo.read()
     if len(data) > MAX_UPLOAD:
         raise HTTPException(413, "файл больше 15 МБ")
-    job = Job(uuid.uuid4().hex[:12])
-    folder = WORK_DIR / job.id
-    folder.mkdir(parents=True, exist_ok=True)
+    job = _new_job()
     suffix = Path(photo.filename or "photo.jpg").suffix.lower() or ".jpg"
-    (folder / f"photo{suffix}").write_bytes(data)
+    photo_path = WORK_DIR / job.id / f"photo{suffix}"
+    photo_path.write_bytes(data)
+    executor.submit(_run, job, photo_path)
+    return {"id": job.id, "status": job.status}
+
+
+def _new_job() -> Job:
+    job = Job(uuid.uuid4().hex[:12])
+    (WORK_DIR / job.id).mkdir(parents=True, exist_ok=True)
     with lock:
         jobs[job.id] = job
-    executor.submit(_run, job, folder / f"photo{suffix}")
+    return job
+
+
+@app.post("/grids")
+def build_from_grid(codes: list[list[int]] = Body(..., embed=True)) -> dict:
+    """Сборка из сетки пикселей (коды LDraw по столбцам, -1 — пусто) — например, отредактированной."""
+    grid = np.array(codes, dtype=int)
+    if grid.ndim != 2 or grid.size == 0 or grid.size > 200 * 200:
+        raise HTTPException(400, "сетка должна быть прямоугольной и не больше 200×200")
+    job = _new_job()
+    executor.submit(_run_mosaic, job, Mosaic(grid, 0.0, *grid.shape), None)
+    return {"id": job.id, "status": job.status}
+
+
+@app.post("/models")
+async def upload_model(model: UploadFile = File(...)) -> dict:
+    """Готовая модель (.io из Studio или .ldr) → инструкция, список деталей, превью."""
+    data = await model.read()
+    if len(data) > MAX_UPLOAD:
+        raise HTTPException(413, "файл больше 15 МБ")
+    job = _new_job()
+    suffix = Path(model.filename or "model.io").suffix.lower()
+    src = WORK_DIR / job.id / f"upload{suffix}"
+    src.write_bytes(data)
+    executor.submit(_run_model, job, src)
     return {"id": job.id, "status": job.status}
 
 
@@ -68,7 +105,7 @@ def get_job(job_id: str) -> dict:
         raise HTTPException(404, "нет такой задачи")
     out = {"id": job.id, "status": job.status, "error": job.error, "summary": job.summary}
     if job.status == "done":
-        out["files"] = {name: f"/jobs/{job.id}/files/{name}" for name in FILES}
+        out["files"] = {name: f"/jobs/{job.id}/files/{name}" for name in FILES if (WORK_DIR / job.id / name).exists()}
     return out
 
 
@@ -86,33 +123,95 @@ def health() -> dict:
 
 
 def _run(job: Job, photo: Path) -> None:
+    """Пиксельная фигурка, если на фото есть сетка пикселей; иначе объёмная через фото→3D."""
     job.status = "running"
-    folder = photo.parent
     try:
         result = mosaic_from_photo(str(photo))
-        bricks = standing_bricks(result.mosaic)
-        steps = split_steps(bricks)
-        ldr = folder / "model.ldr"
-        write_ldr(bricks, str(ldr), "legobot", steps=steps)
-        write_io(str(ldr), str(folder / "model.io"))
-        (folder / "model.mpd").write_text(pack_model(ldr.read_text()))
-        bom = bill_of_materials(bricks)
-        write_bom(bom, str(folder / "parts.csv"))
-        write_pdf(bricks, steps, str(folder / "instructions.pdf"), "legobot")
-        accuracy = write_check(result, str(folder / "check.png"))
-        m = result.mosaic
-        job.summary = {
-            "pixels": [m.width, m.height], "parts": len(bricks), "steps": len(steps),
-            "size_cm": [round(m.width * 0.8, 1), round(max(b.z + b.length for b in bricks) * 0.8, 1), round(m.height * 0.96, 1)],
-            "colors": [[l.color_name, l.quantity] for l in _color_totals(bom)],
-            "accuracy": accuracy,
-        }
-        job.status = "done"
-        log.info("job %s done: %s parts", job.id, len(bricks))
+    except ValueError as e:                    # сетки нет — это не пиксель-арт
+        log.info("job %s: %s — объёмный путь", job.id, e)
+        _run_volume(job, photo)
+        return
     except Exception as e:  # noqa: BLE001 — пользователю нужна причина, какой бы она ни была
         log.exception("job %s failed", job.id)
         job.status, job.error = "error", str(e)
-        shutil.rmtree(folder, ignore_errors=True)
+        return
+    _run_mosaic(job, result.mosaic, result)
+
+
+def _run_volume(job: Job, photo: Path) -> None:
+    """Объёмная фигурка: фото → 3D на HF Space (TRELLIS.2, бесплатная GPU-квота) → пластины."""
+    from legobot.photo import hf_token, mesh_from_photo
+    folder = WORK_DIR / job.id
+    job.summary = {"stage": "фото → 3D (1–3 минуты)"}
+    try:
+        if not hf_token():
+            raise RuntimeError("объёмные фигурки недоступны: на сервере нет токена Hugging Face (HF_TOKEN)")
+        mesh = mesh_from_photo(str(photo), str(folder / "mesh.ply"))
+        job.summary = {"stage": "укладка деталей"}
+        vocabulary = VOCABULARIES["plates"]
+        result = fit_parts(lambda grid: build(mesh, grid, 14, vocabulary, force_symmetric=True), VOLUME_PARTS)
+        _write_outputs(job, folder, result.bricks)
+        job.summary["kind"] = "объёмная"
+        job.status = "done"
+        log.info("job %s done (volume): %s parts", job.id, len(result.bricks))
+    except Exception as e:  # noqa: BLE001
+        log.exception("job %s failed", job.id)
+        job.status, job.error = "error", str(e)
+
+
+def _run_mosaic(job: Job, mosaic: Mosaic, photo_result) -> None:
+    """Сборка стоячей фигурки из сетки; photo_result — для картинки самопроверки."""
+    job.status = "running"
+    folder = WORK_DIR / job.id
+    try:
+        bricks = standing_bricks(mosaic)
+        _write_outputs(job, folder, bricks)
+        if photo_result is not None:
+            job.summary["accuracy"] = write_check(photo_result, str(folder / "check.png"))
+        job.summary["pixels"] = [mosaic.width, mosaic.height]
+        job.summary["grid"] = mosaic.codes.tolist()
+        job.summary["kind"] = "пиксельная"
+        job.status = "done"
+        log.info("job %s done: %s parts", job.id, len(bricks))
+    except Exception as e:  # noqa: BLE001
+        log.exception("job %s failed", job.id)
+        job.status, job.error = "error", str(e)
+
+
+def _run_model(job: Job, src: Path) -> None:
+    """Инструкция и превью для модели, собранной или отредактированной в Studio."""
+    job.status = "running"
+    folder = WORK_DIR / job.id
+    try:
+        bricks, skipped = read_bricks(read_model(str(src)))
+        if not bricks:
+            raise ValueError("в файле нет знакомых деталей (кирпичи, пластины, тайлы)")
+        _write_outputs(job, folder, bricks)
+        if skipped:
+            job.summary["skipped"] = skipped
+        job.status = "done"
+    except Exception as e:  # noqa: BLE001
+        log.exception("job %s failed", job.id)
+        job.status, job.error = "error", str(e)
+
+
+def _write_outputs(job: Job, folder: Path, bricks) -> None:
+    steps = split_steps(bricks)
+    ldr = folder / "model.ldr"
+    write_ldr(bricks, str(ldr), "legobot", steps=steps)
+    write_io(str(ldr), str(folder / "model.io"))
+    (folder / "model.mpd").write_text(pack_model(ldr.read_text()))
+    bom = bill_of_materials(bricks)
+    write_bom(bom, str(folder / "parts.csv"))
+    write_pdf(bricks, steps, str(folder / "instructions.pdf"), "legobot")
+    width = max(b.x + b.width for b in bricks) - min(b.x for b in bricks)
+    depth = max(b.z + b.length for b in bricks) - min(b.z for b in bricks)
+    height = (max(b.layer for b in bricks) + 1) * bricks[0].part.height / 20
+    job.summary = {
+        "parts": len(bricks), "steps": len(steps),
+        "size_cm": [round(width * 0.8, 1), round(depth * 0.8, 1), round(height * 0.8, 1)],
+        "colors": [[l.color_name, l.quantity] for l in _color_totals(bom)],
+    }
 
 
 def _color_totals(bom):

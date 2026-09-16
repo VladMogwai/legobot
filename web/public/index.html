@@ -28,7 +28,9 @@
       <button type="submit" id="submit" disabled>Собрать</button>
     </form>
     <p id="status" class="status"></p>
-    <p class="hint">Снимай фронтально, при ровном свете, на однотонном фоне; швы между пикселями должны быть видны. Обработка ~40 секунд.</p>
+    <p class="hint">Пиксельная фигурка (Pixel Pals и т.п.): снимай фронтально, при ровном свете, швы между пикселями должны быть видны — ~40 секунд.
+      Любой другой предмет: фото → 3D через нейросеть на бесплатной GPU-квоте — 1–3 минуты, до пары моделей в день.</p>
+    <p class="hint">Уже правил модель в Studio? <label class="link"><input type="file" id="model-file" accept=".io,.ldr,.mpd" hidden>Загрузи .io</label> — получишь инструкцию, список деталей и превью.</p>
   </section>
 
   <section class="result" id="result" hidden>
@@ -50,6 +52,20 @@
         <table id="parts"></table>
       </details>
     </aside>
+  </section>
+
+  <section class="panel editor" id="editor" hidden>
+    <h2>Редактор пикселей</h2>
+    <p class="hint">Щёлкай или веди по клеткам. Правый клик — стереть. Потом «Пересобрать» — модель строится заново из сетки за пару секунд.</p>
+    <div class="palette" id="palette"></div>
+    <div class="editor-body">
+      <canvas id="grid"></canvas>
+    </div>
+    <div class="editor-actions">
+      <button type="button" id="undo" class="secondary">Отменить</button>
+      <button type="button" id="rebuild">Пересобрать</button>
+      <span id="editor-status" class="status"></span>
+    </div>
   </section>
 </main>
 <footer>
