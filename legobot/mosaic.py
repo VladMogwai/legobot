@@ -150,10 +150,11 @@ def standing_bricks(mosaic: Mosaic) -> list[PlacedBrick]:
 
 
 def _pillars(mask: np.ndarray, codes: np.ndarray) -> np.ndarray:
-    """Столбики под выступами: клетки, не связанные с землёй ни вертикально, ни через
-    одноцветного соседа в ряду (такие сливаются в один кирпич), получают опору из стенки."""
+    """Столбики стенки только под кусками, не связанными штырьками с основным телом.
+    Связь — вертикальное соседство (кирпич держится и снизу, и сверху) или одноцветный сосед
+    в ряду (такие сливаются в один кирпич). Висящая на плече рука — связана, подпорка не нужна."""
     nx, ny = mask.shape
-    labels, _ = ndimage.label(mask, structure=[[0, 1, 0], [0, 1, 0], [0, 1, 0]])   # вертикальные связи
+    labels, _ = ndimage.label(mask, structure=[[0, 1, 0], [0, 1, 0], [0, 1, 0]])
     parent = {}
 
     def find(a):
@@ -165,12 +166,19 @@ def _pillars(mask: np.ndarray, codes: np.ndarray) -> np.ndarray:
         for y in range(ny):
             if mask[x, y] and mask[x + 1, y] and codes[x, y] == codes[x + 1, y]:
                 parent[find(labels[x, y])] = find(labels[x + 1, y])
-    grounded = {find(labels[x, 0]) for x in range(nx) if mask[x, 0]}
+    roots = np.array([[find(labels[x, y]) if mask[x, y] else -1 for y in range(ny)] for x in range(nx)])
+    main = Counter(roots[mask].tolist()).most_common(1)[0][0]
     pillars = np.zeros_like(mask)
     for x in range(nx):
-        for y in range(1, ny):
-            if mask[x, y] and not mask[x, y - 1] and find(labels[x, y]) not in grounded:
-                below = [yy for yy in range(y - 1, -1, -1) if mask[x, yy]]
-                for yy in range(below[0] + 1 if below else 0, y):
-                    pillars[x, yy] = True
+        for y in range(ny):
+            if not mask[x, y] or roots[x, y] == main:
+                continue
+            below = [yy for yy in range(y - 1, -1, -1) if mask[x, yy] and roots[x, yy] == main]
+            above = [yy for yy in range(y + 1, ny) if mask[x, yy] and roots[x, yy] == main]
+            if not below and not above:
+                continue
+            gap_down = y - below[0] if below else ny
+            gap_up = above[0] - y if above else ny
+            lo, hi = (below[0] + 1, y) if gap_down <= gap_up else (y + 1, above[0])
+            pillars[x, lo:hi] = True
     return pillars
