@@ -21,7 +21,7 @@ from .parts import BRICKS, PLATES
 
 RASTER = 512
 STANDING_DEPTH = 3  # штырьков в глубину у стоячей фигурки: 2 пикселя + 1 стенка (через ряд 1 + 2)
-BACK_COLOR = 0      # чёрная задняя стенка, как у Pixel Pals
+BACK_COLOR = 72     # Dark_Bluish_Gray: стенка и подпорки не сливаются с чёрным контуром спрайта
 SAMPLES = 1_500_000
 MIN_PITCH, MAX_PITCH = 6, 80  # шаг сетки в пикселях растра
 BLACK = 0
