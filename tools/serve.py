@@ -25,9 +25,11 @@ def main() -> None:
     if _port_busy():
         print(f"порт {PORT} занят — сервис уже запущен в другом окне. Останови его (Ctrl+C там) или: pkill -f 'uvicorn service.app'")
         return
-    api = subprocess.Popen([sys.executable, "-m", "uvicorn", "service.app:app", "--host", "127.0.0.1", "--port", str(PORT)], cwd=ROOT)
+    # своя группа процессов: Ctrl+C в терминале не должен убить их раньше, чем мы сами их остановим
+    api = subprocess.Popen([sys.executable, "-m", "uvicorn", "service.app:app", "--host", "127.0.0.1", "--port", str(PORT)],
+                           cwd=ROOT, start_new_session=True)
     tunnel = subprocess.Popen([CLOUDFLARED, "tunnel", "--url", f"http://127.0.0.1:{PORT}", "--no-autoupdate"],
-                              stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+                              stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, start_new_session=True)
     url = None
     for line in tunnel.stdout:
         m = re.search(r"https://[a-z0-9-]+\.trycloudflare\.com", line)
@@ -84,12 +86,14 @@ def _publish(url: str) -> None:
 def _stop(*procs) -> None:
     for p in procs:
         if p.poll() is None:
-            p.send_signal(signal.SIGTERM)
+            p.terminate()
     for p in procs:
         try:
             p.wait(timeout=10)
         except subprocess.TimeoutExpired:
             p.kill()
+            p.wait()
+    print("сервис остановлен")
 
 
 if __name__ == "__main__":
