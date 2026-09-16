@@ -88,6 +88,8 @@ def mosaic_from_image(image_path: str, width: int, max_colors: int = 12, keep_ba
         ring = ndimage.binary_dilation(present) & ~present
         colors[ring] = 0
         present |= ring
+    if contrast:
+        colors[present] = _vivid(colors[present])
     codes = np.full(present.shape, -1)
     codes[present], calibrated = flat_codes(colors[present], max_colors, None, None,
                                             outline_black=preferences()["mosaic"]["outline_black"] and not contrast,
@@ -114,6 +116,19 @@ def _despeckle_codes(codes: np.ndarray) -> np.ndarray:
             if len(around) == 4 and len(set(around)) == 1 and around[0] != codes[x, y]:
                 out[x, y] = around[0]
     return out
+
+
+def _vivid(cells: np.ndarray) -> np.ndarray:
+    """Живопись и затенённые картинки: пластик насыщеннее краски. Насыщенность усиливается
+    в VIVID_CHROMA раз — бордовые доспехи становятся красными, а не «коричневыми»."""
+    from .colors import _rgb_to_lab
+    lab = _rgb_to_lab(cells).astype(float)
+    lab[:, 1:] *= VIVID_CHROMA                       # только насыщенность: светлота цветных не трогается,
+                                                     # иначе тёмно-красное становится розовым
+    return (np.clip(color.lab2rgb(lab.reshape(1, -1, 3)), 0, 1).reshape(-1, 3) * 255).astype(np.uint8)
+
+
+VIVID_CHROMA = 1.25
 
 
 def _grey_tones(cells: np.ndarray, codes: np.ndarray) -> np.ndarray:
