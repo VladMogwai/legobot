@@ -56,7 +56,7 @@ def mosaic_from_photo(image_path: str, max_colors: int = 16, keep_background: bo
 
 
 def mosaic_from_image(image_path: str, width: int, max_colors: int = 12, keep_background: bool = False,
-                      outline: bool = False, contrast: bool = False) -> PhotoMosaic:
+                      outline: bool = False, contrast: bool = False, dither: bool = False) -> PhotoMosaic:
     """Любая картинка → пиксель-арт шириной `width` клеток. Объект (или вся картинка при
     keep_background) режется на клетки, цвет клетки — медиана её пикселей, потом ближайший
     пластик. Одиночные клетки без соседей убираются; outline — чёрный контур в одну клетку
@@ -91,11 +91,15 @@ def mosaic_from_image(image_path: str, width: int, max_colors: int = 12, keep_ba
     if contrast:
         colors[present] = _vivid(colors[present])
     codes = np.full(present.shape, -1)
-    codes[present], calibrated = flat_codes(colors[present], max_colors, None, None,
-                                            outline_black=preferences()["mosaic"]["outline_black"] and not contrast,
-                                            common_only=preferences()["mosaic"]["palette"] == "common")
-    if contrast:
-        codes[present] = _grey_tones(colors[present], codes[present])
+    if dither:
+        codes = _dither(colors, present, common_only=preferences()["mosaic"]["palette"] == "common")
+        calibrated = colors[present]
+    else:
+        codes[present], calibrated = flat_codes(colors[present], max_colors, None, None,
+                                                outline_black=preferences()["mosaic"]["outline_black"] and not contrast,
+                                                common_only=preferences()["mosaic"]["palette"] == "common")
+        if contrast:
+            codes[present] = _grey_tones(colors[present], codes[present])
     codes = _despeckle_codes(codes)
     cell_colors = np.zeros_like(colors)
     cell_colors[present] = calibrated
@@ -116,6 +120,31 @@ def _despeckle_codes(codes: np.ndarray) -> np.ndarray:
             if len(around) == 4 and len(set(around)) == 1 and around[0] != codes[x, y]:
                 out[x, y] = around[0]
     return out
+
+
+def _dither(colors: np.ndarray, present: np.ndarray, common_only: bool = True) -> np.ndarray:
+    """Фотомозаика: каждая клетка — ближайший пластик, а ошибка цвета рассеивается на соседей
+    (Флойд–Стайнберг в Lab). Градиенты и полутона живописи сохраняются как «зерно», как в
+    LEGO Art; зато деталей больше (одноцветных полей почти нет)."""
+    from .colors import _rgb_to_lab, studio_palette
+    palette = studio_palette(common_only)
+    pal_lab = _rgb_to_lab(np.array([c.rgb for c in palette]))
+    pal_codes = np.array([c.code for c in palette])
+    lab = _rgb_to_lab(colors.reshape(-1, 3)).reshape(colors.shape).astype(float)
+    w, h = present.shape
+    codes = np.full(present.shape, -1)
+    for y in range(h):
+        for x in range(w):
+            if not present[x, y]:
+                continue
+            target = lab[x, y]
+            i = int(((pal_lab - target) ** 2).sum(1).argmin())
+            codes[x, y] = pal_codes[i]
+            err = target - pal_lab[i]
+            for dx, dy, share in ((1, 0, 7 / 16), (-1, 1, 3 / 16), (0, 1, 5 / 16), (1, 1, 1 / 16)):
+                if 0 <= x + dx < w and 0 <= y + dy < h and present[x + dx, y + dy]:
+                    lab[x + dx, y + dy] += err * share
+    return codes
 
 
 def _vivid(cells: np.ndarray) -> np.ndarray:
