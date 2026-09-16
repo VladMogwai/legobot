@@ -4,6 +4,7 @@ from collections import Counter
 from functools import partial
 from pathlib import Path
 
+from .catalog import unavailable
 from .colors import code_by_name, load_palette
 from .fixtures import WHEEL_BY_PART
 from .instructions import bill_of_materials, split_steps, write_bom, write_pdf
@@ -97,6 +98,7 @@ def _build_mosaic(args, source: str, variant: str) -> None:
         print(f"стоячая фигурка {mosaic.width * 0.8:.0f} x {STANDING_DEPTH * 0.8:.1f} x {mosaic.height * 0.96:.0f} см, "
               f"деталей {len(bricks)}: " + ", ".join(f"{k} x{n}" for k, n in sorted(parts.items())))
     print("цвета: " + ", ".join(f"{names.get(c, c)} x{n}" for c, n in colors.most_common()))
+    _warn_unavailable(bricks)
     if check:
         result, write_check = check
         check_path = io_path.with_name(io_path.stem + "_check.png")
@@ -133,11 +135,19 @@ def _build_one(args, mesh_path: str, variant: str, vocabulary) -> None:
     write_ldr(result.bricks, str(ldr_path), io_path.stem, result.fixtures, result.slopes)
     write_io(str(ldr_path), str(io_path))
     print(_summary(result))
+    _warn_unavailable(result.bricks + result.slopes)
     print("->", io_path)
     if not args.no_instructions:
         _write_instructions(result.bricks + result.slopes, result.fixtures, io_path)
     if args.open:
         open_in_studio(str(io_path))
+
+
+def _warn_unavailable(bricks) -> None:
+    names = {c.code: c.name for c in load_palette(common_only=False)}
+    missing = unavailable([(b.part.number, b.color) for b in bricks])
+    if missing:
+        print("не выпускались в таком цвете: " + ", ".join(f"{n} {names.get(c, c)}" for n, c in missing))
 
 
 def _write_instructions(bricks, fixtures, io_path: Path) -> None:
