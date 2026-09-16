@@ -99,11 +99,13 @@ def nearest_codes(rgb: np.ndarray, max_colors: int = 4) -> np.ndarray:
 
 
 def flat_codes(rgb: np.ndarray, max_colors: int, black: np.ndarray | None = None,
-               white: np.ndarray | None = None) -> np.ndarray:
+               white: np.ndarray | None = None, outline_black: bool = True,
+               common_only: bool = True) -> tuple[np.ndarray, np.ndarray]:
     """Подбор для пиксель-арта: цвета плоские, теней нет. Сначала уровни: что на фото было
     `black`/`white` (чёрный пластик, белые клетки), становится чёрным/белым — фото бледнее
     пластика. Потом k-means в Lab, слияние кластеров, разбитых освещением, и ближайший ходовой
-    цвет в значениях Studio; у цветных — только среди своего оттенка (розовый не станет лиловым)."""
+    цвет в значениях Studio; у цветных — только среди своего оттенка (розовый не станет лиловым).
+    Возвращает (коды, откалиброванные цвета) — вторые нужны для проверки результата."""
     rgb = rgb.reshape(-1, 3).astype(float)
     lo = np.zeros(3) if black is None else np.asarray(black, float)
     hi = np.full(3, 255.0) if white is None else np.asarray(white, float)
@@ -112,12 +114,12 @@ def flat_codes(rgb: np.ndarray, max_colors: int, black: np.ndarray | None = None
     k = min(max_colors, len(np.unique(rgb, axis=0)))
     centers, labels = kmeans2(lab, k, minit="++", seed=0)
     centers, labels = _merge_close(centers, labels)
-    palette = studio_palette()
+    palette = studio_palette(common_only)
     palette_lab = _rgb_to_lab(np.array([c.rgb for c in palette]))
     codes = np.array([c.code for c in palette])
     center_codes = []
     for c in centers:
-        if c[0] < DARK_L and np.hypot(c[1], c[2]) < ACHROMATIC:
+        if outline_black and c[0] < DARK_L and np.hypot(c[1], c[2]) < ACHROMATIC:
             center_codes.append(BLACK)   # тёмно-серый контур на фото — это чёрная печать
             continue
         dist = np.sqrt(((c - palette_lab) ** 2).sum(1))
@@ -128,7 +130,7 @@ def flat_codes(rgb: np.ndarray, max_colors: int, black: np.ndarray | None = None
             if not off_hue.all():
                 dist[off_hue] = np.inf
         center_codes.append(int(codes[dist.argmin()]))
-    return np.array(center_codes)[labels]
+    return np.array(center_codes)[labels], rgb
 
 
 MAX_HUE_DIFF = 35  # градусов: цветной пиксель подбирается только среди пластика того же оттенка

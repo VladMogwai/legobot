@@ -13,15 +13,22 @@ import numpy as np
 from PIL import Image
 from skimage import color, feature, morphology, transform
 
-from .colors import flat_codes
+from .colors import flat_codes, studio_palette
 from .mosaic import Mosaic
+from .preferences import preferences
 
 RECTIFIED_PX = 900          # длинная сторона выправленного изображения
 MIN_PITCH, MAX_PITCH = 10, 80
 SIDE_BRIGHTNESS = 0.2       # яркость (0..1), ниже которой клетка — чёрный пластик (бок, просветы), а не пиксель
 
 
-def mosaic_from_photo(image_path: str, max_colors: int = 16) -> Mosaic:
+@dataclass
+class PhotoMosaic:
+    mosaic: Mosaic
+    cell_colors: np.ndarray   # [W, H, 3] цвет клетки на фото (после калибровки уровней)
+
+
+def mosaic_from_photo(image_path: str, max_colors: int = 16) -> PhotoMosaic:
     rgb, mask = _cutout(image_path)
     rect, rmask = _rectify(rgb, mask)
     pitch_x, pitch_y, phase_x, phase_y = _grid(rect, rmask)
@@ -29,9 +36,43 @@ def mosaic_from_photo(image_path: str, max_colors: int = 16) -> Mosaic:
     front = _front_face(colors, present)
     black, white = _anchors(colors, present, front)
     codes = np.full(present.shape, -1)
-    codes[front] = flat_codes(colors[front], max_colors, black, white)
-    present = front
-    return Mosaic(codes, (pitch_x + pitch_y) / 2, *present.shape)
+    prefs = preferences()["mosaic"]
+    codes[front], calibrated = flat_codes(colors[front], max_colors, black, white,
+                                          outline_black=prefs["outline_black"], common_only=prefs["palette"] == "common")
+    cell_colors = np.zeros_like(colors)
+    cell_colors[front] = calibrated
+    return PhotoMosaic(Mosaic(codes, (pitch_x + pitch_y) / 2, *present.shape), cell_colors)
+
+
+def write_check(result: PhotoMosaic, path: str) -> str:
+    """Картинка «клетки фото | клетки LEGO» и сводка точности цвета: средняя ΔE и доля клеток
+    с заметным (> NOTICEABLE_DE) отклонением. Это проверка результата, а не Studio под лампой."""
+    from .colors import _rgb_to_lab
+    m, cells = result.mosaic, result.cell_colors
+    lego = {c.code: np.array(c.rgb, dtype=np.uint8) for c in studio_palette(common_only=False)}
+    present = m.codes >= 0
+    nx, ny = m.codes.shape
+    photo_img = np.full((ny, nx, 3), 190, np.uint8)
+    lego_img = photo_img.copy()
+    for i, j in np.argwhere(present):
+        photo_img[j, i] = cells[i, j]
+        lego_img[j, i] = lego[int(m.codes[i, j])]
+    scale = max(1, 600 // ny)
+    a = Image.fromarray(photo_img).resize((nx * scale, ny * scale), Image.NEAREST)
+    b = Image.fromarray(lego_img).resize((nx * scale, ny * scale), Image.NEAREST)
+    out = Image.new("RGB", (a.width * 2 + scale, a.height), "white")
+    out.paste(a, (0, 0)); out.paste(b, (a.width + scale, 0))
+    out.save(path)
+    codes = m.codes[present]
+    de = np.sqrt(((_rgb_to_lab(cells[present]) - _rgb_to_lab(np.array([lego[int(c)] for c in codes]))) ** 2).sum(1))
+    names = {c.code: c.name for c in studio_palette(common_only=False)}
+    worst = sorted(((de[codes == c].mean(), int((codes == c).sum()), names[int(c)]) for c in np.unique(codes)), reverse=True)[:3]
+    return (f"точность цвета: средняя ΔE {de.mean():.1f}, клеток с заметным отклонением (ΔE > {NOTICEABLE_DE}) "
+            f"{int((de > NOTICEABLE_DE).sum())} из {len(de)} ({(de > NOTICEABLE_DE).mean() * 100:.0f}%); "
+            "дальше всего от фото: " + ", ".join(f"{n} (ΔE {d:.0f}, {k} кл.)" for d, k, n in worst))
+
+
+NOTICEABLE_DE = 20  # ΔE, с которого разница цветов бросается в глаза
 
 
 def _cutout(path):

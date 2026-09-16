@@ -17,11 +17,12 @@ from scipy import ndimage
 from .colors import nearest_codes
 from .finish import TILES
 from .layout import ANY_COLOR, PlacedBrick, layout_bricks
+from .colors import code_by_name
 from .parts import BRICKS, PLATES
+from .preferences import preferences
 
 RASTER = 512
 STANDING_DEPTH = 3  # штырьков в глубину у стоячей фигурки: 2 пикселя + 1 стенка (через ряд 1 + 2)
-BACK_COLOR = 72     # Dark_Bluish_Gray: стенка и подпорки не сливаются с чёрным контуром спрайта
 SAMPLES = 1_500_000
 MIN_PITCH, MAX_PITCH = 6, 80  # шаг сетки в пикселях растра
 BLACK = 0
@@ -125,7 +126,7 @@ def mosaic_bricks(mosaic: Mosaic, base_color: int = BLACK) -> list[PlacedBrick]:
 
 
 def standing_bricks(mosaic: Mosaic) -> list[PlacedBrick]:
-    """Стоячая фигурка. Спереди пиксели, сзади стенка цвета BACK_COLOR (у Pixel Pals она чёрная).
+    """Стоячая фигурка. Спереди пиксели, сзади стенка (цвет — в legobot.toml; у Pixel Pals чёрная).
     Глубина STANDING_DEPTH; граница «пиксель/стенка» чередуется по рядам (2+1, 1+2), чтобы
     стенка и пиксели связывались штырьками через ряд, иначе это две несвязанные стены.
     Выступы без опоры (ухо, край ноги) подпираются столбиком стенки до ближайшей опоры."""
@@ -135,6 +136,7 @@ def standing_bricks(mosaic: Mosaic) -> list[PlacedBrick]:
     codes = mosaic.codes[xs.min():xs.max() + 1, ys.min():ys.max() + 1]
     mask, codes = np.flip(mask, axis=1), np.flip(codes, axis=1)      # слой 0 — нижний ряд
     back = mask | _pillars(mask, codes)
+    back_color = code_by_name(preferences()["mosaic"]["back_color"])
     nx, ny = mask.shape
     voxels = np.zeros((nx, STANDING_DEPTH, ny), dtype=bool)
     colors = np.full(voxels.shape, ANY_COLOR)
@@ -143,8 +145,8 @@ def standing_bricks(mosaic: Mosaic) -> list[PlacedBrick]:
         voxels[:, :front_depth, k] = mask[:, k, None]
         colors[:, :front_depth, k] = codes[:, k, None]
         voxels[:, front_depth:, k] |= back[:, k, None]
-        colors[:, front_depth:, k] = np.where(back[:, k, None], BACK_COLOR, ANY_COLOR)
-    return layout_bricks(voxels, colors, BACK_COLOR, BRICKS)
+        colors[:, front_depth:, k] = np.where(back[:, k, None], back_color, ANY_COLOR)
+    return layout_bricks(voxels, colors, back_color, BRICKS)
 
 
 def _pillars(mask: np.ndarray, codes: np.ndarray) -> np.ndarray:

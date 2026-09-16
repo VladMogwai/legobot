@@ -24,5 +24,8 @@ def write_io(ldr_path: str, io_path: str) -> str:
 
 
 def open_in_studio(io_path: str) -> None:
+    """Каждый запуск — новое окно Studio; окна, открытые этим же способом раньше, закрываем,
+    иначе легко смотреть на старую версию модели."""
+    subprocess.run(["pkill", "-f", f"^{STUDIO_BINARY} .*\\.io$"], check=False)
     subprocess.Popen([STUDIO_BINARY, str(Path(io_path).resolve())],
                      stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)

@@ -69,9 +69,11 @@ def main() -> None:
 
 def _build_mosaic(args, source: str, variant: str) -> None:
     from .mosaic import mosaic_bricks, mosaic_from_mesh, standing_bricks
+    check = None
     if Path(source).suffix.lower() in IMAGE_SUFFIXES:
-        from .pixelart import mosaic_from_photo
-        mosaic = mosaic_from_photo(source, max_colors=args.colors)
+        from .pixelart import mosaic_from_photo, write_check
+        result = mosaic_from_photo(source, max_colors=args.colors)
+        mosaic, check = result.mosaic, (result, write_check)
     else:
         mosaic = mosaic_from_mesh(source, max_colors=args.colors, pixels_wide=args.pixels)
     bricks = mosaic_bricks(mosaic) if args.flat else standing_bricks(mosaic)
@@ -95,6 +97,11 @@ def _build_mosaic(args, source: str, variant: str) -> None:
         print(f"стоячая фигурка {mosaic.width * 0.8:.0f} x {STANDING_DEPTH * 0.8:.1f} x {mosaic.height * 0.96:.0f} см, "
               f"деталей {len(bricks)}: " + ", ".join(f"{k} x{n}" for k, n in sorted(parts.items())))
     print("цвета: " + ", ".join(f"{names.get(c, c)} x{n}" for c, n in colors.most_common()))
+    if check:
+        result, write_check = check
+        check_path = io_path.with_name(io_path.stem + "_check.png")
+        print(write_check(result, str(check_path)))
+        print("-> проверка:", check_path)
     print("->", io_path)
     if not args.no_instructions:
         _write_instructions(bricks, [], io_path)
