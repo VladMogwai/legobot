@@ -14,12 +14,16 @@ _ROTATE_90 = "0.000000 0.000000 1.000000 0.000000 1.000000 0.000000 -1.000000 0.
 
 
 def write_ldr(bricks: list[PlacedBrick], path: str, name: str, fixtures: list[Fixture] = (),
-              slopes: list[PlacedSlope] = ()) -> None:
+              slopes: list[PlacedSlope] = (), steps: list[list] | None = None) -> None:
+    """steps — шаги инструкции (списки деталей); без них шаг = слой. Одни и те же шаги
+    видят Studio, вьюшка и PDF."""
     lines = [f"0 FILE {name}.ldr", f"0 {name}", f"0 Name:  {name}", "0 Author:  legobot"]
-    parts = sorted([*bricks, *slopes], key=lambda b: b.layer)   # скос — на своём нижнем слое
-    for _, layer_parts in groupby(parts, key=lambda b: b.layer):
-        lines.extend(p.ldraw_line() if isinstance(p, PlacedSlope) else _brick_line(p) for p in layer_parts)
-        lines.append("0 STEP")  # слой = шаг инструкции
+    if steps is None:
+        parts = sorted([*bricks, *slopes], key=lambda b: b.layer)   # скос — на своём нижнем слое
+        steps = [list(g) for _, g in groupby(parts, key=lambda b: b.layer)]
+    for step in steps:
+        lines.extend(p.ldraw_line() if isinstance(p, PlacedSlope) else _brick_line(p) for p in step)
+        lines.append("0 STEP")
     if fixtures:
         lines.extend(_fixture_line(f) for f in fixtures)
         lines.append("0 STEP")  # фиксированные детали — последним шагом

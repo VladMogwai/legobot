@@ -8,7 +8,6 @@ from .catalog import unavailable
 from .colors import code_by_name, load_palette
 from .fixtures import WHEEL_BY_PART
 from .instructions import bill_of_materials, split_steps, write_bom, write_pdf
-from .mosaic import STANDING_DEPTH
 from .ldraw import write_ldr
 from .parts import VOCABULARIES
 from .pipeline import Build, build
@@ -85,7 +84,7 @@ def _build_mosaic(args, source: str, variant: str) -> None:
     io_path = Path(args.out) if args.out else _model_dir(args.input) / f"{Path(args.input).stem}{suffix}_mosaic.io"
     io_path.parent.mkdir(parents=True, exist_ok=True)
     ldr_path = io_path.with_suffix(".ldr")
-    write_ldr(bricks, str(ldr_path), io_path.stem)
+    write_ldr(bricks, str(ldr_path), io_path.stem, steps=split_steps(bricks))
     write_io(str(ldr_path), str(io_path))
     names = {c.code: c.name for c in load_palette(common_only=False)}
     print(f"мозаика {mosaic.width}x{mosaic.height} пикселей, шаг сетки {mosaic.pitch_px:.1f} px растра")
@@ -95,7 +94,8 @@ def _build_mosaic(args, source: str, variant: str) -> None:
     else:
         colors = Counter(b.color for b in bricks)
         parts = Counter(b.part.label for b in bricks)
-        print(f"стоячая фигурка {mosaic.width * 0.8:.0f} x {STANDING_DEPTH * 0.8:.1f} x {mosaic.height * 0.96:.0f} см, "
+        depth = max(b.z + b.length for b in bricks)
+        print(f"стоячая фигурка {mosaic.width * 0.8:.0f} x {depth * 0.8:.1f} x {mosaic.height * 0.96:.0f} см, "
               f"деталей {len(bricks)}: " + ", ".join(f"{k} x{n}" for k, n in sorted(parts.items())))
     print("цвета: " + ", ".join(f"{names.get(c, c)} x{n}" for c, n in colors.most_common()))
     _warn_unavailable(bricks)
@@ -132,7 +132,8 @@ def _build_one(args, mesh_path: str, variant: str, vocabulary) -> None:
     io_path = Path(args.out) if args.out else _model_dir(args.input) / f"{Path(args.input).stem}{suffix}_g{result.grid}.io"
     io_path.parent.mkdir(parents=True, exist_ok=True)
     ldr_path = io_path.with_suffix(".ldr")
-    write_ldr(result.bricks, str(ldr_path), io_path.stem, result.fixtures, result.slopes)
+    write_ldr(result.bricks, str(ldr_path), io_path.stem, result.fixtures, result.slopes,
+              steps=split_steps(result.bricks + result.slopes))
     write_io(str(ldr_path), str(io_path))
     print(_summary(result))
     _warn_unavailable(result.bricks + result.slopes)

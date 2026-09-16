@@ -39,7 +39,7 @@ def test_color_accuracy(mario):
 
 def test_standing_is_one_piece(mario):
     bricks = standing_bricks(mario.mosaic)
-    assert 250 <= len(bricks) <= 320
+    assert 250 <= len(bricks) <= 420
     cells = {}
     for i, b in enumerate(bricks):
         for x in range(b.x, b.x + b.width):

@@ -3,7 +3,7 @@ import tomllib
 from pathlib import Path
 
 DEFAULTS = {"mosaic": {"outline_black": True, "back_color": "Dark_Bluish_Gray", "palette": "common"}}
-PATH = Path("legobot.toml")
+PATH = Path(__file__).resolve().parent.parent / "legobot.toml"
 
 
 def preferences() -> dict:

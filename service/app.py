@@ -91,19 +91,19 @@ def _run(job: Job, photo: Path) -> None:
     try:
         result = mosaic_from_photo(str(photo))
         bricks = standing_bricks(result.mosaic)
+        steps = split_steps(bricks)
         ldr = folder / "model.ldr"
-        write_ldr(bricks, str(ldr), "legobot")
+        write_ldr(bricks, str(ldr), "legobot", steps=steps)
         write_io(str(ldr), str(folder / "model.io"))
         (folder / "model.mpd").write_text(pack_model(ldr.read_text()))
         bom = bill_of_materials(bricks)
         write_bom(bom, str(folder / "parts.csv"))
-        steps = split_steps(bricks)
         write_pdf(bricks, steps, str(folder / "instructions.pdf"), "legobot")
         accuracy = write_check(result, str(folder / "check.png"))
         m = result.mosaic
         job.summary = {
             "pixels": [m.width, m.height], "parts": len(bricks), "steps": len(steps),
-            "size_cm": [round(m.width * 0.8, 1), 2.4, round(m.height * 0.96, 1)],
+            "size_cm": [round(m.width * 0.8, 1), round(max(b.z + b.length for b in bricks) * 0.8, 1), round(m.height * 0.96, 1)],
             "colors": [[l.color_name, l.quantity] for l in _color_totals(bom)],
             "accuracy": accuracy,
         }
