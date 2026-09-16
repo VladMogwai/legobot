@@ -139,12 +139,46 @@ def standing_bricks(mosaic: Mosaic) -> list[PlacedBrick]:
     back = mask
     back_color = code_by_name(preferences()["mosaic"]["back_color"])
     nx, ny = mask.shape
-    voxels = np.zeros((nx, STANDING_DEPTH, ny), dtype=bool)
-    colors = np.full(voxels.shape, ANY_COLOR)
+    front = np.zeros((nx, STANDING_DEPTH, ny), dtype=bool)
+    wall = np.zeros_like(front)
+    colors = np.full(front.shape, ANY_COLOR)
     for k in range(ny):
         front_depth = STANDING_DEPTH - 1 if k % 2 == 0 else 1
-        voxels[:, :front_depth, k] = mask[:, k, None]
+        front[:, :front_depth, k] = mask[:, k, None]
         colors[:, :front_depth, k] = codes[:, k, None]
-        voxels[:, front_depth:, k] |= back[:, k, None]
-        colors[:, front_depth:, k] = np.where(back[:, k, None], back_color, ANY_COLOR)
-    return layout_bricks(voxels, colors, back_color, BRICKS)
+        wall[:, front_depth:, k] = back[:, k, None]
+    # Стенка — отдельным проходом, длинными кирпичами: она и связывает всё. Если класть вместе
+    # с пикселями, одноцветные с ней пиксели (чёрный контур) утянут её клетки в свои кирпичи.
+    wall_bricks = layout_bricks(wall, np.full(wall.shape, back_color), back_color, BRICKS)
+    fixed = np.full(front.shape, -1)
+    for i, b in enumerate(wall_bricks):
+        fixed[b.x:b.x + b.width, b.z:b.z + b.length, b.layer] = i
+    bricks = wall_bricks + layout_bricks(front | wall, colors, back_color, BRICKS, fixed=fixed)
+    # Одиночная клетка стенки над пустотой и под пустотой ни к чему не крепится — такой кирпич
+    # убираем (пиксель перед ним держится за соседей по ряду).
+    loose = _loose_pieces(bricks)
+    return [b for i, b in enumerate(bricks) if not (i in loose and i < len(wall_bricks))]
+
+
+def _loose_pieces(bricks: list[PlacedBrick]) -> set[int]:
+    """Номера кирпичей, не связанных штырьками с самым большим куском."""
+    cells = {}
+    for i, b in enumerate(bricks):
+        for x in range(b.x, b.x + b.width):
+            for z in range(b.z, b.z + b.length):
+                cells[(x, z, b.layer)] = i
+    parent = list(range(len(bricks)))
+
+    def find(a):
+        while parent[a] != a:
+            parent[a] = parent[parent[a]]
+            a = parent[a]
+        return a
+
+    for (x, z, k), i in cells.items():
+        j = cells.get((x, z, k + 1))
+        if j is not None:
+            parent[find(i)] = find(j)
+    roots = [find(i) for i in range(len(bricks))]
+    main = Counter(roots).most_common(1)[0][0]
+    return {i for i, r in enumerate(roots) if r != main}
