@@ -117,10 +117,11 @@ def flat_codes(rgb: np.ndarray, max_colors: int, black: np.ndarray | None = None
     palette = studio_palette(common_only)
     palette_lab = _rgb_to_lab(np.array([c.rgb for c in palette]))
     codes = np.array([c.code for c in palette])
+    darkest = int(np.argmin(centers[:, 0]))
     center_codes = []
-    for c in centers:
-        if outline_black and c[0] < DARK_L and np.hypot(c[1], c[2]) < ACHROMATIC:
-            center_codes.append(BLACK)   # тёмно-серый контур на фото — это чёрная печать
+    for i, c in enumerate(centers):
+        if outline_black and i == darkest and c[0] < DARK_L and np.hypot(c[1], c[2]) < ACHROMATIC:
+            center_codes.append(BLACK)   # самый тёмный кластер — контур, на фигурке он чёрный; волосы — отдельно
             continue
         dist = np.sqrt(((c - palette_lab) ** 2).sum(1))
         if np.hypot(c[1], c[2]) > ACHROMATIC:
