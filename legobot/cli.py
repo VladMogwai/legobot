@@ -15,6 +15,7 @@ from .studio import open_in_studio, write_io
 
 YELLOW = 14
 DEFAULT_PARTS = 400          # ориентир: модели на 300–500 деталей
+DEFAULT_COLORS, MOSAIC_COLORS = 4, 12
 ESTIMATE_PARTS = [200, 300, 400, 500, 700, 1000]
 IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png", ".webp"}
 OUT_DIR = Path("out")
@@ -31,7 +32,7 @@ def main() -> None:
     ap.add_argument("--estimate", action="store_true", help="не собирать, а показать таблицу «деталей → размер»")
     ap.add_argument("--unit", choices=VOCABULARIES, default="plates", help="из чего класть: plates (втрое точнее по высоте — круглые формы, машины) или bricks (угловатые вещи; на тот же бюджет деталей модель крупнее)")
     ap.add_argument("--color", type=int, default=YELLOW, help="код цвета LDraw, если у модели нет своего цвета")
-    ap.add_argument("--colors", type=int, default=4, help="до скольких цветов сводить цвет модели")
+    ap.add_argument("--colors", type=int, help="до скольких цветов сводить цвет модели (объём — 4, мозаика — 12)")
     ap.add_argument("--symmetric", action="store_true", help="зеркальная кладка, даже если меш кривоват (фото)")
     ap.add_argument("--recolor", action="append", default=[], metavar="OLD=NEW",
                     help="заменить подобранный цвет: --recolor Dark_Red=Orange (имена из LDConfig или коды)")
@@ -39,7 +40,7 @@ def main() -> None:
                     help="найти арки и поставить колёса: auto — подобрать по арке, или номер детали")
     ap.add_argument("--no-tiles", action="store_true", help="не заменять верхние пластины тайлами")
     ap.add_argument("--slopes", action="store_true", help="закрывать ступеньки скосами")
-    ap.add_argument("--mosaic", action="store_true", help="плоская пиксельная фигура: один пиксель = один тайл 1x1")
+    ap.add_argument("--mosaic", action="store_true", help="плоская пиксельная фигура: один пиксель = один тайл 1x1 (с фото — напрямую, без 3D)")
     ap.add_argument("--pixels", type=int, help="для --mosaic: пикселей по ширине, если сетка не находится сама")
     ap.add_argument("--resolution", type=int, default=1024, choices=[512, 1024, 1536], help="детализация нейросети для фото")
     ap.add_argument("--backend", choices=["hf", "kaggle"], default="hf", help="где считать фото→3D: HF Space (быстро, квота) или Kaggle (пачкой)")
@@ -48,7 +49,12 @@ def main() -> None:
     ap.add_argument("--no-instructions", action="store_true", help="не делать PDF и список деталей")
     ap.add_argument("--open", action="store_true", help="открыть результат в Studio")
     args = ap.parse_args()
+    if args.colors is None:
+        args.colors = MOSAIC_COLORS if args.mosaic else DEFAULT_COLORS
 
+    if args.mosaic and Path(args.input).suffix.lower() in IMAGE_SUFFIXES:
+        _build_mosaic(args, args.input, "")   # пиксель-арт читается прямо с фото
+        return
     mesh_paths = _meshes_from_input(args.input, args.resolution, args.backend, args.variants)
 
     vocabulary = VOCABULARIES[args.unit]
@@ -59,9 +65,13 @@ def main() -> None:
             _build_one(args, mesh_path, variant, vocabulary)
 
 
-def _build_mosaic(args, mesh_path: str, variant: str) -> None:
+def _build_mosaic(args, source: str, variant: str) -> None:
     from .mosaic import mosaic_bricks, mosaic_from_mesh
-    mosaic = mosaic_from_mesh(mesh_path, max_colors=args.colors, pixels_wide=args.pixels)
+    if Path(source).suffix.lower() in IMAGE_SUFFIXES:
+        from .pixelart import mosaic_from_photo
+        mosaic = mosaic_from_photo(source, max_colors=args.colors)
+    else:
+        mosaic = mosaic_from_mesh(source, max_colors=args.colors, pixels_wide=args.pixels)
     bricks = mosaic_bricks(mosaic)
     if args.recolor:
         mapping = {code_by_name(a): code_by_name(b) for a, b in (r.split("=") for r in args.recolor)}
