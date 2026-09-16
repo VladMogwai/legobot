@@ -83,6 +83,7 @@ def flat_codes(rgb: np.ndarray, max_colors: int) -> np.ndarray:
     lab = _rgb_to_lab(rgb)
     k = min(max_colors, len(np.unique(rgb, axis=0)))
     centers, labels = kmeans2(lab, k, minit="++", seed=0)
+    centers, labels = _merge_close(centers, labels)
     palette = load_palette(common_only=False)
     palette_lab = _rgb_to_lab(np.array([c.rgb for c in palette]))
     codes = np.array([c.code for c in palette])
@@ -96,6 +97,24 @@ def flat_codes(rgb: np.ndarray, max_colors: int) -> np.ndarray:
 
 
 RARE_MARGIN = 4.0  # ΔE: на столько редкий цвет должен быть точнее ходового, чтобы его выбрать
+MERGE_DE = 7.0     # кластеры ближе этого — один цвет, разбитый освещением (k-means дробит крупные)
+
+
+def _merge_close(centers: np.ndarray, labels: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """Сливает пары ближайших кластеров, пока все центры не разойдутся дальше MERGE_DE."""
+    centers, labels = centers.copy(), labels.copy()
+    while len(centers) > 1:
+        d = np.sqrt(((centers[:, None] - centers[None]) ** 2).sum(-1))
+        np.fill_diagonal(d, np.inf)
+        i, j = np.unravel_index(d.argmin(), d.shape)
+        if d[i, j] >= MERGE_DE:
+            break
+        ni, nj = (labels == i).sum(), (labels == j).sum()
+        centers[i] = (centers[i] * ni + centers[j] * nj) / max(ni + nj, 1)
+        labels[labels == j] = i
+        labels[labels > j] -= 1
+        centers = np.delete(centers, j, axis=0)
+    return centers, labels
 
 
 BLACK = 0
