@@ -56,7 +56,7 @@ def mosaic_from_photo(image_path: str, max_colors: int = 16, keep_background: bo
 
 
 def mosaic_from_image(image_path: str, width: int, max_colors: int = 12, keep_background: bool = False,
-                      outline: bool = False) -> PhotoMosaic:
+                      outline: bool = False, contrast: bool = False) -> PhotoMosaic:
     """Любая картинка → пиксель-арт шириной `width` клеток. Объект (или вся картинка при
     keep_background) режется на клетки, цвет клетки — медиана её пикселей, потом ближайший
     пластик. Одиночные клетки без соседей убираются; outline — чёрный контур в одну клетку
@@ -90,11 +90,54 @@ def mosaic_from_image(image_path: str, width: int, max_colors: int = 12, keep_ba
         present |= ring
     codes = np.full(present.shape, -1)
     codes[present], calibrated = flat_codes(colors[present], max_colors, None, None,
-                                            outline_black=preferences()["mosaic"]["outline_black"],
+                                            outline_black=preferences()["mosaic"]["outline_black"] and not contrast,
                                             common_only=preferences()["mosaic"]["palette"] == "common")
+    if contrast:
+        codes[present] = _grey_tones(colors[present], codes[present])
+    codes = _despeckle_codes(codes)
     cell_colors = np.zeros_like(colors)
     cell_colors[present] = calibrated
     return PhotoMosaic(Mosaic(codes, cell, width, height), cell_colors)
+
+
+def _despeckle_codes(codes: np.ndarray) -> np.ndarray:
+    """Клетка, у которой все четыре соседа одного цвета, а она другого, — крапина:
+    перекрашиваем в цвет соседей. Одна крапина — одна лишняя деталь и шум в рисунке."""
+    out = codes.copy()
+    w, h = codes.shape
+    for x in range(w):
+        for y in range(h):
+            if codes[x, y] < 0:
+                continue
+            around = [codes[x + dx, y + dy] for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)) if 0 <= x + dx < w and 0 <= y + dy < h]
+            around = [c for c in around if c >= 0]
+            if len(around) == 4 and len(set(around)) == 1 and around[0] != codes[x, y]:
+                out[x, y] = around[0]
+    return out
+
+
+def _grey_tones(cells: np.ndarray, codes: np.ndarray) -> np.ndarray:
+    """Режим «контраст» для тёмных и блёклых картинок: у пластика четыре серых тона, а в такой
+    картинке пять оттенков почти чёрного, и все они легли бы в один. Бесцветные клетки
+    раскладываются по тонам по рангу яркости (доли — GREY_SHARES), цветные остаются как есть."""
+    from .colors import _rgb_to_lab, code_by_name
+    lab = _rgb_to_lab(cells)
+    grey = np.hypot(lab[:, 1], lab[:, 2]) < 15
+    out = codes.copy()
+    if grey.sum() < 2:
+        return out
+    ranks = np.argsort(np.argsort(lab[grey, 0])) / (grey.sum() - 1)
+    tones = np.array([code_by_name(n) for n in GREY_TONES])
+    edges = np.cumsum(GREY_SHARES)[:-1]
+    out[grey] = tones[np.searchsorted(edges, ranks, side="right")]
+    return out
+
+
+GREY_TONES = ("Black", "Dark_Bluish_Gray", "Light_Bluish_Gray", "White")
+GREY_SHARES = (0.35, 0.35, 0.2, 0.1)   # доли бесцветных клеток по тонам, от тёмного к светлому
+
+
+CONTRAST_MIX = 0.5   # доля выравнивания: 0 — как есть, 1 — полная эквализация
 
 
 def write_check(result: PhotoMosaic, path: str) -> str:

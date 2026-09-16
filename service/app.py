@@ -58,7 +58,7 @@ executor = ThreadPoolExecutor(max_workers=1)
 
 
 @app.post("/jobs")
-async def create_job(photo: UploadFile = File(...), width: int = Form(0), background: str = Form("cut")) -> dict:
+async def create_job(photo: UploadFile = File(...), width: int = Form(0), background: str = Form("cut"), contrast: bool = Form(False)) -> dict:
     """width > 0 — переложить любую картинку в пиксель-арт такой ширины; 0 — читать её сетку как есть.
     background=keep — панно с фоном."""
     data = await photo.read()
@@ -68,7 +68,7 @@ async def create_job(photo: UploadFile = File(...), width: int = Form(0), backgr
     suffix = Path(photo.filename or "photo.jpg").suffix.lower() or ".jpg"
     photo_path = WORK_DIR / job.id / f"photo{suffix}"
     photo_path.write_bytes(data)
-    executor.submit(_run, job, photo_path, max(0, min(width, 120)), background == "keep")
+    executor.submit(_run, job, photo_path, max(0, min(width, 120)), background == "keep", contrast)
     return {"id": job.id, "status": job.status}
 
 
@@ -169,13 +169,13 @@ def _cleanup() -> None:
                 jobs.pop(folder.name, None)
 
 
-def _run(job: Job, photo: Path, width: int = 0, keep_background: bool = False) -> None:
+def _run(job: Job, photo: Path, width: int = 0, keep_background: bool = False, contrast: bool = False) -> None:
     """Пиксельная фигурка, если на фото есть сетка пикселей; иначе объёмная через фото→3D.
     width > 0 — любая картинка укрупняется до такой ширины в клетках."""
     job.status = "running"
     try:
         if width:
-            result = mosaic_from_image(str(photo), width, keep_background=keep_background)
+            result = mosaic_from_image(str(photo), width, keep_background=keep_background, contrast=contrast)
         else:
             result = mosaic_from_photo(str(photo), keep_background=keep_background)
     except ValueError as e:                    # сетки нет — это не пиксель-арт

@@ -174,6 +174,7 @@ $("form").addEventListener("submit", async (e) => {
   body.append("photo", file);
   body.append("width", $("width").value || "0");
   body.append("background", $("keep-bg").checked ? "keep" : "cut");
+  body.append("contrast", $("contrast").checked ? "true" : "false");
   await runJob({ path: "/jobs", init: { method: "POST", body } }, $("status"), file.name);
   $("submit").disabled = false;
 });
