@@ -23,7 +23,7 @@ from .mosaic import Mosaic, _loose_pieces
 from .parts import BRICKS
 from .voxelize import interior
 
-VOLUME_DEPTH = 6   # толщина в штырьках: 2 картинка + 2 прокладка + 2 зеркало (переопределяется --depth)
+VOLUME_DEPTH = 4   # толщина в штырьках: 2 картинка + 2 зеркало, без прокладки (--depth 6 — прокладка 2)
 FACE_DEPTH = 2     # глубина пикселей передней и задней грани сэндвича
 SLOPE = 1.0        # штырьков толщины на клетку расстояния от края: 1 — скругление под 45°
 
@@ -42,7 +42,7 @@ def sandwich(mosaic: Mosaic, depth: int = VOLUME_DEPTH) -> tuple[np.ndarray, np.
     Прокладка продолжает картинку: её видимые (краевые) клетки — цвета пикселя грани над ними,
     скрытые внутри — без требования к цвету."""
     mask, codes = _front(mosaic)
-    depth = max(depth, 2 * FACE_DEPTH + 1)
+    depth = max(depth, 2 * FACE_DEPTH)   # --depth 4 — без прокладки: две грани встык
     voxels = np.repeat(mask[:, None, :], depth, axis=1)
     colors = np.where(voxels & ~interior(voxels), codes[:, None, :], ANY_COLOR)
     return voxels, colors

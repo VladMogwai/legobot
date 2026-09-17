@@ -45,7 +45,7 @@ def main() -> None:
     ap.add_argument("--flat", action="store_true", help="для --mosaic: плоская мозаика из тайлов на пластинах вместо стоячей фигурки")
     ap.add_argument("--volume", nargs="?", const="sandwich", choices=["sandwich", "inflate"],
                     help="для --mosaic: объёмная фигурка. sandwich — картинка | прокладка | зеркало картинки; inflate — силуэт «надувается» к середине")
-    ap.add_argument("--depth", type=int, help="для --mosaic --volume: толщина в штырьках (по умолчанию 6: грани по 2 + прокладка 2)")
+    ap.add_argument("--depth", type=int, help="для --mosaic --volume: толщина в штырьках (по умолчанию 4: две грани по 2 встык; больше — с прокладкой)")
     ap.add_argument("--background", choices=["cut", "keep"], default="cut", help="для --mosaic с рисунком: отбросить фон (фигурка) или выложить его (панно)")
     ap.add_argument("--width", type=int, help="для --mosaic: переложить картинку в пиксель-арт такой ширины в клетках (любая картинка, не только пиксельная)")
     ap.add_argument("--outline", action="store_true", help="для --mosaic --width: чёрный контур в одну клетку вокруг фигуры")
