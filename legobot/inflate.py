@@ -1,7 +1,7 @@
 """Объёмная фигурка из пиксельной картинки.
 
-Сэндвич (по умолчанию): передняя грань — картинка, задняя — её зеркало, между ними прокладка
-цвета контура (back_color из legobot.toml). На ребре прокладка читается как обводка. У профиля
+Сэндвич (по умолчанию): передняя грань — картинка, задняя — её зеркало, между ними прокладка,
+на ребре продолжающая цвета картинки (у спрайта с контуром ребро выходит чёрным). У профиля
 обе стороны верны: с другого бока зверь смотрит в другую сторону — зеркало это и даёт; крыло и
 лапы видны с обеих сторон.
 
@@ -19,10 +19,8 @@ import numpy as np
 from scipy import ndimage
 
 from .layout import ANY_COLOR, PlacedBrick, layout_bricks
-from .colors import code_by_name
 from .mosaic import Mosaic, _loose_pieces
 from .parts import BRICKS
-from .preferences import preferences
 from .voxelize import interior
 
 VOLUME_DEPTH = 6   # толщина в штырьках: 2 картинка + 2 прокладка + 2 зеркало (переопределяется --depth)
@@ -40,15 +38,13 @@ def _front(mosaic: Mosaic) -> tuple[np.ndarray, np.ndarray]:
 
 
 def sandwich(mosaic: Mosaic, depth: int = VOLUME_DEPTH) -> tuple[np.ndarray, np.ndarray]:
-    """(воксели bool [x, z, y], цвета int той же формы): картинка | прокладка | зеркало картинки."""
+    """(воксели bool [x, z, y], цвета int той же формы): картинка | прокладка | зеркало картинки.
+    Прокладка продолжает картинку: её видимые (краевые) клетки — цвета пикселя грани над ними,
+    скрытые внутри — без требования к цвету."""
     mask, codes = _front(mosaic)
     depth = max(depth, 2 * FACE_DEPTH + 1)
-    filler = code_by_name(preferences()["mosaic"]["back_color"])
     voxels = np.repeat(mask[:, None, :], depth, axis=1)
-    colors = np.full(voxels.shape, filler)
-    colors[:, :FACE_DEPTH, :] = codes[:, None, :]
-    colors[:, depth - FACE_DEPTH:, :] = codes[:, None, :]
-    colors[~voxels] = ANY_COLOR
+    colors = np.where(voxels & ~interior(voxels), codes[:, None, :], ANY_COLOR)
     return voxels, colors
 
 
