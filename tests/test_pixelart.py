@@ -10,11 +10,12 @@ from legobot.pixelart import mosaic_from_photo
 # файл, сетка (ш×в), клеток (±5 %), цвета, которые обязаны быть, средняя ΔE цветных клеток не выше
 REFERENCE = [
     ("photos/mario.jpeg", (20, 30), 423, {"Black", "White", "Red", "Blue"}, 16),
-    ("examples/vaultboy.webp", (24, 23), 321, {"Black", "Blue", "Tan"}, 16),
+    ("examples/vaultboy.webp", (24, 23), 321, {"Black", "Blue", "Bright_Light_Yellow"}, 16),
     ("examples/mario8.png", (18, 26), 322, {"Black", "White", "Red"}, 20),
-    ("examples/megaman.webp", (23, 24), 360, {"Black", "White", "Medium_Azure"}, 22),   # тёмно-синие тени на контуре — чёрные
+    ("examples/megaman.webp", (23, 24), 360, {"Black", "White", "Medium_Azure"}, 23),   # тени на контуре — чёрные; неоновый голубой дальше Medium_Azure нет
     ("examples/cow.png", (54, 54), 542, {"Black", "White"}, 12),   # рисунок: пиксель 17.6 px, спрайт 55 клеток
-    ("examples/purple-phantom.png", (46, 54), 1421, {"Black", "Dark_Purple"}, 18),   # обводка тёмно-лиловая (15, 1, 42) — чёрная
+    ("examples/purple-phantom.png", (46, 54), 1377, {"Black", "Dark_Purple"}, 18),   # обводка тёмно-лиловая (15, 1, 42) — чёрная; сетка со «швом»
+    ("examples/dragon.webp", (42, 35), 888, {"Black", "Green", "Bright_Light_Orange"}, 14),   # фото на бежевом: rembg; жёлтый глаз — дыра в маске
 ]
 
 

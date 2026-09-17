@@ -13,6 +13,7 @@ from dataclasses import dataclass
 
 import numpy as np
 from PIL import Image
+from scipy import ndimage
 from skimage import color, feature, morphology, transform
 
 from .colors import flat_codes, studio_palette
@@ -42,9 +43,9 @@ def mosaic_from_photo(image_path: str, max_colors: int = 16, keep_background: bo
     rgb, mask = _cutout(image_path)
     if keep_background and is_flat(rgb, mask):
         mask = np.ones_like(mask)
-    rect, rmask = _rectify(rgb, mask)
-    pitch_x, pitch_y, phase_x, phase_y = _grid(rect, rmask)
-    colors, present = _sample_cells(rect, rmask, pitch_x, pitch_y, phase_x, phase_y)
+    rect, rmask, flat = _rectify(rgb, mask)
+    bounds_x, bounds_y = _grid(rect, rmask, flat)
+    colors, present = _sample_cells(rect, rmask, bounds_x, bounds_y, flat)
     front = present if keep_background else _front_face(colors, present)
     black, white = _anchors(colors, present, front)
     codes = np.full(present.shape, -1)
@@ -53,7 +54,8 @@ def mosaic_from_photo(image_path: str, max_colors: int = 16, keep_background: bo
                                           outline_black=prefs["outline_black"], common_only=prefs["palette"] == "common")
     cell_colors = np.zeros_like(colors)
     cell_colors[front] = calibrated
-    return PhotoMosaic(Mosaic(codes, (pitch_x + pitch_y) / 2, *present.shape), cell_colors)
+    pitch = (np.diff(bounds_x).mean() + np.diff(bounds_y).mean()) / 2
+    return PhotoMosaic(Mosaic(codes, pitch, *present.shape), cell_colors)
 
 
 def mosaic_from_image(image_path: str, width: int, max_colors: int = 12, keep_background: bool = False,
@@ -239,8 +241,24 @@ def _cutout(path):
         if 0.02 < flat_mask.mean() < 0.9 and is_flat(rgb, flat_mask):
             return rgb, flat_mask
     import rembg
-    rgba = np.asarray(rembg.remove(image))
-    return rgba[..., :3].astype(float) / 255, rgba[..., 3] > 128
+    mask = _fill_small_holes(np.asarray(rembg.remove(image))[..., 3] > 128)
+    # Вне маски — чёрное (как в выводе rembg), а не фон: при выправлении перспективы и в краевых
+    # клетках примешивается именно оно, и краевые клетки темнеют — как боковые грани, которые
+    # и отбрасываются. Цвет самой фигуры — из оригинала: под залитыми дырами у rembg тоже чёрное.
+    return np.where(mask[..., None], rgb, 0.0), mask
+
+
+def _fill_small_holes(mask):
+    """rembg считает мелкие детали внутри фигуры фоном (жёлтый глаз на бежевом фоне, тёмная точка):
+    дыры меньше SMALL_HOLE площади фигуры заливаем, большие просветы (между крылом и хвостом) — нет."""
+    holes, n = ndimage.label(ndimage.binary_fill_holes(mask) & ~mask)
+    if not n:
+        return mask
+    small = ndimage.sum(np.ones_like(mask), holes, range(1, n + 1)) < mask.sum() * SMALL_HOLE
+    return mask | np.isin(holes, np.flatnonzero(small) + 1)
+
+
+SMALL_HOLE = 0.01
 
 
 def is_flat(rgb, mask) -> bool:
@@ -269,7 +287,7 @@ def _rectify(rgb, mask):
     """Гомография по точкам схода двух семейств линий сетки; отражение убирается.
     Плоская картинка возвращается как есть — любое выправление только сдвинет её сетку."""
     if is_flat(rgb, mask):
-        return rgb, mask
+        return rgb, mask, True
     segs, angle = _segments(rgb, mask)
     horizontal = (angle < 20) | (angle > 175)
     vertical = (angle > 70) & (angle < 110)
@@ -291,7 +309,7 @@ def _rectify(rgb, mask):
     shape = (int((hi - lo)[1] * scale + 40), int((hi - lo)[0] * scale + 40))
     rect = transform.warp(rgb, tf.inverse, output_shape=shape)
     rmask = transform.warp(mask.astype(float), tf.inverse, output_shape=shape) > 0.5
-    return rect, rmask
+    return rect, rmask, False
 
 
 def _vanishing_point(segs):
@@ -309,7 +327,7 @@ def _jacobian(H, p):
     return (H[:2, :2] * q[2] - np.outer(q[:2], H[2, :2])) / q[2] ** 2
 
 
-def _grid(rect, rmask):
+def _grid(rect, rmask, flat: bool):
     gray = color.rgb2gray(rect)
     profiles = [
         (np.abs(np.diff(gray, axis=1)) * rmask[:, :-1]).sum(0),   # вдоль x
@@ -341,27 +359,56 @@ def _grid(rect, rmask):
             options.append((fit(phase), pitch, phase))
         best = max(o[0] for o in options)
         _, pitch, phase = min((o for o in options if o[0] >= best * FUNDAMENTAL_RATIO), key=lambda o: o[1])
-        out.append((pitch, phase))
-    (pitch_x, phase_x), (pitch_y, phase_y) = out
-    return pitch_x, pitch_y, phase_x, phase_y
+        # прослеживание — только у плоского рисунка: у фото границы размыты, не по чему идти
+        out.append(_track_boundaries(pitch, phase, np.array(edges, float) if flat else np.array([]), len(profile) + 1))
+    return out   # границы клеток по x, по y
 
 
-def _sample_cells(rect, rmask, pitch_x, pitch_y, phase_x, phase_y):
-    """Цвет — медиана внутренней части клетки; клетка есть, если маска покрывает её большую часть."""
-    nx = int((rect.shape[1] - phase_x) / pitch_x)
-    ny = int((rect.shape[0] - phase_y) / pitch_y)
+def _track_boundaries(pitch, phase, edges, length):
+    """Границы клеток вдоль оси: от фазы шагаем на шаг, и если рядом (±SNAP шага) есть граница
+    пикселей рисунка — встаём на неё. Ровная решётка «фаза + k·шаг» на реальных картинках не
+    держится: у отмасштабированного с нецелым коэффициентом спрайта клетки по 11 и 12 px
+    чередуются неравномерно, и к дальнему краю решётка уезжает на полклетки — клетки садятся
+    между пикселями рисунка, цвета смешиваются. Прослеживание держит ошибку в пределах клетки."""
+    bounds = [phase]
+    while bounds[-1] + pitch <= length:
+        expected = bounds[-1] + pitch
+        near = edges[np.abs(edges - expected) <= pitch * SNAP]
+        bounds.append(float(near[np.abs(near - expected).argmin()]) if len(near) else expected)
+    return np.array(bounds)
+
+
+SNAP = 0.3   # доля шага, в пределах которой граница клетки притягивается к границе пикселей
+
+
+def _sample_cells(rect, rmask, bounds_x, bounds_y, flat: bool):
+    """Цвет — медиана внутренней части клетки; клетка есть, если маска покрывает её большую часть.
+    У плоского рисунка цвет краевой клетки берётся только из глубины маски: по кромке лежит
+    полупрозрачная кайма от масштабирования, и медиана по всей клетке даёт серый. У фото —
+    по всей клетке: вне маски чёрное, и клетка, срезанная маской, темнеет — это боковая грань
+    или перспектива, и такие клетки отбрасывает _front_face."""
+    nx, ny = len(bounds_x) - 1, len(bounds_y) - 1
+    pitch = min(np.diff(bounds_x).mean(), np.diff(bounds_y).mean())
+    core = morphology.binary_erosion(rmask, morphology.disk(max(1, int(pitch * FRINGE)))) if flat else rmask
     colors = np.zeros((nx, ny, 3), dtype=np.uint8)
     present = np.zeros((nx, ny), dtype=bool)
     for i in range(nx):
         for j in range(ny):
-            x0, y0 = phase_x + i * pitch_x, phase_y + j * pitch_y
-            xs = slice(int(x0 + pitch_x * 0.3), int(x0 + pitch_x * 0.7))
-            ys = slice(int(y0 + pitch_y * 0.3), int(y0 + pitch_y * 0.7))
+            (x0, x1), (y0, y1) = bounds_x[i:i + 2], bounds_y[j:j + 2]
+            xs = slice(int(x0 + (x1 - x0) * 0.3), int(x0 + (x1 - x0) * 0.7))
+            ys = slice(int(y0 + (y1 - y0) * 0.3), int(y0 + (y1 - y0) * 0.7))
             if rmask[ys, xs].mean() < 0.6:
                 continue
             present[i, j] = True
-            colors[i, j] = (np.median(rect[ys, xs].reshape(-1, 3), axis=0) * 255).astype(np.uint8)
+            pixels = rect[ys, xs][core[ys, xs]] if flat else rect[ys, xs].reshape(-1, 3)
+            if len(pixels) < MIN_CORE_PIXELS:
+                pixels = rect[ys, xs][rmask[ys, xs]]
+            colors[i, j] = (np.median(pixels, axis=0) * 255).astype(np.uint8)
     return colors, present
+
+
+FRINGE = 0.2           # ширина каймы у края силуэта в долях шага сетки — эти пиксели в цвет не идут
+MIN_CORE_PIXELS = 4    # меньше — клетка целиком кайма, берём медиану по всем пикселям маски
 
 
 def _anchors(colors, present, front):

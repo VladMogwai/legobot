@@ -24,6 +24,7 @@ COMMON_COLORS = {
     5, 13, 22, 26, 29, 30, 31, 69, 112,   # розовые, пурпурные, лиловые
     78, 86, 92,                           # телесные: Light_Flesh, Dark_Flesh, Flesh
     151,                                  # Very_Light_Bluish_Gray — светло-серый фон панно
+    330,                                  # Olive_Green — хаки, ближе к нему у зелёно-жёлтого ничего нет
 }
 
 _LINE = re.compile(r"^0 !COLOUR (\S+)\s+CODE\s+(\d+)\s+VALUE\s+#([0-9A-Fa-f]{6})")
