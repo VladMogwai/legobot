@@ -47,6 +47,7 @@ def mosaic_from_photo(image_path: str, max_colors: int = 16, keep_background: bo
     rect, rmask, flat = _rectify(rgb, mask)
     bounds_x, bounds_y = _grid(rect, rmask, flat)
     colors, present = _sample_cells(rect, rmask, bounds_x, bounds_y, flat)
+    colors, present = _symmetrize(colors, present)
     front = present if keep_background else _front_face(colors, present)
     black, white = _anchors(colors, present, front)
     codes = np.full(present.shape, -1)
@@ -411,6 +412,31 @@ def _sample_cells(rect, rmask, bounds_x, bounds_y, flat: bool):
 
 FRINGE = 0.2           # ширина каймы у края силуэта в долях шага сетки — эти пиксели в цвет не идут
 MIN_CORE_PIXELS = 4    # меньше — клетка целиком кайма, берём медиану по всем пикселям маски
+
+
+def _symmetrize(colors, present):
+    """Симметричная фигура — симметричная мозаика. У «векторного» пиксель-арта блоки нарисованы
+    вручную и разной ширины (22–32 px), регулярной сетки нет, и клетки ошибаются то влево, то
+    вправо — левая и правая щека выходят разными. Если силуэт и цвета почти совпадают с зеркалом,
+    зеркальные пары клеток получают один цвет (среднее) и одно присутствие."""
+    xs = np.nonzero(present.any(axis=1))[0]
+    if len(xs) == 0:
+        return colors, present
+    lo, hi = xs.min(), xs.max()
+    sub, sub_colors = present[lo:hi + 1], colors[lo:hi + 1].astype(float)
+    mirror, mirror_colors = sub[::-1], sub_colors[::-1]
+    both = sub & mirror
+    iou = both.sum() / (sub | mirror).sum()
+    differ = (np.abs(sub_colors - mirror_colors).max(axis=2)[both] > SYMMETRY_COLOR * 255).mean()
+    if iou < SYMMETRY_IOU or differ > SYMMETRY_DIFFER:
+        return colors, present
+    colors, present = colors.copy(), present.copy()
+    present[lo:hi + 1] = both
+    colors[lo:hi + 1] = ((sub_colors + mirror_colors) / 2).astype(np.uint8)
+    return colors, present
+
+
+SYMMETRY_IOU, SYMMETRY_COLOR, SYMMETRY_DIFFER = 0.88, 0.15, 0.12   # у несимметричных фигур цвета расходятся ≥ 30 % клеток
 
 
 def _anchors(colors, present, front):
