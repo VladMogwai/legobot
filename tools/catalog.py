@@ -8,9 +8,14 @@
   и ldraw/parts/*.dat (есть ли геометрия — можем ли мы деталь положить).
 - Rebrickable (corpus/rebrickable/*.csv, свободные выгрузки): в каких цветах деталь
   выпускалась — по инвентарям всех наборов (inventory_parts) и элементам (elements).
-Цвета Rebrickable сопоставляются с LDraw по имени.
+  Id цветов Rebrickable совпадают с кодами LDraw (85 Dark Purple, 92 Nougat = Flesh);
+  по имени сопоставлять нельзя — телесные названы иначе.
+- Studio: data/elementInfoList.json — список элементов LEGO (деталь BrickLink + цвет BrickLink),
+  цвет BrickLink переводится в LDraw по StudioColorDefinition.txt.
+Деталь считается выпускавшейся в цвете, если так говорит хотя бы один источник.
 """
 import csv
+import json
 import re
 from collections import defaultdict
 from pathlib import Path
@@ -50,13 +55,34 @@ def studio_parts() -> dict[str, dict]:
 
 
 def rebrickable_colors() -> dict[int, int | None]:
-    """id цвета Rebrickable -> код LDraw (по имени; None — нет такого в LDConfig)."""
+    """id цвета Rebrickable -> код LDraw: по id, если такой код есть в LDConfig, иначе по имени
+    (None — нет такого)."""
+    codes = {c.code for c in load_palette(common_only=False)}
     by_name = {normalize(c.name): c.code for c in load_palette(common_only=False)}
     out = {}
     with open(REBRICKABLE / "colors.csv", encoding="utf-8") as f:
         for row in csv.DictReader(f):
-            out[int(row["id"])] = by_name.get(normalize(row["name"]))
+            rid = int(row["id"])
+            out[rid] = rid if rid in codes else by_name.get(normalize(row["name"]))
     return out
+
+
+def studio_part_colors() -> dict[str, set[int]]:
+    """номер детали BrickLink -> {коды LDraw}, по списку элементов Studio."""
+    bl_to_ldraw = {}
+    with open(STUDIO_DATA / "StudioColorDefinition.txt", encoding="utf-8", errors="ignore") as f:
+        for row in csv.DictReader(f, delimiter="\t"):
+            try:
+                bl_to_ldraw[row["BL Color Code"].strip()] = int(row["LDraw Color Code"])
+            except (ValueError, TypeError):
+                continue
+    colors = defaultdict(set)
+    with open(STUDIO_DATA / "elementInfoList.json", encoding="utf-8") as f:
+        for e in json.load(f):
+            code = bl_to_ldraw.get(e["blColorCode"])
+            if code is not None:
+                colors[e["blItemNo"].lower()].add(code)
+    return colors
 
 
 def rebrickable_part_colors() -> dict[str, set[int]]:
@@ -98,6 +124,7 @@ def main() -> None:
     parts = studio_parts()
     color_map = rebrickable_colors()
     part_colors = rebrickable_part_colors()
+    studio_colors = studio_part_colors()
     names = {c.code: c.name for c in load_palette(common_only=False)}
     with_colors = 0
     with open(OUT / "parts.csv", "w", newline="") as fp, open(OUT / "part_colors.csv", "w", newline="") as fc:
@@ -107,7 +134,8 @@ def main() -> None:
         for number, p in sorted(parts.items()):
             # Rebrickable нумерует как LDraw, иногда как BrickLink
             rb = part_colors.get(number) or part_colors.get(p["bl"].lower()) or set()
-            codes = sorted({color_map[c] for c in rb if color_map.get(c) is not None})
+            codes = sorted(({color_map[c] for c in rb if color_map.get(c) is not None}
+                            | studio_colors.get(p["bl"].lower(), set()) | studio_colors.get(number, set())) & names.keys())
             with_colors += bool(codes)
             wp.writerow([number, p["bl"], p["name"], p["category"], len(codes)])
             for code in codes:

@@ -15,6 +15,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
+from . import catalog
 from .parts import Part, Vocabulary
 
 MIN_SUPPORT = 0.5   # доля площади, которая должна лежать на соседнем слое
@@ -75,6 +76,7 @@ def layout_bricks(voxels: np.ndarray, colors: np.ndarray, default_color: int, vo
         fixed = np.full(voxels.shape, -1)
     footprints = {(p.width, p.length) for p in vocabulary.parts} | {(p.length, p.width) for p in vocabulary.parts}
     placed: list[PlacedBrick] = []
+    produced = _produced(vocabulary, default_color)
     components = _Components()
     components.add()  # GROUND
     fixed_ids: dict[int, int] = {}
@@ -85,7 +87,7 @@ def layout_bricks(voxels: np.ndarray, colors: np.ndarray, default_color: int, vo
         above = voxels[:, :, k + 1] if k + 1 < nlayers else empty
         if layer.any():
             ids = _layout_layer(layer, colors[:, :, k], default_color, below_ids, above, k,
-                                placed, components, mirrored, vocabulary, footprints)
+                                placed, components, mirrored, vocabulary, footprints, produced)
         else:
             ids = np.full((nx, nz), NO_BRICK)
         for f in np.unique(fixed[:, :, k][fixed[:, :, k] >= 0]):
@@ -99,8 +101,17 @@ def layout_bricks(voxels: np.ndarray, colors: np.ndarray, default_color: int, vo
     return placed
 
 
+def _produced(vocabulary: Vocabulary, default_color: int):
+    """(w, l, регион цветов) -> выпускалась ли деталь такого размера в цвете региона (по каталогу).
+    Нет данных — считаем, что да."""
+    def produced(w, l, region) -> bool:
+        part = vocabulary.by_size(w, l) or vocabulary.by_size(l, w)
+        return catalog.exists(part.number, _brick_color(region, default_color)) is not False
+    return produced
+
+
 def _layout_layer(layer, layer_colors, default_color, below_ids, above, k, placed, components, mirrored,
-                  vocabulary, footprints):
+                  vocabulary, footprints, produced):
     free = layer.copy()
     nx, nz = free.shape
     ids = np.full((nx, nz), NO_BRICK)
@@ -119,7 +130,10 @@ def _layout_layer(layer, layer_colors, default_color, below_ids, above, k, place
     for x, z in _cells_hardest_first(layer, below, above):
         if not free[x, z] or (mirrored and x > (nx - 1) // 2):
             continue  # при зеркальной кладке правую половину заполняют отражения
-        x0, z0, w, l = _best_placement(free, layer_colors, below_ids, below, above, x, z, along_x, components, mirrored, footprints)
+        best = _best_placement(free, layer_colors, below_ids, below, above, x, z, along_x, components, mirrored, footprints, produced)
+        if best is None:   # в этом цвете нет ни одного подходящего размера — кладём что есть, лучше «редкая» деталь, чем дыра
+            best = _best_placement(free, layer_colors, below_ids, below, above, x, z, along_x, components, mirrored, footprints, None)
+        x0, z0, w, l = best
         place(x0, z0, w, l)
         mx0 = nx - x0 - w
         if mirrored and mx0 != x0:
@@ -140,7 +154,7 @@ def _cells_hardest_first(layer, below, above):
     return list(zip(xs[order].tolist(), zs[order].tolist()))
 
 
-def _best_placement(free, colors, below_ids, below, above, cx, cz, along_x, components, mirrored, footprints):
+def _best_placement(free, colors, below_ids, below, above, cx, cz, along_x, components, mirrored, footprints, produced=None):
     nx, nz = free.shape
     best, best_key = None, None
     for w, l in footprints:
@@ -152,6 +166,8 @@ def _best_placement(free, colors, below_ids, below, above, cx, cz, along_x, comp
                     continue
                 if not _single_color(colors[x0:x1, z0:z1]):
                     continue
+                if produced is not None and not produced(w, l, colors[x0:x1, z0:z1]):
+                    continue   # такого размера в этом цвете не выпускалось — возьмём меньше
                 if mirrored and not _mirror_fits(free, colors, x0, x1, z0, z1):
                     continue
                 area = w * l
