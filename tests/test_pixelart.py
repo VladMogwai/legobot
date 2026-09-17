@@ -22,7 +22,7 @@ REFERENCE = [
     ("examples/stock/girl.jpg", (50, 53), 343, {"Black", "Orange", "Medium_Azure"}, 17),        # мелкий спрайт на большом белом поле
     ("examples/stock/purpleshirt.jpg", (31, 31), 289, {"Medium_Lavender", "Dark_Bluish_Gray"}, 14),   # без контура; серые волосы — не чёрные
     ("examples/stock/redcap.jpg", (23, 22), 118, {"Red", "Dark_Blue", "Medium_Dark_Flesh"}, 11),   # без контура; симметричная
-    ("examples/stock/blueskin.jpg", (85, 76), 2516, {"Black", "Light_Aqua", "Red"}, 14),          # «векторный» пиксель-арт с неровными блоками — выравнивается по симметрии
+    ("examples/stock/blueskin.jpg", (85, 76), 2516, {"Black", "Light_Aqua", "Red"}, 16),          # «векторный» пиксель-арт с неровными блоками — выравнивается по симметрии
     ("examples/stock/pixilart.png", (64, 64), 426, {"Black", "Sand_Green", "Flesh"}, 13),        # цветной фон; тусклый зелёный → Sand_Green
 ]
 

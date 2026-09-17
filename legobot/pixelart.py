@@ -243,7 +243,9 @@ def _cutout(path):
         flat_mask = np.abs(rgb - background).max(axis=2) > FLAT_BACKGROUND_TOLERANCE
         if 0.02 < flat_mask.mean() < 0.9 and is_flat(rgb, flat_mask):
             return rgb, flat_mask
+    import onnxruntime
     import rembg
+    onnxruntime.disable_telemetry_events()   # иначе onnxruntime падает (abort) при выходе из Python — поток телеметрии
     mask = _fill_small_holes(np.asarray(rembg.remove(image))[..., 3] > 128)
     # Вне маски — чёрное (как в выводе rembg), а не фон: при выправлении перспективы и в краевых
     # клетках примешивается именно оно, и краевые клетки темнеют — как боковые грани, которые
