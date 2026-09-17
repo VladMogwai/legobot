@@ -25,7 +25,7 @@ from .parts import BRICKS
 from .preferences import preferences
 from .voxelize import interior
 
-VOLUME_DEPTH = 8   # толщина в штырьках (переопределяется --depth)
+VOLUME_DEPTH = 6   # толщина в штырьках: 2 картинка + 2 прокладка + 2 зеркало (переопределяется --depth)
 FACE_DEPTH = 2     # глубина пикселей передней и задней грани сэндвича
 SLOPE = 1.0        # штырьков толщины на клетку расстояния от края: 1 — скругление под 45°
 
