@@ -27,7 +27,7 @@ def hf_token() -> str | None:
 
 def mesh_from_photo(image_path: str, out_path: str, resolution: int = 1024, seed: int = 0) -> str:
     """Возвращает путь к PLY. resolution — детализация TRELLIS: 512 / 1024 / 1536; seed — вариация."""
-    client = Client(SPACE, token=hf_token(), verbose=False)
+    client = Client(SPACE, token=hf_token(), verbose=False, httpx_kwargs={"timeout": 180})   # загрузка картинки на Space бывает медленной
     client.predict(api_name="/start_session")
     prepared = client.predict(input=handle_file(image_path), api_name="/preprocess_image")
     client.predict(image=handle_file(prepared), seed=seed, resolution=str(resolution), api_name="/image_to_3d")
