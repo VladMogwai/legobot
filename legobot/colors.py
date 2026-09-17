@@ -94,7 +94,7 @@ def nearest_codes(rgb: np.ndarray, max_colors: int = 4) -> np.ndarray:
 
 def flat_codes(rgb: np.ndarray, max_colors: int, black: np.ndarray | None = None,
                white: np.ndarray | None = None, outline_black: bool = True,
-               common_only: bool = True) -> tuple[np.ndarray, np.ndarray]:
+               common_only: bool = True, dark_l: float | None = None) -> tuple[np.ndarray, np.ndarray]:
     """Подбор для пиксель-арта: цвета плоские, теней нет. Сначала уровни: что на фото было
     `black`/`white` (чёрный пластик, белые клетки), становится чёрным/белым — фото бледнее
     пластика. Потом k-means в Lab, слияние кластеров, разбитых освещением, и ближайший ходовой
@@ -114,7 +114,7 @@ def flat_codes(rgb: np.ndarray, max_colors: int, black: np.ndarray | None = None
     basic = np.array([c.name in BASIC_COLORS for c in palette])
     center_codes = []
     for c in centers:
-        if outline_black and _is_black(c):
+        if outline_black and _is_black(c, DARK_L if dark_l is None else dark_l):
             center_codes.append(BLACK)   # тёмное и бесцветное — контур, чёрный пластик, тени: всё чёрным
             continue
         dist = np.sqrt(((c - palette_lab) ** 2).sum(1))
@@ -125,7 +125,9 @@ def flat_codes(rgb: np.ndarray, max_colors: int, black: np.ndarray | None = None
         else:
             hue = np.degrees(np.arctan2(c[2], c[1]))
             pal_hue = np.degrees(np.arctan2(palette_lab[:, 2], palette_lab[:, 1]))
-            off_hue = (np.abs((pal_hue - hue + 180) % 360 - 180) > MAX_HUE_DIFF) | (pal_chroma < ACHROMATIC)
+            off_hue = np.abs((pal_hue - hue + 180) % 360 - 180) > MAX_HUE_DIFF
+            if np.hypot(c[1], c[2]) > DULL_CHROMA:
+                off_hue |= pal_chroma < ACHROMATIC   # насыщенный цвет не станет серым; тусклый — может (Sand_Green)
             if not off_hue.all():
                 dist[off_hue] = np.inf
         center_codes.append(int(codes[dist.argmin()]))
@@ -159,13 +161,16 @@ def _merge_close(centers: np.ndarray, labels: np.ndarray) -> tuple[np.ndarray, n
 
 
 BLACK = 0
-DARK_L, ACHROMATIC = 45.0, 15.0
+DARK_L, ACHROMATIC = 45.0, 15.0   # DARK_L — для фото: тени на чёрном пластике доходят до L=40
+DARK_L_FLAT = 25.0                # у цифрового рисунка серый с L=37 — настоящий цвет (волосы), не тень
+DULL_CHROMA = 30.0                # ниже — тусклый цвет, ему разрешён сероватый пластик (Sand_Green, Sand_Blue)
 NEAR_BLACK_L = 10.0  # светлота, ниже которой цвет чёрный при любом оттенке: у RGB (15, 1, 42) в Lab
                      # «высокая» насыщенность, но глазом это чёрная обводка, а не Dark_Blue
 
 
-def _is_black(lab: np.ndarray) -> bool:
-    return lab[0] < NEAR_BLACK_L or (lab[0] < DARK_L and np.hypot(lab[1], lab[2]) < ACHROMATIC)
+def _is_black(lab: np.ndarray, dark_l: float | None = None) -> bool:
+    dark_l = DARK_L if dark_l is None else dark_l
+    return lab[0] < NEAR_BLACK_L or (lab[0] < dark_l and np.hypot(lab[1], lab[2]) < ACHROMATIC)
 SAME_HUE_DEG = 20.0  # кластеры одного оттенка (свет и тень одного цвета) сливаются
 
 

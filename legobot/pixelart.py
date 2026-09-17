@@ -16,7 +16,8 @@ from PIL import Image
 from scipy import ndimage
 from skimage import color, feature, morphology, transform
 
-from .colors import flat_codes, studio_palette
+from .colors import DARK_L_FLAT, flat_codes, studio_palette
+from .colors import DARK_L as DARK_L_PHOTO
 from .mosaic import Mosaic
 from .preferences import preferences
 
@@ -51,7 +52,8 @@ def mosaic_from_photo(image_path: str, max_colors: int = 16, keep_background: bo
     codes = np.full(present.shape, -1)
     prefs = preferences()["mosaic"]
     codes[front], calibrated = flat_codes(colors[front], max_colors, black, white,
-                                          outline_black=prefs["outline_black"], common_only=prefs["palette"] == "common")
+                                          outline_black=prefs["outline_black"], common_only=prefs["palette"] == "common",
+                                          dark_l=DARK_L_FLAT if flat else DARK_L_PHOTO)
     cell_colors = np.zeros_like(colors)
     cell_colors[front] = calibrated
     pitch = (np.diff(bounds_x).mean() + np.diff(bounds_y).mean()) / 2

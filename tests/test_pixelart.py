@@ -1,5 +1,7 @@
 """Эталоны: фото пиксельных фигурок. Любое изменение сетки или подбора цвета должно пройти
 через них: если хоть одна фигурка «поплыла», изменение не принимается."""
+from pathlib import Path
+
 import numpy as np
 import pytest
 
@@ -16,12 +18,19 @@ REFERENCE = [
     ("examples/cow.png", (54, 54), 542, {"Black", "White"}, 12),   # рисунок: пиксель 17.6 px, спрайт 55 клеток
     ("examples/purple-phantom.png", (46, 54), 1377, {"Black", "Dark_Purple"}, 18),   # обводка тёмно-лиловая (15, 1, 42) — чёрная; сетка со «швом»
     ("examples/dragon.webp", (42, 35), 888, {"Black", "Green", "Bright_Light_Orange"}, 14),   # фото на бежевом: rembg; жёлтый глаз — дыра в маске
+    # стоковые картинки (examples/stock не в git — без файла тест пропускается)
+    ("examples/stock/girl.jpg", (50, 53), 343, {"Black", "Orange", "Medium_Azure"}, 17),        # мелкий спрайт на большом белом поле
+    ("examples/stock/purpleshirt.jpg", (31, 31), 289, {"Medium_Lavender", "Dark_Bluish_Gray"}, 14),   # без контура; серые волосы — не чёрные
+    ("examples/stock/redcap.jpg", (23, 22), 125, {"Red", "Dark_Blue", "Medium_Dark_Flesh"}, 11),   # без контура
+    ("examples/stock/pixilart.png", (64, 64), 426, {"Black", "Sand_Green", "Flesh"}, 13),        # цветной фон; тусклый зелёный → Sand_Green
 ]
 
 
 @pytest.fixture(scope="module", params=REFERENCE, ids=[r[0].split("/")[-1] for r in REFERENCE])
 def case(request):
     path, size, cells, colors, max_de = request.param
+    if not Path(path).exists():
+        pytest.skip(f"{path} нет (стоковые картинки не в git)")
     return mosaic_from_photo(path), size, cells, colors, max_de
 
 
