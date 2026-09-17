@@ -27,6 +27,7 @@ FUNDAMENTAL_RATIO = 0.9           # решётка собирает не мен�
 EDGE_MIN = 0.2                    # сильная граница — не ниже 20 % от максимума профиля
 FLAT_BORDER_STD = 0.03            # рамка картинки одноцветная — это рисунок на ровном фоне, не фото
 FLAT_BACKGROUND_TOLERANCE = 0.12  # насколько цвет должен отличаться от фона, чтобы быть объектом
+ALPHA_BACKGROUND = 0.02           # доля прозрачных пикселей, с которой фон считается прозрачным
 DARK_L, DARK_CHROMA = 0.45, 0.15   # «тёмная и бесцветная» клетка: чёрный контур спрайта или чёрный пластик
 MAX_SIDE = 4                       # боковая грань не шире стольких клеток
 DOWNSCALE_COVERAGE = 0.35          # при укрупнении клетка есть, если объект занимает хотя бы столько её площади
@@ -41,10 +42,10 @@ class PhotoMosaic:
 
 def mosaic_from_photo(image_path: str, max_colors: int = 16, keep_background: bool = False) -> PhotoMosaic:
     """keep_background — панно: у плоского рисунка фон выкладывается как цвет, а не отбрасывается."""
-    rgb, mask = _cutout(image_path)
-    if keep_background and is_flat(rgb, mask):
+    rgb, mask, known_flat = _cutout(image_path)
+    if keep_background and (known_flat or is_flat(rgb, mask)):
         mask = np.ones_like(mask)
-    rect, rmask, flat = _rectify(rgb, mask)
+    rect, rmask, flat = _rectify(rgb, mask, known_flat)
     bounds_x, bounds_y = _grid(rect, rmask, flat)
     colors, present = _sample_cells(rect, rmask, bounds_x, bounds_y, flat)
     colors, present = _symmetrize(colors, present)
@@ -68,7 +69,7 @@ def mosaic_from_image(image_path: str, width: int, max_colors: int = 12, keep_ba
     пластик. Одиночные клетки без соседей убираются; outline — чёрный контур в одну клетку
     вокруг силуэта, как у Pixel Pals."""
     from scipy import ndimage
-    rgb, mask = _cutout(image_path)
+    rgb, mask, _ = _cutout(image_path)
     if keep_background:
         mask = np.ones_like(mask)
     ys, xs = np.nonzero(mask)
@@ -230,19 +231,25 @@ NOTICEABLE_DE = 20  # ΔE, с которого разница цветов бр�
 
 
 def _cutout(path):
-    """(rgb 0..1, маска объекта). Рисунок на ровном фоне (пиксель-арт, скриншот): фон — цвет
-    рамки, маска — всё, что от него отличается, и линии сетки строго горизонтальны/вертикальны;
-    rembg тут только вредит (съедает тонкие линии). Иначе — фото, фон вырезает rembg
-    (у товарного фото на белом рамка тоже ровная, но швы идут под углом перспективы)."""
-    image = Image.open(path).convert("RGB")
-    rgb = np.asarray(image).astype(float) / 255
+    """(rgb 0..1, маска объекта, плоская ли картинка — True, если это известно наверняка).
+    PNG с прозрачным фоном: маска — альфа, картинка заведомо плоская (у фото альфы не бывает; в RGB
+    прозрачное — чёрное, и чёрный контур пропал бы как фон). Рисунок на ровном фоне (пиксель-арт,
+    скриншот): фон — цвет рамки, маска — всё, что от него отличается, и линии сетки строго
+    горизонтальны/вертикальны; rembg тут только вредит (съедает тонкие линии). Иначе — фото, фон
+    вырезает rembg (у товарного фото на белом рамка тоже ровная, но швы идут под углом перспективы)."""
+    rgba = np.asarray(Image.open(path).convert("RGBA"))
+    image = Image.fromarray(rgba[..., :3])
+    rgb = rgba[..., :3].astype(float) / 255
+    alpha_mask = rgba[..., 3] >= 128
+    if (~alpha_mask).mean() > ALPHA_BACKGROUND:
+        return rgb, alpha_mask, True
     inset = max(2, min(rgb.shape[:2]) // 100)                 # у самого края бывает тёмная кромка
     border = np.concatenate([rgb[inset], rgb[-1 - inset], rgb[:, inset], rgb[:, -1 - inset]])
     if border.std(axis=0).max() < FLAT_BORDER_STD:
         background = np.median(border, axis=0)
         flat_mask = np.abs(rgb - background).max(axis=2) > FLAT_BACKGROUND_TOLERANCE
         if 0.02 < flat_mask.mean() < 0.9 and is_flat(rgb, flat_mask):
-            return rgb, _fill_hollow(flat_mask)
+            return rgb, _fill_hollow(flat_mask), True
     import onnxruntime
     import rembg
     onnxruntime.disable_telemetry_events()   # иначе onnxruntime падает (abort) при выходе из Python — поток телеметрии
@@ -250,7 +257,7 @@ def _cutout(path):
     # Вне маски — чёрное (как в выводе rembg), а не фон: при выправлении перспективы и в краевых
     # клетках примешивается именно оно, и краевые клетки темнеют — как боковые грани, которые
     # и отбрасываются. Цвет самой фигуры — из оригинала: под залитыми дырами у rembg тоже чёрное.
-    return np.where(mask[..., None], rgb, 0.0), mask
+    return np.where(mask[..., None], rgb, 0.0), mask, False
 
 
 def _fill_hollow(mask):
@@ -303,10 +310,10 @@ def _segments(rgb, mask):
     return segs, angle
 
 
-def _rectify(rgb, mask):
+def _rectify(rgb, mask, known_flat: bool = False):
     """Гомография по точкам схода двух семейств линий сетки; отражение убирается.
     Плоская картинка возвращается как есть — любое выправление только сдвинет её сетку."""
-    if is_flat(rgb, mask):
+    if known_flat or is_flat(rgb, mask):
         return rgb, mask, True
     segs, angle = _segments(rgb, mask)
     horizontal = (angle < 20) | (angle > 175)

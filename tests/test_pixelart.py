@@ -29,7 +29,7 @@ REFERENCE = [
     ("examples/stock/eevee.png", (39, 43), 810, {"Flesh", "Black", "Dark_Flesh"}, 12),           # PNG с альфой на шахматке
     ("examples/stock/car1.jpg", (41, 29), 475, {"Dark_Azure", "Black"}, 14),                    # техника в профиль
     ("examples/stock/mew.png", (47, 46), 750, {"Black", "Pink"}, 13),
-    ("examples/stock/sonic1.png", (27, 38), 544, {"Blue", "Black"}, 20),                          # Genesis: синий насыщеннее любого пластика
+    ("examples/stock/sonic1.png", (32, 45), 569, {"Blue", "Black"}, 20),                          # Genesis, PNG с прозрачным фоном: маска — альфа
     ("examples/stock/samus1.png", (25, 49), 834, {"Red", "Black", "Medium_Orange"}, 16),          # SNES
     ("examples/stock/samus3.png", (16, 32), 307, {"Red", "Orange", "Green"}, 20),                 # NES: мелкая (16 клеток)
     ("examples/stock/pixilart.png", (64, 64), 426, {"Black", "Sand_Green", "Flesh"}, 13),        # цветной фон; тусклый зелёный → Sand_Green
