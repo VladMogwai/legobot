@@ -54,7 +54,7 @@ def mosaic_from_photo(image_path: str, max_colors: int = 16, keep_background: bo
     prefs = preferences()["mosaic"]
     codes[front], calibrated = flat_codes(colors[front], max_colors, black, white,
                                           outline_black=prefs["outline_black"], common_only=prefs["palette"] == "common",
-                                          dark_l=DARK_L_FLAT if flat else DARK_L_PHOTO)
+                                          dark_l=DARK_L_FLAT if flat else DARK_L_PHOTO, exact_hues=flat)
     cell_colors = np.zeros_like(colors)
     cell_colors[front] = calibrated
     pitch = (np.diff(bounds_x).mean() + np.diff(bounds_y).mean()) / 2

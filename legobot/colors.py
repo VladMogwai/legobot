@@ -94,11 +94,14 @@ def nearest_codes(rgb: np.ndarray, max_colors: int = 4) -> np.ndarray:
 
 def flat_codes(rgb: np.ndarray, max_colors: int, black: np.ndarray | None = None,
                white: np.ndarray | None = None, outline_black: bool = True,
-               common_only: bool = True, dark_l: float | None = None) -> tuple[np.ndarray, np.ndarray]:
+               common_only: bool = True, dark_l: float | None = None, exact_hues: bool = False) -> tuple[np.ndarray, np.ndarray]:
     """Подбор для пиксель-арта: цвета плоские, теней нет. Сначала уровни: что на фото было
     `black`/`white` (чёрный пластик, белые клетки), становится чёрным/белым — фото бледнее
     пластика. Потом k-means в Lab, слияние кластеров, разбитых освещением, и ближайший ходовой
     цвет в значениях Studio; у цветных — только среди своего оттенка (розовый не станет лиловым).
+    exact_hues — цвета точные (цифровой рисунок, не фото): насыщенным не даётся фора базовым
+    цветам, лазурь остаётся Dark_Azure, а не Medium_Blue. У фото оттенки врут (синий пластик под
+    лампой — фиолетовый), там фора нужна всегда.
     Возвращает (коды, откалиброванные цвета) — вторые нужны для проверки результата."""
     rgb = rgb.reshape(-1, 3).astype(float)
     lo = np.zeros(3) if black is None else np.asarray(black, float)
@@ -118,7 +121,8 @@ def flat_codes(rgb: np.ndarray, max_colors: int, black: np.ndarray | None = None
             center_codes.append(BLACK)   # тёмное и бесцветное — контур, чёрный пластик, тени: всё чёрным
             continue
         dist = np.sqrt(((c - palette_lab) ** 2).sum(1))
-        dist[basic] -= BASIC_BONUS       # фигурки красят базовыми цветами, а не «тёмно-лиловым»
+        if not exact_hues or np.hypot(c[1], c[2]) < DULL_CHROMA:
+            dist[basic] -= BASIC_BONUS   # фигурки красят базовыми цветами, а не «тёмно-лиловым»
         pal_chroma = np.hypot(palette_lab[:, 1], palette_lab[:, 2])
         if np.hypot(c[1], c[2]) <= ACHROMATIC:
             dist[pal_chroma > GREY_CHROMA] = np.inf      # серое остаётся серым, а не «светло-бирюзовым»
