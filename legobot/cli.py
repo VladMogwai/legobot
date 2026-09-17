@@ -43,6 +43,8 @@ def main() -> None:
     ap.add_argument("--slopes", action="store_true", help="закрывать ступеньки скосами")
     ap.add_argument("--mosaic", action="store_true", help="плоская пиксельная фигура: один пиксель = один тайл 1x1 (с фото — напрямую, без 3D)")
     ap.add_argument("--flat", action="store_true", help="для --mosaic: плоская мозаика из тайлов на пластинах вместо стоячей фигурки")
+    ap.add_argument("--volume", action="store_true", help="для --mosaic: объёмная фигурка — силуэт «надувается» к середине, край скруглён")
+    ap.add_argument("--depth", type=int, help="для --mosaic --volume: максимальная толщина в штырьках (по умолчанию 8)")
     ap.add_argument("--background", choices=["cut", "keep"], default="cut", help="для --mosaic с рисунком: отбросить фон (фигурка) или выложить его (панно)")
     ap.add_argument("--width", type=int, help="для --mosaic: переложить картинку в пиксель-арт такой ширины в клетках (любая картинка, не только пиксельная)")
     ap.add_argument("--outline", action="store_true", help="для --mosaic --width: чёрный контур в одну клетку вокруг фигуры")
@@ -85,12 +87,16 @@ def _build_mosaic(args, source: str, variant: str) -> None:
         mosaic, check = result.mosaic, (result, write_check)
     else:
         mosaic = mosaic_from_mesh(source, max_colors=args.colors, pixels_wide=args.pixels)
-    bricks = mosaic_bricks(mosaic) if args.flat else standing_bricks(mosaic)
+    if args.volume:
+        from .inflate import VOLUME_DEPTH, volume_bricks
+        bricks = volume_bricks(mosaic, args.depth or VOLUME_DEPTH)
+    else:
+        bricks = mosaic_bricks(mosaic) if args.flat else standing_bricks(mosaic)
     if args.recolor:
         mapping = {code_by_name(a): code_by_name(b) for a, b in (r.split("=") for r in args.recolor)}
         bricks = [b.__class__(**{**b.__dict__, "color": mapping.get(b.color, b.color)}) for b in bricks]
-    suffix = f"_{variant}" if variant else ""
-    io_path = Path(args.out) if args.out else _model_dir(args.input) / f"{Path(args.input).stem}{suffix}_mosaic.io"
+    suffix = (f"_{variant}" if variant else "") + ("_volume" if args.volume else "_mosaic")
+    io_path = Path(args.out) if args.out else _model_dir(args.input) / f"{Path(args.input).stem}{suffix}.io"
     io_path.parent.mkdir(parents=True, exist_ok=True)
     ldr_path = io_path.with_suffix(".ldr")
     write_ldr(bricks, str(ldr_path), io_path.stem, steps=split_steps(bricks))
@@ -104,7 +110,7 @@ def _build_mosaic(args, source: str, variant: str) -> None:
         colors = Counter(b.color for b in bricks)
         parts = Counter(b.part.label for b in bricks)
         depth = max(b.z + b.length for b in bricks)
-        print(f"стоячая фигурка {mosaic.width * 0.8:.0f} x {depth * 0.8:.1f} x {mosaic.height * 0.96:.0f} см, "
+        print(f"{'объёмная' if args.volume else 'стоячая'} фигурка {mosaic.width * 0.8:.0f} x {depth * 0.8:.1f} x {mosaic.height * 0.96:.0f} см, "
               f"деталей {len(bricks)}: " + ", ".join(f"{k} x{n}" for k, n in sorted(parts.items())))
     print("цвета: " + ", ".join(f"{names.get(c, c)} x{n}" for c, n in colors.most_common()))
     _warn_unavailable(bricks)
