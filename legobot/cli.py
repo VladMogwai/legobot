@@ -4,7 +4,7 @@ from collections import Counter
 from functools import partial
 from pathlib import Path
 
-from .catalog import unavailable
+from .catalog import price_cents, unavailable
 from .colors import code_by_name, load_palette
 from .fixtures import WHEEL_BY_PART
 from .instructions import bill_of_materials, split_steps, write_bom, write_pdf
@@ -164,7 +164,12 @@ def _warn_unavailable(bricks) -> None:
     names = {c.code: c.name for c in load_palette(common_only=False)}
     missing = unavailable([(b.part.number, b.color) for b in bricks])
     if missing:
-        print("не выпускались в таком цвете: " + ", ".join(f"{n} {names.get(c, c)}" for n, c in missing))
+        print("не купить (нет на Pick a Brick / редкие): " + ", ".join(f"{n} {names.get(c, c)}" for n, c in missing))
+    prices = [price_cents(b.part.number, b.color) for b in bricks]
+    if any(p is not None for p in prices):
+        known = sum(p for p in prices if p is not None)
+        note = f" (без цены: {sum(p is None for p in prices)} дет.)" if any(p is None for p in prices) else ""
+        print(f"цена на Pick a Brick: ${known / 100:.2f}{note}")
 
 
 def _write_instructions(bricks, fixtures, io_path: Path) -> None:

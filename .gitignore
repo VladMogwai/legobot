@@ -15,3 +15,5 @@ desktop/out/
 dist/
 build/
 examples/stock/
+corpus/pab_*.csv
+catalog/pab.csv

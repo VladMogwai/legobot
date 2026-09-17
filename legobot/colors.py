@@ -10,6 +10,8 @@ from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
 
+from . import catalog
+
 import numpy as np
 from scipy.cluster.vq import kmeans2
 
@@ -112,13 +114,15 @@ def flat_codes(rgb: np.ndarray, max_colors: int, black: np.ndarray | None = None
     centers, labels = kmeans2(lab, k, minit="++", seed=0)
     centers, labels = _merge_close(centers, labels)
     palette = studio_palette(common_only)
+    if common_only and catalog.purchasable_colors() is not None:
+        palette = tuple(c for c in palette if c.code in catalog.purchasable_colors())   # Pick a Brick: только то, что продаётся
     palette_lab = _rgb_to_lab(np.array([c.rgb for c in palette]))
     codes = np.array([c.code for c in palette])
     basic = np.array([c.name in BASIC_COLORS for c in palette])
-    center_codes = []
+    ranked: list[np.ndarray | None] = []   # для каждого кластера — расстояния до пластика (inf — нельзя), None — чёрный
     for c in centers:
         if outline_black and _is_black(c, DARK_L if dark_l is None else dark_l):
-            center_codes.append(BLACK)   # тёмное и бесцветное — контур, чёрный пластик, тени: всё чёрным
+            ranked.append(None)          # тёмное и бесцветное — контур, чёрный пластик, тени: всё чёрным
             continue
         dist = np.sqrt(((c - palette_lab) ** 2).sum(1))
         if not exact_hues or np.hypot(c[1], c[2]) < DULL_CHROMA:
@@ -134,8 +138,50 @@ def flat_codes(rgb: np.ndarray, max_colors: int, black: np.ndarray | None = None
                 off_hue |= pal_chroma < ACHROMATIC   # насыщенный цвет не станет серым; тусклый — может (Sand_Green)
             if not off_hue.all():
                 dist[off_hue] = np.inf
-        center_codes.append(int(codes[dist.argmin()]))
+        ranked.append(dist)
+    center_codes = _assign_distinct(centers, labels, ranked, codes, palette_lab)
     return np.array(center_codes)[labels], rgb
+
+
+def _assign_distinct(centers, labels, ranked, codes, palette_lab) -> list[int]:
+    """Каждому кластеру — ближайший пластик, но два разных цвета рисунка не сливаются в один
+    пластик: глаза не должны исчезнуть в плаще, когда их неоновый цвет не продаётся. Кластеры
+    идут от большого к малому; если ближайший пластик уже занят кластером другого цвета
+    (ΔE между центрами > DISTINCT_DE), берётся следующий свободный, если он не дальше
+    ближайшего более чем на COLLISION_SLACK; среди запасных предпочтителен близкий по оттенку
+    (неоново-лиловые глаза — Medium_Lavender, а не Blue)."""
+    order = sorted(range(len(centers)), key=lambda i: -int((labels == i).sum()))
+    pal_hue = np.degrees(np.arctan2(palette_lab[:, 2], palette_lab[:, 1]))
+    taken: dict[int, np.ndarray] = {}   # код пластика -> центр кластера, который его занял
+    result = [BLACK] * len(centers)
+    for i in order:
+        if ranked[i] is None:
+            continue
+        dist = ranked[i]
+        best = int(np.argmin(dist))
+        choice = best
+
+        def free(j) -> bool:
+            owner = taken.get(int(codes[j]))
+            return owner is None or np.sqrt(((owner - centers[i]) ** 2).sum()) <= DISTINCT_DE
+
+        if not free(best):   # ближайший занят другим цветом рисунка — запасной, близкий и по ΔE, и по оттенку
+            hue = np.degrees(np.arctan2(centers[i][2], centers[i][1]))
+            hue_penalty = HUE_WEIGHT * np.abs((pal_hue - hue + 180) % 360 - 180)
+            for j in np.argsort(dist + hue_penalty):
+                if not np.isfinite(dist[j]) or dist[j] > dist[best] + COLLISION_SLACK:
+                    break
+                if free(j):
+                    choice = int(j)
+                    break
+        result[i] = int(codes[choice])
+        taken.setdefault(int(codes[choice]), centers[i])
+    return result
+
+
+DISTINCT_DE = 25.0       # цвета рисунка дальше этого — разные, им нужен разный пластик
+COLLISION_SLACK = 20.0   # насколько дальше ближайшего можно уйти ради различимости
+HUE_WEIGHT = 0.3         # ΔE за градус оттенка при выборе запасного пластика
 
 
 MAX_HUE_DIFF = 35  # градусов: цветной пиксель подбирается только среди пластика того же оттенка
