@@ -43,8 +43,9 @@ def main() -> None:
     ap.add_argument("--slopes", action="store_true", help="закрывать ступеньки скосами")
     ap.add_argument("--mosaic", action="store_true", help="плоская пиксельная фигура: один пиксель = один тайл 1x1 (с фото — напрямую, без 3D)")
     ap.add_argument("--flat", action="store_true", help="для --mosaic: плоская мозаика из тайлов на пластинах вместо стоячей фигурки")
-    ap.add_argument("--volume", action="store_true", help="для --mosaic: объёмная фигурка — силуэт «надувается» к середине, край скруглён")
-    ap.add_argument("--depth", type=int, help="для --mosaic --volume: максимальная толщина в штырьках (по умолчанию 8)")
+    ap.add_argument("--volume", nargs="?", const="sandwich", choices=["sandwich", "inflate"],
+                    help="для --mosaic: объёмная фигурка. sandwich — картинка | прокладка | зеркало картинки; inflate — силуэт «надувается» к середине")
+    ap.add_argument("--depth", type=int, help="для --mosaic --volume: толщина в штырьках (по умолчанию 8)")
     ap.add_argument("--background", choices=["cut", "keep"], default="cut", help="для --mosaic с рисунком: отбросить фон (фигурка) или выложить его (панно)")
     ap.add_argument("--width", type=int, help="для --mosaic: переложить картинку в пиксель-арт такой ширины в клетках (любая картинка, не только пиксельная)")
     ap.add_argument("--outline", action="store_true", help="для --mosaic --width: чёрный контур в одну клетку вокруг фигуры")
@@ -89,7 +90,7 @@ def _build_mosaic(args, source: str, variant: str) -> None:
         mosaic = mosaic_from_mesh(source, max_colors=args.colors, pixels_wide=args.pixels)
     if args.volume:
         from .inflate import VOLUME_DEPTH, volume_bricks
-        bricks = volume_bricks(mosaic, args.depth or VOLUME_DEPTH)
+        bricks = volume_bricks(mosaic, args.depth or VOLUME_DEPTH, args.volume)
     else:
         bricks = mosaic_bricks(mosaic) if args.flat else standing_bricks(mosaic)
     if args.recolor:

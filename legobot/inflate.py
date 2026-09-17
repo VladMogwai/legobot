@@ -1,6 +1,11 @@
-"""Объёмная фигурка из пиксельной картинки: силуэт «надувается».
+"""Объёмная фигурка из пиксельной картинки.
 
-Толщина клетки растёт с расстоянием до края силуэта — по штырьку на клетку — и упирается
+Сэндвич (по умолчанию): передняя грань — картинка, задняя — её зеркало, между ними прокладка
+цвета контура (back_color из legobot.toml). На ребре прокладка читается как обводка. У профиля
+обе стороны верны: с другого бока зверь смотрит в другую сторону — зеркало это и даёт; крыло и
+лапы видны с обеих сторон.
+
+Надувание: толщина клетки растёт с расстоянием до края силуэта — по штырьку на клетку — и упирается
 в максимум; объём симметричен относительно средней плоскости. Край выходит скруглённым, как
 у плюшевой игрушки, а не срезанным, как у доски. Работает и для профиля (дракон), и для анфаса.
 
@@ -14,21 +19,42 @@ import numpy as np
 from scipy import ndimage
 
 from .layout import ANY_COLOR, PlacedBrick, layout_bricks
+from .colors import code_by_name
 from .mosaic import Mosaic, _loose_pieces
 from .parts import BRICKS
+from .preferences import preferences
 from .voxelize import interior
 
-VOLUME_DEPTH = 8   # максимальная толщина в штырьках (переопределяется --depth)
+VOLUME_DEPTH = 8   # толщина в штырьках (переопределяется --depth)
+FACE_DEPTH = 2     # глубина пикселей передней и задней грани сэндвича
 SLOPE = 1.0        # штырьков толщины на клетку расстояния от края: 1 — скругление под 45°
 
 
-def inflate(mosaic: Mosaic, max_depth: int = VOLUME_DEPTH) -> tuple[np.ndarray, np.ndarray]:
-    """(воксели bool [x, z, y], цвета int той же формы); y — слой 0 внизу, z — глубина."""
+def _front(mosaic: Mosaic) -> tuple[np.ndarray, np.ndarray]:
+    """(маска, коды) [x, y] по обрезанному силуэту; y — слой 0 внизу."""
     mask = mosaic.codes >= 0
     xs, ys = np.nonzero(mask)
     mask = mask[xs.min():xs.max() + 1, ys.min():ys.max() + 1]
     codes = mosaic.codes[xs.min():xs.max() + 1, ys.min():ys.max() + 1]
-    mask, codes = np.flip(mask, axis=1), np.flip(codes, axis=1)      # слой 0 — нижний ряд
+    return np.flip(mask, axis=1), np.flip(codes, axis=1)
+
+
+def sandwich(mosaic: Mosaic, depth: int = VOLUME_DEPTH) -> tuple[np.ndarray, np.ndarray]:
+    """(воксели bool [x, z, y], цвета int той же формы): картинка | прокладка | зеркало картинки."""
+    mask, codes = _front(mosaic)
+    depth = max(depth, 2 * FACE_DEPTH + 1)
+    filler = code_by_name(preferences()["mosaic"]["back_color"])
+    voxels = np.repeat(mask[:, None, :], depth, axis=1)
+    colors = np.full(voxels.shape, filler)
+    colors[:, :FACE_DEPTH, :] = codes[:, None, :]
+    colors[:, depth - FACE_DEPTH:, :] = codes[:, None, :]
+    colors[~voxels] = ANY_COLOR
+    return voxels, colors
+
+
+def inflate(mosaic: Mosaic, max_depth: int = VOLUME_DEPTH) -> tuple[np.ndarray, np.ndarray]:
+    """(воксели bool [x, z, y], цвета int той же формы); y — слой 0 внизу, z — глубина."""
+    mask, codes = _front(mosaic)
     half_max = max(1, max_depth // 2)
     distance = ndimage.distance_transform_edt(mask)                   # до ближайшей пустой клетки, в клетках
     half = np.clip(np.ceil(distance * SLOPE), 1, half_max).astype(int) * mask
@@ -42,8 +68,8 @@ def inflate(mosaic: Mosaic, max_depth: int = VOLUME_DEPTH) -> tuple[np.ndarray, 
     return voxels, colors
 
 
-def volume_bricks(mosaic: Mosaic, max_depth: int = VOLUME_DEPTH) -> list[PlacedBrick]:
-    voxels, colors = inflate(mosaic, max_depth)
+def volume_bricks(mosaic: Mosaic, depth: int = VOLUME_DEPTH, mode: str = "sandwich") -> list[PlacedBrick]:
+    voxels, colors = (sandwich if mode == "sandwich" else inflate)(mosaic, depth)
     body = int(np.bincount(colors[colors >= 0].ravel()).argmax())
     bricks = layout_bricks(voxels, colors, body, BRICKS)
     loose = _loose_pieces(bricks)
