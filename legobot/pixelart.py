@@ -242,7 +242,7 @@ def _cutout(path):
         background = np.median(border, axis=0)
         flat_mask = np.abs(rgb - background).max(axis=2) > FLAT_BACKGROUND_TOLERANCE
         if 0.02 < flat_mask.mean() < 0.9 and is_flat(rgb, flat_mask):
-            return rgb, flat_mask
+            return rgb, _fill_hollow(flat_mask)
     import onnxruntime
     import rembg
     onnxruntime.disable_telemetry_events()   # иначе onnxruntime падает (abort) при выходе из Python — поток телеметрии
@@ -251,6 +251,21 @@ def _cutout(path):
     # клетках примешивается именно оно, и краевые клетки темнеют — как боковые грани, которые
     # и отбрасываются. Цвет самой фигуры — из оригинала: под залитыми дырами у rembg тоже чёрное.
     return np.where(mask[..., None], rgb, 0.0), mask
+
+
+def _fill_hollow(mask):
+    """Белая собака на белом: тело цвета фона внутри контура — в маске одна обводка. Если дыр
+    внутри главного контура больше HOLLOW его площади, это полая фигура, и дыры — её тело.
+    У настоящих просветов (между рукой и телом) дыр ≤ 0.2 площади."""
+    labels, n = ndimage.label(mask)
+    if n == 0:
+        return mask
+    main = labels == (np.argmax(ndimage.sum(mask, labels, range(1, n + 1))) + 1)
+    holes = ndimage.binary_fill_holes(main) & ~main
+    return mask | holes if holes.sum() > HOLLOW * main.sum() else mask
+
+
+HOLLOW = 0.5
 
 
 def _fill_small_holes(mask):

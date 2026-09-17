@@ -23,6 +23,12 @@ REFERENCE = [
     ("examples/stock/purpleshirt.jpg", (31, 31), 289, {"Medium_Lavender", "Dark_Bluish_Gray"}, 14),   # без контура; серые волосы — не чёрные
     ("examples/stock/redcap.jpg", (23, 22), 118, {"Red", "Dark_Blue", "Medium_Dark_Flesh"}, 11),   # без контура; симметричная
     ("examples/stock/blueskin.jpg", (85, 76), 2516, {"Black", "Light_Aqua", "Red"}, 16),          # «векторный» пиксель-арт с неровными блоками — выравнивается по симметрии
+    ("examples/stock/dog1.jpg", (61, 61), 1129, {"White", "Black", "Light_Flesh"}, 17),          # белое тело на белом фоне внутри контура — полая фигура заливается
+    ("examples/stock/robot2.jpg", (87, 88), 1954, {"Black", "White"}, 13),                       # то же; крупная (87 клеток)
+    ("examples/stock/fox.webp", (45, 48), 1067, {"Orange", "Medium_Blue"}, 18),                  # шахматный фон «прозрачности»
+    ("examples/stock/eevee.png", (39, 43), 810, {"Flesh", "Black", "Dark_Flesh"}, 12),           # PNG с альфой на шахматке
+    ("examples/stock/car1.jpg", (41, 29), 475, {"Medium_Blue", "Black"}, 14),                    # техника в профиль
+    ("examples/stock/mew.png", (47, 46), 750, {"Black", "Pink"}, 13),
     ("examples/stock/pixilart.png", (64, 64), 426, {"Black", "Sand_Green", "Flesh"}, 13),        # цветной фон; тусклый зелёный → Sand_Green
 ]
 
