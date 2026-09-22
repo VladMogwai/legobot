@@ -11,7 +11,6 @@ from collections import Counter
 from dataclasses import dataclass
 
 import numpy as np
-import trimesh
 from scipy import ndimage
 
 from .colors import nearest_codes
@@ -37,6 +36,7 @@ class Mosaic:
 
 
 def mosaic_from_mesh(mesh_path: str, max_colors: int = 9, pixels_wide: int | None = None) -> Mosaic:
+    import trimesh   # тяжёлая зависимость только для 3D-файлов; в браузере её нет
     mesh = trimesh.load(mesh_path, force="mesh")
     image, present, span = _front_face(mesh)
     pitch = span[0] / (span.max()) * RASTER / pixels_wide if pixels_wide else _detect_pitch(image, present)
@@ -49,6 +49,7 @@ def mosaic_from_mesh(mesh_path: str, max_colors: int = 9, pixels_wide: int | Non
 
 def _front_face(mesh):
     """Растр передней грани: цвета усреднены по точкам поверхности, дыры сглажены медианой."""
+    import trimesh   # тяжёлая зависимость только для 3D-файлов; в браузере её нет
     thin = int(np.argmin(mesh.extents))
     axes = [a for a in range(3) if a != thin]
     points, face_ids = trimesh.sample.sample_surface(mesh, SAMPLES, seed=0)

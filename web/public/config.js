@@ -1,2 +1,2 @@
 // Адрес бэкенда; обновляется tools/serve.py при каждом запуске.
-window.LEGOBOT_API = "https://authorization-provisions-capital-requests.trycloudflare.com";
+window.LEGOBOT_API = "";   // пусто — считать в браузере; адрес — использовать бэкенд

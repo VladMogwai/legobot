@@ -42,9 +42,7 @@ class PhotoMosaic:
 
 def mosaic_from_photo(image_path: str, max_colors: int = 16, keep_background: bool = False) -> PhotoMosaic:
     """keep_background — панно: у плоского рисунка фон выкладывается как цвет, а не отбрасывается."""
-    rgb, mask, known_flat = _cutout(image_path)
-    if keep_background and (known_flat or is_flat(rgb, mask)):
-        mask = np.ones_like(mask)
+    rgb, mask, known_flat = _cutout(image_path, keep_background)
     rect, rmask, flat = _rectify(rgb, mask, known_flat)
     bounds_x, bounds_y = _grid(rect, rmask, flat)
     colors, present = _sample_cells(rect, rmask, bounds_x, bounds_y, flat)
@@ -232,8 +230,9 @@ def write_check(result: PhotoMosaic, path: str) -> str:
 NOTICEABLE_DE = 20  # ΔE, с которого разница цветов бросается в глаза
 
 
-def _cutout(path):
+def _cutout(path, keep_background: bool = False):
     """(rgb 0..1, маска объекта, плоская ли картинка — True, если это известно наверняка).
+    keep_background — панно: маска — вся картинка, фон не ищем (rembg не нужен).
     PNG с прозрачным фоном: маска — альфа, картинка заведомо плоская (у фото альфы не бывает; в RGB
     прозрачное — чёрное, и чёрный контур пропал бы как фон). Рисунок на ровном фоне (пиксель-арт,
     скриншот): фон — цвет рамки, маска — всё, что от него отличается, и линии сетки строго
@@ -243,6 +242,8 @@ def _cutout(path):
     image = Image.fromarray(rgba[..., :3])
     rgb = rgba[..., :3].astype(float) / 255
     alpha_mask = rgba[..., 3] >= 128
+    if keep_background:
+        return rgb, np.ones(alpha_mask.shape, dtype=bool), False
     if (~alpha_mask).mean() > ALPHA_BACKGROUND:
         return rgb, alpha_mask, True
     inset = max(2, min(rgb.shape[:2]) // 100)                 # у самого края бывает тёмная кромка
@@ -252,8 +253,11 @@ def _cutout(path):
         flat_mask = np.abs(rgb - background).max(axis=2) > FLAT_BACKGROUND_TOLERANCE
         if 0.02 < flat_mask.mean() < 0.9 and is_flat(rgb, flat_mask):
             return rgb, _fill_hollow(flat_mask), True
-    import onnxruntime
-    import rembg
+    try:
+        import onnxruntime
+        import rembg
+    except ImportError:   # браузер: нейросети для вырезания фона нет
+        raise ValueError("пёстрый фон: вырезать его здесь нечем — нужна картинка на ровном, прозрачном или шахматном фоне") from None
     onnxruntime.disable_telemetry_events()   # иначе onnxruntime падает (abort) при выходе из Python — поток телеметрии
     mask = _fill_small_holes(np.asarray(rembg.remove(image))[..., 3] > 128)
     # Вне маски — чёрное (как в выводе rembg), а не фон: при выправлении перспективы и в краевых

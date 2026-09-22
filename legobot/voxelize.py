@@ -6,7 +6,6 @@
 from dataclasses import dataclass
 
 import numpy as np
-import trimesh
 from scipy.spatial import cKDTree
 
 
@@ -35,6 +34,7 @@ def voxelize_mesh(path: str, grid: int, aspect: float, force_symmetric: bool = F
     Массив выровнен так, что середина модели по X совпадает с серединой массива:
     отражение массива — это отражение модели.
     """
+    import trimesh   # тяжёлая зависимость только для 3D-файлов; в браузере её нет
     mesh = trimesh.load(path, force="mesh")
     symmetric = _orient_mirror_axis(mesh, force_symmetric)
     # Масштабируем по вертикали, чтобы кубический воксель соответствовал пропорциям детали.
@@ -54,6 +54,7 @@ def _orient_mirror_axis(mesh, force: bool = False) -> bool:
     """Находит плоскость симметрии: перебирает поворот вокруг вертикали (нейросетевые меши
     часто повёрнуты к осям на десятки градусов), затем разворачивает меш так, чтобы плоскость
     симметрии стала перпендикулярна X. Возвращает, симметричен ли меш вообще."""
+    import trimesh   # тяжёлая зависимость только для 3D-файлов; в браузере её нет
     yaw, axis, error = _best_mirror_alignment(mesh)
     if error > SYMMETRY_TOLERANCE and not force:
         return False
@@ -66,6 +67,7 @@ def _orient_mirror_axis(mesh, force: bool = False) -> bool:
 def _best_mirror_alignment(mesh) -> tuple[float, int, float]:
     """(поворот в градусах, ось 0|1, ошибка): поворот вокруг Z, при котором отражение
     относительно серединной плоскости, перпендикулярной оси, ложится на поверхность лучше всего."""
+    import trimesh   # тяжёлая зависимость только для 3D-файлов; в браузере её нет
     surface, _ = trimesh.sample.sample_surface(mesh, 150_000, seed=0)
     probe, _ = trimesh.sample.sample_surface(mesh, 4_000, seed=1)
 
@@ -100,6 +102,7 @@ def _occupancy(mesh, pitch):
     форма раздувается на полвокселя и покрывается случайными буграми. Поэтому считаем на
     сетке в SUBSAMPLE раз мельче и укрупняем по доле заполнения. Возвращает (occupancy, fraction, origin):
     fraction — доля заполнения, origin — центр вокселя [0, 0, 0] в координатах меша."""
+    import trimesh   # тяжёлая зависимость только для 3D-файлов; в браузере её нет
     n = SUBSAMPLE
     fine = mesh.voxelized(pitch / n).fill()
     m = fine.matrix
@@ -116,6 +119,7 @@ def _sample_colors(mesh, occupancy, origin, pitch):
 
     Точки насыпаются по поверхности равномерно, а не берутся из вершин: у мешей вершины
     сгущаются на мелких деталях (канавки, швы), и ближайшая вершина врёт про цвет."""
+    import trimesh   # тяжёлая зависимость только для 3D-файлов; в браузере её нет
     vertex_colors = _vertex_colors(mesh)
     if vertex_colors is None:
         return None
@@ -136,6 +140,7 @@ def _sample_normals(mesh, occupancy, origin, pitch, aspect):
     """Средняя нормаль меша в каждом поверхностном вокселе (по точкам поверхности, попавшим в него;
     если не попало ни одной — по ближайшей). Меш растянут по вертикали в 1/aspect раз, поэтому
     вертикальную компоненту возвращаем в исходный масштаб."""
+    import trimesh   # тяжёлая зависимость только для 3D-файлов; в браузере её нет
     points, face_ids = trimesh.sample.sample_surface(mesh, SURFACE_SAMPLES, seed=0)
     normals = mesh.face_normals[face_ids].copy()
     normals[:, 2] /= aspect

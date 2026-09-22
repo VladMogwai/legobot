@@ -6,6 +6,54 @@ import { LDrawLoader } from "three/addons/loaders/LDrawLoader.js";
 import { LDrawConditionalLineMaterial } from "three/addons/materials/LDrawConditionalLineMaterial.js";
 
 const API = new URLSearchParams(location.search).get("api") || window.LEGOBOT_API || "";
+// Без бэкенда модель считается прямо в браузере: Pyodide + legobot в веб-воркере (engine/worker.js).
+const engine = { worker: null, ready: false, pending: new Map(), seq: 0 };
+function startEngine() {
+  const el = $("health");
+  el.textContent = "● движок загружается…"; el.className = "health";
+  engine.worker = new Worker("engine/worker.js?v=" + (window.LEGOBOT_ENGINE || ""));   // версия — чтобы браузер не взял старый воркер из кэша
+  engine.worker.onmessage = (e) => {
+    const m = e.data;
+    if (m.type === "progress") el.textContent = "● " + m.text;
+    else if (m.type === "ready") { engine.ready = true; online = true; el.textContent = "● считает в браузере"; el.className = "health on"; if (file) $("submit").disabled = false; $("status").textContent = ""; }
+    else if (m.type === "fatal") { el.textContent = "● движок не загрузился: " + m.error; el.className = "health off"; }
+    else if (m.id && engine.pending.has(m.id)) { engine.pending.get(m.id)(m); engine.pending.delete(m.id); }
+  };
+  engine.worker.onerror = (e) => { el.textContent = "● движок не загрузился: " + e.message; el.className = "health off"; };
+  engine.worker.postMessage({ type: "init", version: window.LEGOBOT_ENGINE || "" });
+}
+function engineCall(message, transfer) {
+  return new Promise((resolve) => {
+    const id = ++engine.seq;
+    engine.pending.set(id, resolve);
+    engine.worker.postMessage({ ...message, id }, transfer || []);
+  });
+}
+async function runLocal(message, transfer, statusEl, title) {
+  const started = Date.now();
+  const tick = setInterval(() => { statusEl.textContent = `Считаю в браузере… ${Math.round((Date.now() - started) / 1000)} с`; }, 500);
+  try {
+    const m = await engineCall(message, transfer);
+    clearInterval(tick);
+    if (m.type === "error") { statusEl.textContent = "Ошибка: " + m.error; return; }
+    statusEl.textContent = `Готово за ${Math.round((Date.now() - started) / 1000)} с`;
+    const files = Object.fromEntries(Object.entries(m.files).map(([name, data]) => {
+      const type = name.endsWith(".png") ? "image/png" : name.endsWith(".csv") ? "text/csv" : name.endsWith(".io") ? "application/zip" : "text/plain";
+      return [name, URL.createObjectURL(new Blob([data], { type }))];
+    }));
+    await showResult(files, m.summary, title);
+    if (m.summary.grid) await showEditor(m.summary.grid);
+  } catch (err) {
+    clearInterval(tick);
+    statusEl.textContent = "Ошибка: " + err.message;
+  }
+}
+function buildOptions() {
+  return {
+    mode: $("mode").value, background: $("keep-bg").checked ? "keep" : "cut",
+    width: +($("width").value || 0), contrast: $("contrast").checked,
+  };
+}
 const $ = (id) => document.getElementById(id);
 
 // --- вьюшка ---
@@ -91,8 +139,10 @@ async function showResult(files, summary, title) {
   if (files["check.png"]) $("check").src = files["check.png"];
   $("editor").hidden = !summary.grid;
   $("downloads").innerHTML = [
-    ["model.io", "Скачать .io"], ["instructions.pdf", "Инструкция (PDF)"], ["parts.csv", "Список деталей (CSV)"], ["model.mpd", "Модель (LDraw)"],
-  ].map(([f, label]) => `<a href="${files[f]}" download>${label}</a>`).join("");
+    ["model.io", "Скачать .io", "model.io"], ["instructions.pdf", "Инструкция (PDF)", "instructions.pdf"], ["chart.png", "Схема панно (PNG)", "chart.png"],
+    ["parts.csv", "Список деталей (CSV)", "parts.csv"], ["model.mpd", "Модель (LDraw)", "model.mpd"],
+  ].filter(([f]) => files[f]).map(([f, label, name]) => `<a href="${files[f]}" download="${name}">${label}</a>`).join("");
+  if (summary.price_usd != null) $("summary").insertAdjacentHTML("beforeend", `<dt>Pick a Brick</dt><dd>$${summary.price_usd}</dd>`);
   const jobId = files["model.io"].match(/\/jobs\/([^/]+)\//)?.[1];
   if (local && jobId) {
     const b = document.createElement("a");
@@ -110,7 +160,7 @@ async function showResult(files, summary, title) {
 let online = false, local = false;
 async function checkHealth() {
   const el = $("health");
-  if (!API) { el.textContent = "● бэкенд не подключён"; el.className = "health off"; return; }
+  if (!API) { if (!engine.worker) startEngine(); return; }   // без бэкенда — движок в браузере, один на страницу
   try {
     const ctrl = new AbortController();
     setTimeout(() => ctrl.abort(), 8000);
@@ -139,7 +189,7 @@ function pick(f) {
   $("preview").hidden = false;
   $("drop-text").textContent = f.name;
   $("submit").disabled = !online;
-  if (!online) $("status").textContent = API ? "Сервис сейчас офлайн — попробуй позже." : "Бэкенд не подключён: добавь ?api=адрес к ссылке.";
+  if (!online) $("status").textContent = API ? "Сервис сейчас офлайн — попробуй позже." : "Движок ещё загружается — подожди несколько секунд.";
 }
 
 async function runJob(request, statusEl, title) {
@@ -168,8 +218,14 @@ async function runJob(request, statusEl, title) {
 
 $("form").addEventListener("submit", async (e) => {
   e.preventDefault();
-  if (!file || !API) return;
+  if (!file) return;
   $("submit").disabled = true;
+  if (!API) {
+    const image = await file.arrayBuffer();
+    await runLocal({ type: "build", image, options: buildOptions() }, [image], $("status"), file.name);
+    $("submit").disabled = false;
+    return;
+  }
   const body = new FormData();
   body.append("photo", file);
   body.append("width", $("width").value || "0");
@@ -182,7 +238,7 @@ $("form").addEventListener("submit", async (e) => {
 $("model-file").addEventListener("change", async () => {
   const f = $("model-file").files[0];
   if (!f) return;
-  if (!API) { $("status").textContent = "Бэкенд не подключён: добавь ?api=адрес к ссылке."; return; }
+  if (!API) { $("status").textContent = "Загрузка своих .io работает только с бэкендом."; return; }
   const body = new FormData();
   body.append("model", f);
   await runJob({ path: "/models", init: { method: "POST", body } }, $("status"), f.name);
@@ -249,8 +305,12 @@ $("undo").addEventListener("click", () => {
   drawGrid();
 });
 $("rebuild").addEventListener("click", async () => {
-  if (!API) { $("editor-status").textContent = "Бэкенд не подключён: добавь ?api=адрес к ссылке."; return; }
   $("rebuild").disabled = true;
+  if (!API) {
+    await runLocal({ type: "regrid", codes: grid, options: { mode: $("mode").value } }, [], $("editor-status"), $("title").textContent + " (правка)");
+    $("rebuild").disabled = false;
+    return;
+  }
   await runJob({ path: "/grids", init: { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ codes: grid }) } },
     $("editor-status"), $("title").textContent + " (правка)");
   $("rebuild").disabled = false;
