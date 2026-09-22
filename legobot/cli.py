@@ -122,7 +122,13 @@ def _build_mosaic(args, source: str, variant: str) -> None:
         print("-> проверка:", check_path)
     print("->", io_path)
     if not args.no_instructions:
-        _write_instructions(bricks, [], io_path)
+        if args.flat:
+            from .chart import write_chart
+            write_bom(bill_of_materials(bricks, []), str(io_path.with_suffix(".csv")))
+            chart_path = io_path.with_name(io_path.stem + "_chart.png")
+            print(f"-> схема панно: {chart_path}  ({write_chart(bricks, str(chart_path))} тайлов)")   # PDF по шагам для тысяч тайлов бессмыслен
+        else:
+            _write_instructions(bricks, [], io_path)
     if args.open:
         open_in_studio(str(io_path))
 

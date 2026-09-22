@@ -48,6 +48,8 @@ def mosaic_from_photo(image_path: str, max_colors: int = 16, keep_background: bo
     rect, rmask, flat = _rectify(rgb, mask, known_flat)
     bounds_x, bounds_y = _grid(rect, rmask, flat)
     colors, present = _sample_cells(rect, rmask, bounds_x, bounds_y, flat)
+    if keep_background:
+        colors, present = _fill_panel(colors, _trim_panel(present))
     colors, present = _symmetrize(colors, present)
     front = present if keep_background else _front_face(colors, present)
     black, white = _anchors(colors, present, front)
@@ -436,6 +438,45 @@ def _sample_cells(rect, rmask, bounds_x, bounds_y, flat: bool):
 
 FRINGE = 0.2           # ширина каймы у края силуэта в долях шага сетки — эти пиксели в цвет не идут
 MIN_CORE_PIXELS = 4    # меньше — клетка целиком кайма, берём медиану по всем пикселям маски
+
+
+def _trim_panel(present):
+    """Панно — полный прямоугольник: крайние ряды и столбцы, где клеток не хватает (край фото
+    срезал мозаику, выправленный кадр вышел за снимок), отбрасываются целиком."""
+    present = present.copy()
+    while present.any():
+        ys, xs = np.nonzero(present.any(axis=0))[0], np.nonzero(present.any(axis=1))[0]
+        rows = present.sum(axis=0) / len(xs)      # доля клеток в ряду от ширины оставшегося панно
+        cols = present.sum(axis=1) / len(ys)
+        edges = [("y", ys[0]), ("y", ys[-1]), ("x", xs[0]), ("x", xs[-1])]
+        worst = min(edges, key=lambda e: rows[e[1]] if e[0] == "y" else cols[e[1]])
+        fill = rows[worst[1]] if worst[0] == "y" else cols[worst[1]]
+        if fill >= PANEL_FULL:
+            break
+        if worst[0] == "y":
+            present[:, worst[1]] = False
+        else:
+            present[worst[1], :] = False
+    return present
+
+
+PANEL_FULL = 0.95   # ряд панно считается целым, если клеток не меньше этой доли
+
+
+def _fill_panel(colors, present):
+    """Одиночные пропуски внутри панно (клетка на самом краю кадра) — цвет соседей."""
+    ys, xs = np.nonzero(present.any(axis=0))[0], np.nonzero(present.any(axis=1))[0]
+    colors, present = colors.copy(), present.copy()
+    for x in range(xs.min(), xs.max() + 1):
+        for y in range(ys.min(), ys.max() + 1):
+            if present[x, y]:
+                continue
+            around = [colors[i, j] for i, j in ((x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1))
+                      if 0 <= i < present.shape[0] and 0 <= j < present.shape[1] and present[i, j]]
+            if around:
+                colors[x, y] = np.median(np.array(around), axis=0).astype(np.uint8)
+                present[x, y] = True
+    return colors, present
 
 
 def _symmetrize(colors, present):
