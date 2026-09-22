@@ -129,7 +129,9 @@ async function showResult(files, summary, title) {
   const [sx, sy, sz] = summary.size_cm;
   $("summary").innerHTML = [
     summary.kind && ["Тип", summary.kind], summary.pixels && ["Пикселей", `${summary.pixels[0]} × ${summary.pixels[1]}`],
-    ["Деталей", summary.parts], ["Шагов", summary.steps], ["Размер", `${sx} × ${sy} × ${sz} см`],
+    ["Деталей", summary.parts], ["Шагов", summary.steps],
+    summary.pages && ["Инструкция", `${summary.pages} ${plural(summary.pages, "страница", "страницы", "страниц")}`],
+    ["Размер", `${sx} × ${sy} × ${sz} см`],
     summary.skipped && ["Пропущено деталей", summary.skipped],
   ].filter(Boolean).map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("");
   $("accuracy").textContent = summary.accuracy || "";
@@ -196,7 +198,7 @@ async function renderHistory() {
   for (const [id, blobs] of rows.map((r) => [r.id, r.files])) {
     const holder = $("history-list").querySelector(`[data-id="${id}"] [data-files]`);
     holder.innerHTML = Object.keys(blobs)
-      .filter((name) => name !== "check.png" && name !== "model.mpd")
+      .filter((name) => name !== "check.png" && name !== "model.mpd")   // превью и файл вьюшки не для скачивания
       .map((name) => `<a href="${URL.createObjectURL(blobs[name])}" download="${name}">${name}</a>`).join("");
   }
   const mb = await history.usageMb();

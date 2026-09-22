@@ -15,7 +15,7 @@
 <body>
 <header>
   <h1>legobot <span class="health" id="health" title="Сервис">● проверяю…</span></h1>
-  <p>Пиксель-арт → модель LEGO: файл для Studio, список деталей, схема. Всё считается в твоём браузере — сервера нет.</p>
+  <p>Пиксель-арт → модель LEGO: файл для Studio, PDF-инструкция, список деталей. Всё считается в твоём браузере — сервера нет.</p>
 </header>
 <main>
   <section class="panel">
@@ -92,6 +92,9 @@
 </footer>
 <script src="config.js"></script>
 <script src="engine/version.js"></script>
-<script type="module" src="main.js"></script>
+<script type="module">
+  // версия в адресе — чтобы после обновления сайта браузер не показывал старую страницу из кэша
+  import("./main.js?v=" + (window.LEGOBOT_ENGINE || ""));
+</script>
 </body>
 </html>

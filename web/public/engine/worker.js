@@ -14,8 +14,8 @@ async function init(engineVersion) {
   post({ type: "progress", text: "Загружаю Python (≈15 МБ, один раз)…" });
   pyodide = await loadPyodide({ indexURL: PYODIDE });
   post({ type: "progress", text: "Загружаю numpy, scipy, scikit-image…" });
-  await pyodide.loadPackage(["numpy", "scipy", "scikit-image", "pillow"]);
-  post({ type: "progress", text: "Загружаю legobot…" });
+  await pyodide.loadPackage(["numpy", "scipy", "scikit-image", "pillow", "matplotlib"]);
+  post({ type: "progress", text: "Загружаю legobot и инструкции…" });
   const response = await fetch(new URL("legobot.zip?v=" + engineVersion, self.location.href));   // относительно worker.js
   if (!response.ok) throw new Error("legobot.zip: HTTP " + response.status);
   const zip = await response.arrayBuffer();
@@ -25,8 +25,12 @@ async function init(engineVersion) {
 import sys, warnings
 sys.path.insert(0, "/app")
 warnings.filterwarnings("ignore")
-for name in ("trimesh", "rembg", "onnxruntime", "matplotlib"):
-    sys.modules[name] = None          # тяжёлых зависимостей в браузере нет; их импорт должен падать сразу
+for name in ("trimesh", "rembg", "onnxruntime"):
+    sys.modules[name] = None          # этих зависимостей в браузере нет; их импорт должен падать сразу
+import matplotlib                     # приходит вместе с scikit-image — на нём инструкция
+matplotlib.use("Agg")
+import matplotlib.pyplot              # прогрев: первый импорт pyplot в браузере занимает секунды,
+from matplotlib.backends.backend_pdf import PdfPages   # пусть это будет на загрузке, а не после кнопки
 import legobot.web
 
 def _build(image, opts):              # image — Uint8Array из JS, opts — объект JS

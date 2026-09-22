@@ -123,13 +123,15 @@ def _build_mosaic(args, source: str, variant: str) -> None:
         print("-> проверка:", check_path)
     print("->", io_path)
     if not args.no_instructions:
+        from .guide import write_guide
+        write_bom(bill_of_materials(bricks, []), str(io_path.with_suffix(".csv")))
         if args.flat:
             from .chart import write_chart
-            write_bom(bill_of_materials(bricks, []), str(io_path.with_suffix(".csv")))
             chart_path = io_path.with_name(io_path.stem + "_chart.png")
-            print(f"-> схема панно: {chart_path}  ({write_chart(bricks, str(chart_path))} тайлов)")   # PDF по шагам для тысяч тайлов бессмыслен
-        else:
-            _write_instructions(bricks, [], io_path)
+            print(f"-> схема панно: {chart_path}  ({write_chart(bricks, str(chart_path))} тайлов)")
+        pdf_path = io_path.with_suffix(".pdf")   # ряды и секции, а не изометрия по шагам: страницы вместо сотен кадров
+        kind = "панно" if args.flat else ("объёмная" if args.volume else "стоячая")
+        print(f"-> {pdf_path}  ({write_guide(bricks, str(pdf_path), io_path.stem, kind)} страниц)")
     if args.open:
         open_in_studio(str(io_path))
 

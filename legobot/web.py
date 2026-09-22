@@ -1,8 +1,7 @@
 """Точка входа для браузера (Pyodide): картинка в памяти → все файлы модели в памяти.
 
-Тот же путь, что у `legobot --mosaic`, но без диска, без Studio, без PDF (matplotlib в браузере
-слишком тяжёл; схема панно и список деталей есть). Зависимости — numpy, scipy, scikit-image,
-Pillow: всё это есть в Pyodide. Нейросеть не нужна: rembg (пёстрый фон) в браузере пока нет,
+Тот же путь, что у `legobot --mosaic`, но без диска и без Studio. Зависимости — numpy, scipy,
+scikit-image, Pillow и matplotlib (последний приходит вместе с scikit-image): всё это есть в Pyodide. Нейросеть не нужна: rembg (пёстрый фон) в браузере пока нет,
 такие картинки просят ровный/прозрачный/шахматный фон.
 """
 import io
@@ -13,6 +12,7 @@ from collections import Counter
 from pathlib import Path
 
 from .chart import write_chart
+from .guide import write_guide
 from .colors import code_by_name, load_palette
 from .instructions import bill_of_materials, split_steps
 from .ldraw import write_ldr
@@ -78,17 +78,21 @@ def _outputs(bricks, mosaic, tmp: Path, mode: str) -> dict:
     bom = bill_of_materials(bricks)
     files["parts.csv"] = "part,name,color_code,color,quantity\n" + "".join(
         f"{l.number},{l.name},{l.color},{l.color_name},{l.quantity}\n" for l in bom)
+    kind = {"standing": "стоячая", "volume": "объёмная", "flat": "панно"}[mode]
     if mode == "flat":
         chart_path = tmp / "chart.png"
         write_chart(bricks, str(chart_path))
         files["chart.png"] = chart_path.read_bytes()
+    guide_path = tmp / "instructions.pdf"
+    guide_pages = write_guide(bricks, str(guide_path), "legobot", kind)
+    files["instructions.pdf"] = guide_path.read_bytes()
     names = {c.code: c.name for c in load_palette(common_only=False)}
     width_studs = max(b.x + b.width for b in bricks) - min(b.x for b in bricks)
     depth = max(b.z + b.length for b in bricks) - min(b.z for b in bricks)
     height = (max(b.layer for b in bricks) + 1) * bricks[0].part.height / 20
     summary = {
-        "kind": {"standing": "стоячая", "volume": "объёмная", "flat": "панно"}[mode],
-        "pixels": [mosaic.width, mosaic.height], "parts": len(bricks), "steps": len(steps),
+        "kind": kind, "pixels": [mosaic.width, mosaic.height], "parts": len(bricks),
+        "steps": len(steps), "pages": guide_pages,
         "size_cm": [round(width_studs * 0.8, 1), round(depth * 0.8, 1), round(height * 0.8, 1)],
         "colors": [[names.get(c, str(c)), n] for c, n in Counter(b.color for b in bricks).most_common()],
         "grid": mosaic.codes.tolist(), "price_usd": _price(bricks),
