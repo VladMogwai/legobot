@@ -149,8 +149,8 @@ def flat_codes(rgb: np.ndarray, max_colors: int, black: np.ndarray | None = None
 
 
 def _assign_distinct(centers, labels, ranked, codes, palette_lab) -> list[int]:
-    """Каждому кластеру — ближайший пластик, но два разных цвета рисунка не сливаются в один
-    пластик: глаза не должны исчезнуть в плаще, когда их неоновый цвет не продаётся. Кластеры
+    """Каждому кластеру — ближайший пластик, но мелкая деталь другого цвета не сливается с
+    крупной областью: глаза не должны исчезнуть в плаще, когда их неоновый цвет не продаётся. Кластеры
     идут от большого к малому; если ближайший пластик уже занят кластером другого цвета
     (ΔE между центрами > DISTINCT_DE), берётся следующий свободный, если он не дальше
     ближайшего более чем на COLLISION_SLACK; среди запасных предпочтителен близкий по оттенку
@@ -170,7 +170,8 @@ def _assign_distinct(centers, labels, ranked, codes, palette_lab) -> list[int]:
             owner = taken.get(int(codes[j]))
             return owner is None or np.sqrt(((owner - centers[i]) ** 2).sum()) <= DISTINCT_DE
 
-        if not free(best):   # ближайший занят другим цветом рисунка — запасной, близкий и по ΔE, и по оттенку
+        small = (labels == i).sum() <= SMALL_FEATURE * labels.size
+        if small and not free(best):   # мелкая деталь, ближайший занят другим цветом — запасной, близкий и по ΔE, и по оттенку
             hue = np.degrees(np.arctan2(centers[i][2], centers[i][1]))
             hue_penalty = HUE_WEIGHT * np.abs((pal_hue - hue + 180) % 360 - 180)
             for j in np.argsort(dist + hue_penalty):
@@ -185,7 +186,8 @@ def _assign_distinct(centers, labels, ranked, codes, palette_lab) -> list[int]:
 
 
 DISTINCT_DE = 25.0       # цвета рисунка дальше этого — разные, им нужен разный пластик
-COLLISION_SLACK = 20.0   # насколько дальше ближайшего можно уйти ради различимости
+SMALL_FEATURE = 0.05     # доля клеток: только мелкие детали (глаза) уводятся в другой пластик; крупные области берут ближайший
+COLLISION_SLACK = 10.0   # насколько дальше ближайшего можно уйти ради различимости (20 уводило крыши в бирюзовый)
 HUE_WEIGHT = 0.3         # ΔE за градус оттенка при выборе запасного пластика
 
 

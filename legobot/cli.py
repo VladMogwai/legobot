@@ -16,7 +16,7 @@ from .studio import open_in_studio, write_io
 
 YELLOW = 14
 DEFAULT_PARTS = 400          # ориентир: модели на 300–500 деталей
-DEFAULT_COLORS, MOSAIC_COLORS = 4, 16   # у пиксель-арта оттенков больше, чем кажется: свет/тень каждого цвета
+DEFAULT_COLORS, MOSAIC_COLORS, PANEL_COLORS = 4, 16, 32   # у пиксель-арта оттенков больше, чем кажется: свет/тень каждого цвета; панно — тысячи клеток
 ESTIMATE_PARTS = [200, 300, 400, 500, 700, 1000]
 IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png", ".webp"}
 OUT_DIR = Path("out")
@@ -60,7 +60,7 @@ def main() -> None:
     ap.add_argument("--open", action="store_true", help="открыть результат в Studio")
     args = ap.parse_args()
     if args.colors is None:
-        args.colors = MOSAIC_COLORS if args.mosaic else DEFAULT_COLORS
+        args.colors = (PANEL_COLORS if args.background == "keep" else MOSAIC_COLORS) if args.mosaic else DEFAULT_COLORS
 
     if args.mosaic and Path(args.input).suffix.lower() in IMAGE_SUFFIXES:
         _build_mosaic(args, args.input, "")   # пиксель-арт читается прямо с фото
