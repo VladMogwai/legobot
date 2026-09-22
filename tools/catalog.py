@@ -8,8 +8,7 @@
   и ldraw/parts/*.dat (есть ли геометрия — можем ли мы деталь положить).
 - Rebrickable (corpus/rebrickable/*.csv, свободные выгрузки): в каких цветах деталь
   выпускалась — по инвентарям всех наборов (inventory_parts) и элементам (elements).
-  Id цветов Rebrickable совпадают с кодами LDraw (85 Dark Purple, 92 Nougat = Flesh);
-  по имени сопоставлять нельзя — телесные названы иначе.
+  Цвета сопоставляются по имени, а телесные (названы иначе: Nougat = Flesh) — по id и RGB.
 - Studio: data/elementInfoList.json — список элементов LEGO (деталь BrickLink + цвет BrickLink),
   цвет BrickLink переводится в LDraw по StudioColorDefinition.txt.
 Деталь считается выпускавшейся в цвете, если так говорит хотя бы один источник.
@@ -55,16 +54,30 @@ def studio_parts() -> dict[str, dict]:
 
 
 def rebrickable_colors() -> dict[int, int | None]:
-    """id цвета Rebrickable -> код LDraw: по id, если такой код есть в LDConfig, иначе по имени
-    (None — нет такого)."""
-    codes = {c.code for c in load_palette(common_only=False)}
-    by_name = {normalize(c.name): c.code for c in load_palette(common_only=False)}
+    """id цвета Rebrickable -> код LDraw. Сначала по имени; иначе по id, если под тем же кодом в
+    LDConfig тот же цвет (телесные: 92 Nougat = Flesh). Только по id нельзя: 326 у Rebrickable —
+    Olive Green, у LDraw — Yellowish_Green. None — нет такого."""
+    palette = {c.code: c for c in load_palette(common_only=False)}
+    by_name = {normalize(c.name): c.code for c in palette.values()}
     out = {}
     with open(REBRICKABLE / "colors.csv", encoding="utf-8") as f:
         for row in csv.DictReader(f):
-            rid = int(row["id"])
-            out[rid] = rid if rid in codes else by_name.get(normalize(row["name"]))
+            rid, name = int(row["id"]), normalize(row["name"])
+            if name in by_name:
+                out[rid] = by_name[name]
+            elif rid in palette and _rgb_distance(row["rgb"], palette[rid].rgb) < SAME_COLOR_RGB:
+                out[rid] = rid
+            else:
+                out[rid] = None
     return out
+
+
+SAME_COLOR_RGB = 100   # евклидово расстояние RGB, ниже которого это один цвет в двух справочниках
+
+
+def _rgb_distance(hexrgb: str, rgb: tuple) -> float:
+    a = [int(hexrgb[i:i + 2], 16) for i in (0, 2, 4)]
+    return sum((x - y) ** 2 for x, y in zip(a, rgb)) ** 0.5
 
 
 def studio_part_colors() -> dict[str, set[int]]:
@@ -85,13 +98,17 @@ def studio_part_colors() -> dict[str, set[int]]:
     return colors
 
 
-def rebrickable_part_colors() -> dict[str, set[int]]:
-    """номер детали -> {id цветов Rebrickable}, по инвентарям наборов и элементам."""
-    colors = defaultdict(set)
-    for file, part_col, color_col in (("inventory_parts.csv", "part_num", "color_id"), ("elements.csv", "part_num", "color_id")):
-        with open(REBRICKABLE / file, encoding="utf-8") as f:
-            for row in csv.DictReader(f):
-                colors[row[part_col].lower()].add(int(row[color_col]))
+def rebrickable_part_colors() -> dict[str, dict[int, int]]:
+    """номер детали -> {id цвета Rebrickable: в скольких инвентарях наборов}; элементы без
+    наборов — 0. Число наборов — мера покупаемости: пара из одного набора на BrickLink обычно
+    не продаётся (Studio такие помечает восклицательным знаком)."""
+    colors: dict[str, dict[int, int]] = defaultdict(lambda: defaultdict(int))
+    with open(REBRICKABLE / "inventory_parts.csv", encoding="utf-8") as f:
+        for row in csv.DictReader(f):
+            colors[row["part_num"].lower()][int(row["color_id"])] += 1
+    with open(REBRICKABLE / "elements.csv", encoding="utf-8") as f:
+        for row in csv.DictReader(f):
+            colors[row["part_num"].lower()].setdefault(int(row["color_id"]), 0)
     return colors
 
 
@@ -130,16 +147,21 @@ def main() -> None:
     with open(OUT / "parts.csv", "w", newline="") as fp, open(OUT / "part_colors.csv", "w", newline="") as fc:
         wp, wc = csv.writer(fp), csv.writer(fc)
         wp.writerow(["ldraw", "bricklink", "name", "category", "colors"])
-        wc.writerow(["ldraw", "color_code", "color"])
+        wc.writerow(["ldraw", "color_code", "color", "sets"])
         for number, p in sorted(parts.items()):
             # Rebrickable нумерует как LDraw, иногда как BrickLink
-            rb = part_colors.get(number) or part_colors.get(p["bl"].lower()) or set()
-            codes = sorted(({color_map[c] for c in rb if color_map.get(c) is not None}
-                            | studio_colors.get(p["bl"].lower(), set()) | studio_colors.get(number, set())) & names.keys())
+            rb = part_colors.get(number) or part_colors.get(p["bl"].lower()) or {}
+            sets: dict[int, int] = defaultdict(int)
+            for c, n in rb.items():
+                if color_map.get(c) is not None:
+                    sets[color_map[c]] = max(sets[color_map[c]], n)
+            for code in studio_colors.get(p["bl"].lower(), set()) | studio_colors.get(number, set()):
+                sets.setdefault(code, 0)
+            codes = sorted(sets.keys() & names.keys())
             with_colors += bool(codes)
             wp.writerow([number, p["bl"], p["name"], p["category"], len(codes)])
             for code in codes:
-                wc.writerow([number, code, names[code]])
+                wc.writerow([number, code, names[code], sets[code]])
     print(f"деталей с геометрией: {len(parts)}, из них с известными цветами: {with_colors}")
     print(f"-> {OUT / 'colors.csv'}, {OUT / 'parts.csv'}, {OUT / 'part_colors.csv'}")
 

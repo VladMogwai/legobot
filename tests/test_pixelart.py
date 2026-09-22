@@ -17,7 +17,7 @@ REFERENCE = [
     ("examples/megaman.webp", (23, 24), 360, {"Black", "White", "Medium_Azure"}, 23),   # тени на контуре — чёрные; неоновый голубой дальше Medium_Azure нет
     ("examples/cow.png", (54, 54), 542, {"Black", "White"}, 18),   # розовое вымя: Pink на Pick a Brick нет   # рисунок: пиксель 17.6 px, спрайт 55 клеток
     ("examples/purple-phantom.png", (46, 54), 1377, {"Black", "Dark_Purple"}, 18),   # обводка тёмно-лиловая (15, 1, 42) — чёрная; сетка со «швом»
-    ("examples/dragon.webp", (42, 35), 888, {"Black", "Green", "Bright_Light_Orange"}, 14),   # фото на бежевом: rembg; жёлтый глаз — дыра в маске
+    ("examples/dragon.webp", (42, 35), 888, {"Black", "Green", "Yellow"}, 14),   # фото на бежевом: rembg; жёлтый глаз — дыра в маске
     # стоковые картинки (examples/stock не в git — без файла тест пропускается)
     ("examples/stock/girl.jpg", (50, 53), 343, {"Black", "Orange", "Medium_Azure"}, 17),        # мелкий спрайт на большом белом поле
     ("examples/stock/purpleshirt.jpg", (31, 31), 289, {"Medium_Lavender", "Dark_Bluish_Gray"}, 14),   # без контура; серые волосы — не чёрные
@@ -28,7 +28,7 @@ REFERENCE = [
     ("examples/stock/fox.webp", (45, 48), 1067, {"Orange", "Medium_Blue"}, 18),                  # шахматный фон «прозрачности»
     ("examples/stock/eevee.png", (39, 43), 810, {"Flesh", "Black", "Reddish_Brown"}, 14),           # PNG с альфой на шахматке
     ("examples/stock/car1.jpg", (41, 29), 475, {"Dark_Azure", "Black"}, 14),                    # техника в профиль
-    ("examples/stock/mew.png", (47, 46), 750, {"Black", "Bright_Pink", "Dark_Pink"}, 20),   # два розовых остаются разными
+    ("examples/stock/mew.png", (46, 44), 750, {"Black", "Bright_Pink", "Dark_Pink"}, 20),   # два розовых остаются разными
     ("examples/stock/sonic1.png", (32, 45), 569, {"Blue", "Black"}, 20),                          # Genesis, PNG с прозрачным фоном: маска — альфа
     ("examples/stock/samus1.png", (25, 49), 834, {"Red", "Black", "Orange"}, 16),          # SNES
     ("examples/stock/samus3.png", (16, 32), 307, {"Red", "Orange", "Green"}, 20),                 # NES: мелкая (16 клеток)

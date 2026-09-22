@@ -102,11 +102,11 @@ def layout_bricks(voxels: np.ndarray, colors: np.ndarray, default_color: int, vo
 
 
 def _produced(vocabulary: Vocabulary, default_color: int):
-    """(w, l, регион цветов) -> выпускалась ли деталь такого размера в цвете региона (по каталогу).
-    Нет данных — считаем, что да."""
+    """(w, l, регион цветов) -> можно ли купить деталь такого размера в цвете региона (по каталогу:
+    выпускалась не в одном наборе). Нет данных — считаем, что да."""
     def produced(w, l, region) -> bool:
         part = vocabulary.by_size(w, l) or vocabulary.by_size(l, w)
-        return catalog.exists(part.number, _brick_color(region, default_color)) is not False
+        return catalog.available(part.number, _brick_color(region, default_color)) is not False
     return produced
 
 

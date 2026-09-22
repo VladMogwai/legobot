@@ -88,14 +88,15 @@ def _build_mosaic(args, source: str, variant: str) -> None:
         mosaic, check = result.mosaic, (result, write_check)
     else:
         mosaic = mosaic_from_mesh(source, max_colors=args.colors, pixels_wide=args.pixels)
+    if args.recolor:   # замена на уровне клеток: модель, схема и картинка проверки совпадают
+        mapping = {code_by_name(a): code_by_name(b) for a, b in (r.split("=") for r in args.recolor)}
+        for old_code, new_code in mapping.items():
+            mosaic.codes[mosaic.codes == old_code] = new_code
     if args.volume:
         from .inflate import VOLUME_DEPTH, volume_bricks
         bricks = volume_bricks(mosaic, args.depth or VOLUME_DEPTH, args.volume)
     else:
         bricks = mosaic_bricks(mosaic) if args.flat else standing_bricks(mosaic)
-    if args.recolor:
-        mapping = {code_by_name(a): code_by_name(b) for a, b in (r.split("=") for r in args.recolor)}
-        bricks = [b.__class__(**{**b.__dict__, "color": mapping.get(b.color, b.color)}) for b in bricks]
     suffix = (f"_{variant}" if variant else "") + ("_volume" if args.volume else "_mosaic")
     io_path = Path(args.out) if args.out else _model_dir(args.input) / f"{Path(args.input).stem}{suffix}.io"
     io_path.parent.mkdir(parents=True, exist_ok=True)

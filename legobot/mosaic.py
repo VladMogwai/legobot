@@ -115,12 +115,13 @@ def _sample_cells(image, present, pitch, phase_x, phase_z):
 
 def mosaic_bricks(mosaic: Mosaic, base_color: int = BLACK) -> list[PlacedBrick]:
     """Слой 0 — подложка из пластин по силуэту, слой 1 — тайлы 1x1 по цветам."""
-    mask = mosaic.codes >= 0
+    mosaic_codes = np.flip(mosaic.codes, axis=0)   # в Studio сверху ось X смотрит влево: без отражения панно выходит зеркальным
+    mask = mosaic_codes >= 0
     voxels = mask[:, :, None]
     codes = np.full(voxels.shape, ANY_COLOR)
     base = layout_bricks(voxels, codes, base_color, PLATES)
     tile = TILES[(1, 1)]
-    tiles = [PlacedBrick(tile, x, z, 1, rotated=False, color=int(mosaic.codes[x, z]))
+    tiles = [PlacedBrick(tile, x, z, 1, rotated=False, color=int(mosaic_codes[x, z]))
              for x, z in np.argwhere(mask)]
     return base + tiles
 

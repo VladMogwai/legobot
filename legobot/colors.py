@@ -117,10 +117,12 @@ def flat_codes(rgb: np.ndarray, max_colors: int, black: np.ndarray | None = None
     if common_only and catalog.purchasable_colors() is not None:
         palette = tuple(c for c in palette if c.code in catalog.purchasable_colors())   # Pick a Brick: только то, что продаётся
     palette_lab = _rgb_to_lab(np.array([c.rgb for c in palette]))
+    palette_hsv_hue = _hsv_hue(np.array([c.rgb for c in palette], dtype=float))
     codes = np.array([c.code for c in palette])
     basic = np.array([c.name in BASIC_COLORS for c in palette])
+    center_hsv_hue = _hsv_hue(_lab_to_rgb(centers))
     ranked: list[np.ndarray | None] = []   # для каждого кластера — расстояния до пластика (inf — нельзя), None — чёрный
-    for c in centers:
+    for c, c_hue in zip(centers, center_hsv_hue):
         if outline_black and _is_black(c, DARK_L if dark_l is None else dark_l):
             ranked.append(None)          # тёмное и бесцветное — контур, чёрный пластик, тени: всё чёрным
             continue
@@ -136,6 +138,9 @@ def flat_codes(rgb: np.ndarray, max_colors: int, black: np.ndarray | None = None
             off_hue = np.abs((pal_hue - hue + 180) % 360 - 180) > MAX_HUE_DIFF
             if np.hypot(c[1], c[2]) > DULL_CHROMA:
                 off_hue |= pal_chroma < ACHROMATIC   # насыщенный цвет не станет серым; тусклый — может (Sand_Green)
+                # Lab у тёмных насыщенных синих «съезжает» к фиолетовому: чистый синий (4, 45, 153) выходит
+                # ближе к Dark_Purple, чем к Blue. Оттенок HSV этого не делает — штраф за его расхождение.
+                dist = dist + HSV_HUE_WEIGHT * np.abs((palette_hsv_hue - c_hue + 180) % 360 - 180)
             if not off_hue.all():
                 dist[off_hue] = np.inf
         ranked.append(dist)
@@ -271,6 +276,32 @@ def code_by_name(name: str) -> int:
         if c.name.lower() == name.lower() or str(c.code) == name:
             return c.code
     raise ValueError(f"нет такого цвета: {name}")
+
+
+HSV_HUE_WEIGHT = 0.3   # ΔE за градус расхождения оттенка HSV у насыщенных цветов
+
+
+def _hsv_hue(rgb: np.ndarray) -> np.ndarray:
+    """Оттенок HSV в градусах для массива [n, 3] sRGB 0..255."""
+    r, g, b = (np.asarray(rgb, dtype=float) / 255).T
+    mx, mn = np.maximum(np.maximum(r, g), b), np.minimum(np.minimum(r, g), b)
+    d = np.where(mx - mn == 0, 1, mx - mn)
+    hue = np.where(mx == r, (g - b) / d % 6, np.where(mx == g, (b - r) / d + 2, (r - g) / d + 4)) * 60
+    return np.where(mx == mn, 0.0, hue)
+
+
+def _lab_to_rgb(lab: np.ndarray) -> np.ndarray:
+    """CIELAB (D65) -> sRGB 0..255, с обрезкой в гамут."""
+    lab = np.asarray(lab, dtype=float).reshape(-1, 3)
+    fy = (lab[:, 0] + 16) / 116
+    fx, fz = fy + lab[:, 1] / 500, fy - lab[:, 2] / 200
+    def inv(t):
+        return np.where(t ** 3 > 0.008856, t ** 3, (t - 16 / 116) / 7.787)
+    xyz = np.c_[inv(fx) * 0.95047, inv(fy), inv(fz) * 1.08883]
+    m = np.array([[3.2406, -1.5372, -0.4986], [-0.9689, 1.8758, 0.0415], [0.0557, -0.2040, 1.0570]])
+    c = xyz @ m.T
+    c = np.where(c > 0.0031308, 1.055 * np.clip(c, 0, None) ** (1 / 2.4) - 0.055, 12.92 * c)
+    return np.clip(c, 0, 1) * 255
 
 
 def _rgb_to_lab(rgb: np.ndarray) -> np.ndarray:

@@ -5,7 +5,7 @@ ldraw,bricklink,name,category,colors
 0904,0904,Baseplate 16 x 24 with Set 080 Large White House Stud Pattern,Baseplate,1
 1,1,Homemaker Bookcase 2 x 4 x 4,Homemaker,4
 10,10,Baseplate 24 x 32 - (Undetermined Type),,0
-100,3665,"Slope, Inverted 45 2 x 1",,45
+100,3665,"Slope, Inverted 45 2 x 1",,46
 10039,10039c01,Pullback Motor 8 x 4 x 2/3,"Motor, Non-Electric",1
 10048,10048,"Minifigure, Hair Tousled","Minifigure, Hair",5
 10049,10049,"Minifigure, Shield Broad Spiked Bottom and Cutout Corner (Uruk-hai Shield)","Minifigure, Shield",0
@@ -78,9 +78,9 @@ ldraw,bricklink,name,category,colors
 1011322p01,-36187c00pb019,,,0
 1011355,-1011355,,,0
 1011355p01,-1011355p01,,,0
-10124,10124,"Arm Giant, Right","Minifigure, Body Part",14
-10126,10126,"Hand Giant, Right","Minifigure, Body Part",19
-10127,10127,"Hand Giant, Left","Minifigure, Body Part",19
+10124,10124,"Arm Giant, Right","Minifigure, Body Part",13
+10126,10126,"Hand Giant, Right","Minifigure, Body Part",18
+10127,10127,"Hand Giant, Left","Minifigure, Body Part",18
 10128,,~bigfig hulk body,,1
 10128p01,10121c02pb02,"Body Giant, Hulk with Dark Purple Pants Pattern","Minifigure, Body Part",0
 10128p02,10121c01pb01,"Body Giant, Hulk with Dark Tan Pants Pattern","Minifigure, Body Part",0
@@ -95,7 +95,7 @@ ldraw,bricklink,name,category,colors
 101347p08,100937c00pb006,Mini Doll Hips and Trousers with Back Pockets and Cuffs with Molded Nougat Ankles and Feet and Printed Black Shoes with White Laces and Soles Pattern - Thick Hinge,"Mini Doll, Legs Assembly",1
 1015152,-1015152,,,0
 101536pb01,101536pb01,"Large Figure Legs, Super Mario Overalls with Molded Reddish Brown Shoes Pattern (Ice Mario)",,0
-10154,10154,"Arm Giant, Left","Minifigure, Body Part",14
+10154,10154,"Arm Giant, Left","Minifigure, Body Part",13
 10164,10164,"Minifigure, Headgear Cap, Santa","Minifigure, Headgear",1
 10164pb01,10164pb01,"Minifigure, Headgear Cap, Santa with Red Top Pattern (Undetermined Type)","Minifigure, Headgear",0
 10165,-10165,"Minifigure, Headgear Helmet Underwater Deep Diver",,0
@@ -224,7 +224,7 @@ ldraw,bricklink,name,category,colors
 10756,3626pb0719,"Minifigure, Head Dual Sided LotR Uruk-hai Scowling / Handprint Pattern - Blocked Open Stud",,0
 108,108,"Technic, Shock Absorber 10L Damped, Spring (Undetermined Type)","Technic, Shock Absorber",0
 10830p01,10830c01,"Minifigure, Utensil Magnifying Glass Thick Frame and Solid Handle with Trans-Clear Lens","Minifigure, Utensil",0
-10884,10884,Plant Leaves 6 x 5 Swordleaf with Open O Clip Thick,Plant,11
+10884,10884,Plant Leaves 6 x 5 Swordleaf with Open O Clip Thick,Plant,10
 109,109,"Technic, Shock Absorber 9.5L, Piston Rod",,0
 10907,10907,"Minifigure, Headgear Helmet Space with Open Face and Top Hinge, with Angular Cheeks  (Iron Man)","Minifigure, Headgear",6
 10908,,minifig helmet visor iron man,,1
@@ -315,13 +315,13 @@ ldraw,bricklink,name,category,colors
 11208,11208,"Wheel 14mm D. x 9.9mm with Center Groove, Fake Bolts and 6 Double Spokes",Wheel,4
 11208c01,11208c01,"Wheel 14mm D. x 9.9mm with Center Groove, Fake Bolts and 6 Double Spokes with Black Tire 21 X 9.9 (11208 / 11209)",Wheel & Tire Assembly,0
 11209,11209,Tire 21 x 9.9,"Wheel, Tire & Tread",1
-11211,11211,"Brick, Modified 1 x 2 with Studs on 1 Side","Brick, Modified",27
-11212,11212,Plate 3 x 3,Plate,21
+11211,11211,"Brick, Modified 1 x 2 with Studs on 1 Side","Brick, Modified",26
+11212,11212,Plate 3 x 3,Plate,20
 11213,11213,"Plate, Round 6 x 6 with Hole","Plate, Round",23
 11214,11214,"Technic, Axle  1L with Pin 2L with Friction Ridges","Technic, Axle",2
 11215,11215,Bracket 5 x 2 x 1 1/3 with 2 Holes and Bottom Tube,Bracket,13
 11216,11216,Door 1 x 12 x 16 Castle Gate (Portcullis),Door,1
-11217,11217,"Minifigure, Headgear Helmet SW Clone Trooper (Phase 2)","Minifigure, Headgear",3
+11217,11217,"Minifigure, Headgear Helmet SW Clone Trooper (Phase 2)","Minifigure, Headgear",2
 11233,11233,"Minifigure, Headgear Mask Wolf, Plain","Minifigure, Headgear",1
 11233p01,11233pb01,"Minifigure, Headgear Mask Wolf with Fangs, Scars and White Ears Pattern","Minifigure, Headgear",0
 11241,-11241,"Horse, Friends, Foal",,0
@@ -377,7 +377,7 @@ ldraw,bricklink,name,category,colors
 11302,11302,"Hero Factory Weapon Accessory, Flame / Lightning Bolt with Axle Hole",Hero Factory,0
 11303,11303,"Minifigure, Headgear Cap - Short Curved Bill with Seams and Hole on Top","Minifigure, Headgear",15
 11305,11305,"Hero Factory Weapon, Blade with Curved Tip",Hero Factory,2
-11329,11329,Rancor Claw,"Animal, Body Part",3
+11329,11329,Rancor Claw,"Animal, Body Part",2
 11334,11334,Hero Factory Armor with Spikes,Hero Factory,4
 11336,11336,"Hero Factory Weapon, Axe Head Double Spiked",Hero Factory,1
 11338,11338,"Hero Factory Weapon, Axe / Sword with Jagged Blade",Hero Factory,1
@@ -506,8 +506,8 @@ ldraw,bricklink,name,category,colors
 11816,93184,"Mini Doll, Head Friends with Green Eyes, Pale Pink Lips and Open Mouth Pattern",,1
 11819,98704,"Mini Doll, Head Friends with Thin Black Eyebrows, Green Eyes, Dark Pink Lips, and Closed Mouth Smile Pattern",,0
 11833,11833,"Plate, Round 4 x 4 with 2 x 2 Round Open Center","Plate, Round",16
-11946,11946,"Technic, Panel Fairing #21 Very Small Smooth, Side B","Technic, Panel",24
-11947,11947,"Technic, Panel Fairing #22 Very Small Smooth, Side A","Technic, Panel",25
+11946,11946,"Technic, Panel Fairing #21 Very Small Smooth, Side B","Technic, Panel",23
+11947,11947,"Technic, Panel Fairing #22 Very Small Smooth, Side A","Technic, Panel",24
 11949,11949,"Technic, Steering, Wheel Hub Holder with 2 Pin Holes and 2 Tow Ball Arms","Technic, Steering",1
 11950,11950,"Technic, Steering, Wheel Hub Holder with 2 Pin Holes","Technic, Steering",2
 11953,11953,Technic Grabber Arm Claw / Hook  with 3L Liftarm Thick Type 1,Technic,1
@@ -578,7 +578,7 @@ ldraw,bricklink,name,category,colors
 13250,13250,"Leg Mechanical, Darth Maul","Minifigure, Body Part",1
 13251,13251,"Minifigure, Hair Female with Elaborate Knot Bun","Minifigure, Hair",5
 13252,13252,Windscreen 12 x 6 x 2 with Locking Dual 2 Fingers Hinge,Windscreen,0
-13269,13269,Wedge 6 x 4 Cutout (Train Roof) with 5 Large Bottom Tubes,Wedge,15
+13269,13269,Wedge 6 x 4 Cutout (Train Roof) with 5 Large Bottom Tubes,Wedge,14
 133,32174,"Technic, Connector Axle 2 x 3 with Ball Joint Socket, Open Sides",,27
 13349,13349,Wedge 4 x 4 Triple Inverted with Connections between 4 Studs,Wedge,10
 13361,13361,"Minifigure, Headgear Mask Gorilla, Plain","Minifigure, Headgear",0
@@ -595,14 +595,14 @@ ldraw,bricklink,name,category,colors
 13548pb001,13548pb001,Wedge 2 x 2 (Slope 45 Corner) with White Polka Dots Pattern,"Wedge, Decorated",0
 13549,13549,"Minifigure, Weapon Sword, Double Blade Serrated with Bar Holder","Minifigure, Weapon",0
 13562,13562,"Minifigure, Weapon Gun, Pistol Revolver - Small Barrel","Minifigure, Weapon",0
-13564,13564,"Cattle Horn, Long","Animal, Body Part",13
+13564,13564,"Cattle Horn, Long","Animal, Body Part",12
 13571,13571pb01,"Minifigure, Weapon Tomahawk with Molded Flexible Rubber Flat Silver Blade Pattern","Minifigure, Weapon",0
 13591,13591,"Minifigure, Weapon Spear Gun with Squared Trigger and Thick Spear Base","Minifigure, Weapon",3
 13608,13608,"Minifigure, Weapon Space Ray Gun - Rounded Heat Diffusers","Minifigure, Weapon",5
 13665,13665,"Minifigure, Plume Bird (Crow)","Minifigure, Headgear Accessory",1
 13670,6587,"Technic, Axle 3 with Stud",,5
 13695,13695,Cattle Skull,"Animal, Body Part",2
-13731,85970,"Slope, Curved 10 x 1",,23
+13731,85970,"Slope, Curved 10 x 1",,22
 13746,-13746,"Minifig Hat with Small Pin, Women's Fedora with Large Bow and Feather",,0
 13746p01,13746pb001,"Minifigure, Hat with Small Pin, Women's Fedora with Large Red Bow and Black Feather Pattern","Minifigure, Headgear Accessory",0
 13746p02,13746pb002,"Minifigure, Hat with Small Pin, Women's Fedora with Large Red Bow and Red Feather Pattern","Minifigure, Headgear Accessory",0
@@ -666,7 +666,7 @@ ldraw,bricklink,name,category,colors
 14137d01,30407pb11,Hinge Plate 1 x 8 with Angled Side Extensions with Blue Markings Pattern (Sticker) - Set 75258,"Hinge, Decorated",0
 14149,14149,"Technic, Link Tread Attachment, Double, Rubber","Technic, Link",2
 14181,14181,"Wedge, Plate 4 x 9 with Stud Notches","Wedge, Plate",11
-142,3741,Plant Flower Stem,,7
+142,3741,Plant Flower Stem,,6
 14225,x127c30pb01,String with End Studs (30L Overall) with (Same Color) Studs Pattern,String & Net,0
 14295,14295,Minifigure Skirt Cloth 6 Jagged Points,"Minifigure, Body Wear",2
 143,3742,Plant Flower Small,,10
@@ -693,7 +693,7 @@ ldraw,bricklink,name,category,colors
 14696,3711,"Technic, Link Chain",,3
 14704,14704,"Plate, Modified 1 x 2 with Small Tow Ball Socket on Side","Plate, Modified",2
 14707,14707,Arch 1 x 12 x 3 Raised Arch with 1 Cross Support,Arch,6
-14716,14716,Brick 1 x 1 x 3,Brick,28
+14716,14716,Brick 1 x 1 x 3,Brick,27
 14716d01,14716pb005,Brick 1 x 1 x 3 with Black 'RNIG ALSO' on White Note Pattern (Sticker) - Set 21326,"Brick, Decorated",0
 14718,14718,Panel 1 x 4 x 2 with Side Supports - Hollow Studs,Panel,14
 14718d01,14718pb007,Panel 1 x 4 x 2 with Side Supports - Hollow Studs with Ghostbusters Logo Pattern (Sticker) - Set 71242,"Panel, Decorated",0
@@ -912,7 +912,7 @@ ldraw,bricklink,name,category,colors
 15090,15090,"Paw with Stud on Top, Bar on Side and 3 Bar Holders on Bottom","Animal, Body Part",1
 15091,15091,Rock Panel 2 x 4 x 3 with Fractures (Chima Ice Cage),Rock,0
 15092,15092,"Plate, Modified 2 x 2 with Pins on Bottom","Plate, Modified",2
-151,32316,"Technic, Liftarm Thick 1 x 5",,28
+151,32316,"Technic, Liftarm Thick 1 x 5",,27
 15100,15100,"Technic, Pin with Friction Ridges and Pin Hole","Technic, Pin",8
 15101,15101,Paw 2 x 6 x 2 1/2 with Claws and Pin Hole,"Animal, Body Part",0
 15105,15105,Wing with Pin Hole,"Animal, Body Part",0
@@ -942,10 +942,10 @@ ldraw,bricklink,name,category,colors
 15210pde7,15210pb099,Road Sign 2 x 2 Square with Open O Clip with 'RABBIT SEASON' Pattern,"Road Sign, Decorated",0
 15254,15254,Arch 1 x 6 x 2 - Medium Thick Top without Reinforced Underside,Arch,26
 15265,15265,Technic Digger Bucket 15 x 23,Technic,1
-15279,15279,Plant Grass Stem,Plant,7
+15279,15279,Plant Grass Stem,Plant,6
 15284,,"figure friends hair long with ponytail, side bangs and sun visor",,1
 15284p01,bb0775pb01,"Mini Doll, Hair Combo, Hair with Hat, Long Ponytail, Side Bangs, Hole on Top with Dark Pink Sun Visor Pattern","Mini Doll, Hair",0
-153,32526,"Technic, Liftarm Thick L-Shape 3 x 5",,27
+153,32526,"Technic, Liftarm Thick L-Shape 3 x 5",,26
 15303,15303,"Projectile Arrow, Bar 8L with Round End (Spring Shooter Dart)",Projectile Launcher,3
 15332,15332,Fence 1 x 4 x 2 Spindled with 4 Studs,Fence,13
 15336p01,15103c02,Technic Brick 3 x 6 x 2 with Metal Flywheel and Orange Tire (Chima Rip Cord Base),Riding Cycle,0
@@ -1023,7 +1023,7 @@ ldraw,bricklink,name,category,colors
 15460,15460,"Technic, Steering Arm with 3 Tow Ball, Compact","Technic, Steering",1
 15461,15461,"Technic, Pin Connector 3L with 2 Pins and Center Hole","Technic, Connector",2
 15462,15462,"Technic, Axle  5L with Stop","Technic, Axle",2
-15469,15469,Plant Leaves 2 x 2 with 4 Petals and Axle Hole,Plant,18
+15469,15469,Plant Leaves 2 x 2 with 4 Petals and Axle Hole,Plant,17
 15470,15470,"Plate, Round 1 x 1 with Vertical Swirl / Twist","Plate, Round",4
 15490,15490,Minifigure Armor Shoulder Pads with 4 Spikes Pointed,"Minifigure, Body Wear",0
 15491,15491,"Minifigure, Hair Male Bald Top","Minifigure, Hair",1
@@ -1087,10 +1087,10 @@ ldraw,bricklink,name,category,colors
 15626,15626,Panel 4 x 16 x 10,Panel,1
 15627,15627,Panel 1 x 6 x 6 with Window,Panel,7
 15646,90202,"Technic, Pin Connector Round with 4 Clips (Horizontal Grip)","Technic, Connector",2
-1566,1566,"Plant Stem / Stalk with Bar, Bar Holder, and Hollow Stud",Plant,10
+1566,1566,"Plant Stem / Stalk with Bar, Bar Holder, and Hollow Stud",Plant,9
 15662,-15662,"Minifigure, Head, Modified Simpsons Krusty the Clown",,0
 15662p01,15662pb01,"Minifigure, Head, Modified Simpsons Krusty the Clown Pattern","Minifigure, Head, Modified",0
-15672,92946,Slope 45 2 x 1 with 2/3 Cutout,,35
+15672,92946,Slope 45 2 x 1 with 2/3 Cutout,,34
 15672dy0,92946pb05r,Slope 45 2 x 1 with 2/3 Cutout with Red Stripe and Black Shape on White Background Pattern Model Right Side (Sticker) - Set 75872,"Slope, Decorated",0
 15672dy1,92946pb05l,Slope 45 2 x 1 with 2/3 Cutout with Red Stripe and Black Shape on White Background Pattern Model Left Side (Sticker) - Set 75872,"Slope, Decorated",0
 15673,,figure friends hair with top knot bun and hair band,,1
@@ -1107,7 +1107,7 @@ ldraw,bricklink,name,category,colors
 1570,1570,Sheep Fleece / Wool,"Animal, Body Part",1
 15705,15705,"Minifigure, Hair Spiked and Tousled","Minifigure, Hair",1
 15706,15706,"Wedge, Plate A-Shape with 2 Rows of 4 Studs","Wedge, Plate",13
-15712,15712,"Tile, Modified 1 x 1 with Open O Clip","Tile, Modified",29
+15712,15712,"Tile, Modified 1 x 1 with Open O Clip","Tile, Modified",28
 15727,15727,Minifigure Armor Shoulder Pads with 4 Spikes,"Minifigure, Body Wear",0
 15744,15744,Wheel Wagon Huge (43mm D.) Ornamental,Wheel,0
 15745,15745,Rock 1 x 1 Jewel Heart Shaped,Rock,1
@@ -1218,7 +1218,7 @@ ldraw,bricklink,name,category,colors
 17457,17457,Glass for Train Front 2 x 6 x 2,"Window, Glass & Shutter",0
 1746,1746,Tower Roof 4 x 8 x 6 Half Cone Shaped with Roof Tiles,Roof,4
 1747,1747,"Plant Stem / Stalk with Bar, Bar Holder, and 2 Leaves",Plant,1
-1748,1748,"Tile, Round 1 x 2 Half","Tile, Round",28
+1748,1748,"Tile, Round 1 x 2 Half","Tile, Round",29
 17485,17485,"Brick, Round 2 x 2 with Pin Holes","Brick, Round",19
 17485p01,17485pb004,"Brick, Round 2 x 2 with Pin Holes with Waffle, Turquoise Lapels, White Shirt and Gold Tie Pattern","Brick, Round, Decorated",1
 17486,17486,"Leg Mechanical, Droid with Technic Pin - Short with Round Pin Hole","Minifigure, Body Part",1
@@ -1361,11 +1361,11 @@ ldraw,bricklink,name,category,colors
 18649,18649,"Plate, Modified 1 x 2 with Bar Handles on Ends","Plate, Modified",11
 18651,18651,"Technic, Axle  2L with Pin with Friction Ridges","Technic, Axle",1
 18653,18653,Arch 1 x 3 x 2 Inverted,Arch,28
-18654,18654,"Technic, Liftarm Thick 1 x 1 (Spacer)","Technic, Liftarm",20
+18654,18654,"Technic, Liftarm Thick 1 x 1 (Spacer)","Technic, Liftarm",19
 18663,18663,"Minifigure, Utensil Stand Flexible (Super Jumper)","Minifigure, Utensil",0
 18671,18671,Bracket 3 x 2 x 1 1/3 with Bottom Tube,Bracket,9
 18673,18673,"Minifigure, Weapon Lightsaber Hilt Straight with Ring","Minifigure, Weapon",0
-18674,18674,"Tile, Round 2 x 2 with Open Stud","Tile, Round",27
+18674,18674,"Tile, Round 2 x 2 with Open Stud","Tile, Round",26
 18675,18675,Dish 6 x 6 Inverted with Bar Handle,Dish,5
 18675p01,18675pb18,Dish 6 x 6 Inverted with Bar Handle with Dark Silver and Silver Armor Plates Pattern,"Dish, Decorated",0
 18675p02,18675pb21,Dish 6 x 6 Inverted with Bar Handle with White Horse with Gold Mane and Metallic Pink Border Pattern,"Dish, Decorated",0
@@ -1421,12 +1421,12 @@ ldraw,bricklink,name,category,colors
 18895pb10,18895pb10,"Motorcycle Fairing, Racing (Sport) Bike with Black Windshield with Gold Badge Pattern",Riding Cycle,0
 18896,18896,"Motorcycle Chassis, Clip for Handle",Riding Cycle,3
 18897,18897,"Brick, Round 6 x 6 with 4 Side Pin Holes and Center Hole","Brick, Round",4
-18904,18904,Alligator / Crocodile Body with 10 Bottom Teeth,"Animal, Body Part",6
-18905,-18905,Alligator / Crocodile Head Upper Jaw,,4
+18904,18904,Alligator / Crocodile Body with 10 Bottom Teeth,"Animal, Body Part",5
+18905,-18905,Alligator / Crocodile Head Upper Jaw,,3
 18905p01,18905pb01,Alligator / Crocodile Head Jaw Upper with Yellow Eyes with White Glints Pattern,"Animal, Body Part, Decorated",1
 18905p02,18905pb02,Alligator / Crocodile Head Jaw Upper with Red Eyes Pattern,"Animal, Body Part, Decorated",0
 18905p03,18905pb03,Alligator / Crocodile Head Jaw Upper with Yellow Eyes without White Glints Pattern,"Animal, Body Part, Decorated",2
-18906,18906,Alligator / Crocodile Tail with Hole,"Animal, Body Part",6
+18906,18906,Alligator / Crocodile Tail with Hole,"Animal, Body Part",5
 18907,18907,Aircraft Fuselage Forward Top Curved 6 x 10 x 4 with 5 Window Panes,Aircraft,2
 18908,18908,Glass for Aircraft Fuselage Curved Forward 6 x 10 Top with 5 Window Panes,"Window, Glass & Shutter",0
 18909,18909,Cone Half 6 x 3 x 6 (Elliptic Paraboloid) with 2 x 1 Top,Cone,8
@@ -1979,7 +1979,7 @@ ldraw,bricklink,name,category,colors
 22387,22387,Panel 2 x 6 x 6 with Window Slot,Panel,3
 22388,22388,Slope 45 1 x 1 x 2/3 Quadruple Convex Pyramid,Slope,13
 22390,22390,Wedge 6 x 8 Pointed Cutout,Wedge,7
-22391,22391,Wedge 4 x 4 Pointed,Wedge,11
+22391,22391,Wedge 4 x 4 Pointed,Wedge,10
 22392,22392,"Shoulder Mechanical, Nexo Bot - Flexible Rubber","Minifigure, Body Part",7
 22402,22402,"Minifigure Armor Breastplate with Shoulder Pads Large, Pentagonal Cutout and 4 Studs on Back","Minifigure, Body Wear",1
 22407,22407,"Minifigure, Weapon Axe Head with Bar","Minifigure, Weapon",0
@@ -2081,9 +2081,9 @@ ldraw,bricklink,name,category,colors
 2338,2338,"Minifigure, Headgear Hat, High Cone Shaped","Minifigure, Headgear",7
 2339,2339,Arch 1 x 5 x 4 - Continuous Bow,Arch,21
 23397,78c24,"Hose, Ribbed 7mm D. 24L / 19.2cm","Hose, Ribbed 7mm D.",1
-234,4286,Slope 33 3 x 1,,44
+234,4286,Slope 33 3 x 1,,43
 2340,2340,Tail 4 x 1 x 3,Tail,19
-23405,23405,Panel 1 x 6 x 5 with Corrugated Profile,Panel,16
+23405,23405,Panel 1 x 6 x 5 with Corrugated Profile,Panel,15
 2340d01,2340pb073,Tail 4 x 1 x 3 with 'JAMSTEC' Logo Pattern on Both Sides (Stickers) - Set 21100,"Tail, Decorated",0
 2340d02,2340pb027,Tail 4 x 1 x 3 with Blue 'V' and Red Line Pattern on Both Sides (Stickers) - Set 6346,"Tail, Decorated",0
 2340d03,2340pb025l,Tail 4 x 1 x 3 with Coast Guard Logo Pattern Model Left Side (Sticker) - Set 6353,"Tail, Decorated",0
@@ -2300,7 +2300,7 @@ ldraw,bricklink,name,category,colors
 24124,24124,Large Figure Chest Armor with Holes and Ball Joint,Large Figure Part,4
 24129,bb0748,,,0
 2412a,2412,"Tile, Modified 1 x 2 Grille (Undetermined Type)",,7
-2412b,2412b,"Tile, Modified 1 x 2 Grille with Bottom Groove","Tile, Modified",32
+2412b,2412b,"Tile, Modified 1 x 2 Grille with Bottom Groove","Tile, Modified",31
 2413,2413,"Wedge, Plate 4 x 9 without Stud Notches","Wedge, Plate",17
 24130,24130,"Container, Faceted, 4 x 4 x 1 2/3, Dragon Egg Bottom",Container,1
 24131,24131,"Minifigure, Hat with Small Pin, Party Hat","Minifigure, Headgear Accessory",6
@@ -2309,7 +2309,7 @@ ldraw,bricklink,name,category,colors
 24135,24135,"Minifigure Breathing Apparatus, Scuba Regulator","Minifigure, Body Wear",5
 24144,24144,"Minifigure, Weapon Gun, Blaster with Hollow Studs on Sides and Inside Axle Holder","Minifigure, Weapon",1
 2415,2415,"Plate, Modified 2 x 2 Thin with Plane Single Wheel Holder",Aircraft,2
-24151,24151,"Vehicle, Mudguard 4 x 4 x 1 1/3 Double","Vehicle, Mudguard",11
+24151,24151,"Vehicle, Mudguard 4 x 4 x 1 1/3 Double","Vehicle, Mudguard",10
 2417,2417,Plant Leaves 6 x 5,Plant,19
 2418,2418b,Windscreen 6 x 6 Octagonal Canopy with Axle Hole,,3
 24189,24189,Large Figure Torso Skeletal Connector with 2 Ball Joint,Large Figure Part,0
@@ -2324,18 +2324,18 @@ ldraw,bricklink,name,category,colors
 24196,24196,Dragon Head (;Elves); Upper Jaw with Red Eyes and Black Pattern (;Ashwing);,,0
 24196p01,24196pb05,Dragon Head (Elves) Jaw Upper with Red Eyes and Black Pattern (Ashwing),"Animal, Body Part, Decorated",1
 24199,24199,Dragon Head (Elves) Jaw Lower,"Animal, Body Part",6
-2420,2420,Plate 2 x 2 Corner,Plate,39
+2420,2420,Plate 2 x 2 Corner,Plate,38
 24201,24201,"Slope, Curved 2 x 1 x 2/3 Inverted","Slope, Curved",34
-242021,2420,Plate 2 x 2 Corner,,39
+242021,2420,Plate 2 x 2 Corner,,38
 24204,24204,"Appendage Bladed with Pin (Tail, Plant Limb)","Animal, Body Part",5
 2421,2421,Propeller 3 Blade Small,Propeller,10
 24217,24217,Minifigure Jet Pack with Nozzles and Stud,"Minifigure, Body Wear",2
 2422,2422,Bracket 2 x 2 - 1 x 4,Bracket,4
-2423,2423,Plant Leaves 4 x 3,Plant,23
+2423,2423,Plant Leaves 4 x 3,Plant,22
 24230,24071,"Minifigure, Hair Faun with Ears, Reddish Brown Hair and Dark Tan Horns Pattern",,0
 24230p01-bl,24071pb01,"Minifigure, Hair Faun with Ears, Reddish Brown Hair and Dark Tan Horns Pattern","Minifigure, Hair",0
 2424,2424,Crane Bucket Lift Basket 2 x 3 x 2 with Non-Locking Hinge Fingers,Crane,2
-24246,24246,"Tile, Round 1 x 1 Half Circle Extended","Tile, Round",38
+24246,24246,"Tile, Round 1 x 1 Half Circle Extended","Tile, Round",39
 24246p03,24246pb042,"Tile, Round 1 x 1 Half Circle Extended with Black Surface Pattern","Tile, Round, Decorated",0
 24246p04,24246pb043,"Tile, Round 1 x 1 Half Circle Extended with Silver Mercedes-Benz Logo Pattern","Tile, Round, Decorated",0
 24246p05,24246pb003,"Tile, Round 1 x 1 Half Circle Extended with Metallic Pink Flower, Gold and Metallic Light Blue Dots Pattern","Tile, Round, Decorated",0
@@ -2376,8 +2376,8 @@ ldraw,bricklink,name,category,colors
 24309p04,24309pb006,"Slope, Curved 3 x 2 with United States Flag Pattern","Slope, Curved, Decorated",0
 24309p05,24309pb028,"Slope, Curved 3 x 2 with Red Triangle and Dark Bluish Gray Rounded Square with Black Border Pattern","Slope, Curved, Decorated",0
 24309ps1,24309pb014,"Slope, Curved 3 x 2 with SW R2-D2 Dark Blue Stripes Pattern","Slope, Curved, Decorated",0
-2431,2431,Tile 1 x 4,Tile,49
-243101,2431,Tile 1 x 4,,49
+2431,2431,Tile 1 x 4,Tile,50
+243101,2431,Tile 1 x 4,,50
 24312,24312,"Minifigure, Utensil Wheelchair Seat","Minifigure, Utensil",2
 24314,24314pb01,Wheel Wheelchair with Molded Black Hard Rubber Tire Pattern,Wheel,0
 24314p02,24314pb02,Wheel Wheelchair with Molded Bright Green Hard Rubber Tire Pattern,Wheel,0
@@ -2385,7 +2385,7 @@ ldraw,bricklink,name,category,colors
 24319,-24319,,,0
 24319pcfd,973pb2209c01,Torso Light Blue Parabola Shaped Center Panel Pattern (Shark Suit) / Medium Blue Fins,"Minifigure, Torso Assembly, Decor.",0
 24319pys,973pb3461c01,"Torso with White Stomach, Dark Turquoise Scarf with Snowflakes and Fish Pattern / Black Flippers","Minifigure, Torso Assembly, Decor.",0
-2431b,2431,Tile 1 x 4,,49
+2431b,2431,Tile 1 x 4,,50
 2431bp52,2431p52,Tile 1 x 4 with Black and Yellow Danger Stripes Black Pattern,,0
 2431bp79,2431p79,Tile 1 x 4 with 5 Red Stripes Pattern,,0
 2431d01,2431pb0038,Tile 1 x 4 with 'POLICE' Red Line Pattern (Sticker) - Set 6398,"Tile, Decorated",0
@@ -2554,7 +2554,7 @@ ldraw,bricklink,name,category,colors
 24326,24326,"Vehicle, Base 3 x 4 x 2/3","Vehicle, Base",1
 2433,2433,Hinge Bar with 3 Fingers and End Stud (Control Lever),Hinge,11
 2434,2434,"Brick, Modified 2 x 4 x 2 with Studs on Sides","Brick, Modified",11
-2435,2435,"Plant, Tree Pine Small 2 x 2 x 4","Plant, Tree",4
+2435,2435,"Plant, Tree Pine Small 2 x 2 x 4","Plant, Tree",3
 2436,2436,Bracket 1 x 2 - 1 x 4,,23
 2436a,2436,Bracket 1 x 2 - 1 x 4,Bracket,23
 2436b,2436b,Bracket 1 x 2 - 1 x 4 with Rounded Corners,Bracket,1
@@ -3125,7 +3125,7 @@ ldraw,bricklink,name,category,colors
 265ac01,08010ac01,"Electric, Light Brick 12V 2 x 2 with 2 Plug Holes, Trans-Clear Smooth Lens","Electric, Light & Sound",2
 265bc01,08010dc01,"Electric, Light Brick 4.5V 2 x 2 with 3 Plug Holes, Trans-Clear Diffuser Lens","Electric, Light & Sound",1
 265c01,08010ac01,"Electric, Light Brick 12V 2 x 2 with 2 Plug Holes, Trans-Clear Smooth Lens",,0
-26601,26601,"Wedge, Plate 2 x 2  Cut Corner","Wedge, Plate",37
+26601,26601,"Wedge, Plate 2 x 2  Cut Corner","Wedge, Plate",36
 26603,26603,Tile 2 x 3,Tile,30
 26603d05,26603pb013,Tile 2 x 3 with White 'MGW 10258' on Black Background Pattern (Sticker) - Set 10258,"Tile, Decorated",0
 26603d06,26603pb038,Tile 2 x 3 with Black 'MGW 10258' Pattern (Sticker) - Set 10258,"Tile, Decorated",0
@@ -3281,7 +3281,7 @@ ldraw,bricklink,name,category,colors
 2745,2958,Cylinder 4 x 4 x 1 2/3 with Axle Holes,Cylinder,4
 2748,3857,Baseplate 16 x 32,,15
 275,4460a,Slope 75 2 x 1 x 3 - Open Stud,,20
-27507,27507,"Tile, Round Corner 4 x 4 Macaroni","Tile, Round",35
+27507,27507,"Tile, Round Corner 4 x 4 Macaroni","Tile, Round",34
 27507p01,27507pb01,"Tile, Round Corner 4 x 4 Macaroni with 'HOGWARTS CASTLE' and Gold Border Pattern","Tile, Round, Decorated",0
 2752,2752,"Slope, Inverted 33 3 x 2 with Hollow Round Bottom Tube","Slope, Inverted",5
 2757,2757,"Electric, Plug Holder 4.5V/12V","Electric, Wire & Connector",1
@@ -3512,8 +3512,8 @@ ldraw,bricklink,name,category,colors
 29115,29115,Wedge 6 x 6 Triple Inverted,Wedge,5
 29117a,29117a,Wheel Cover 5 Spoke Wide - for Wheel 18976,"Wheel, Accessory",1
 29117b,29117b,Wheel Cover 5 Spoke Framed - for Wheel 18976,"Wheel, Accessory",1
-29119,29119,Wedge 2 x 1 x 2/3 Right,Wedge,37
-29120,29120,Wedge 2 x 1 x 2/3 Left,Wedge,37
+29119,29119,Wedge 2 x 1 x 2/3 Right,Wedge,38
+29120,29120,Wedge 2 x 1 x 2/3 Left,Wedge,38
 29120dy0,29120pb048,Wedge 2 x 1 x 2/3 Left with Black and Silver Headlight and Stripes Pattern (Sticker) - Set 75882,"Wedge, Decorated",0
 2916,2916,Train Front Sloping Base,Train,3
 2916d01,2916pb03,Train Front Sloping Base with Train Logo and Blue / White / Red Stripes Pattern on Both Sides (Stickers) - Sets 4558 / 10001,Train,0
@@ -4032,7 +4032,7 @@ ldraw,bricklink,name,category,colors
 30068,3062b,"Brick, Round 1 x 1 Open Stud",,39
 30069,4070,"Brick, Modified 1 x 1 with Headlight",,35
 3006pb001,3006pb001,Brick 2 x 10 with White 'LL-KPL' Pattern on Both Sides (Stickers) - Set 6697,"Brick, Decorated",0
-3007,3007,Brick 2 x 8,Brick,39
+3007,3007,Brick 2 x 8,Brick,38
 30070,3069,Tile 1 x 2 - (Undetermined Version),,20
 30071,3005,Brick 1 x 1,,56
 30072,30072,Brick 12 x 24,Brick,12
@@ -4054,7 +4054,7 @@ ldraw,bricklink,name,category,colors
 3007pb13l,3007pb13l,Brick 2 x 8 with Shell Logo Pattern Left (Sticker) - Set 392-1,"Brick, Decorated",0
 3007pb13r,3007pb13r,Brick 2 x 8 with Shell Logo Pattern Right (Sticker) - Set 392-1,"Brick, Decorated",0
 3007pb14,3007pb14,Brick 2 x 8 with Black 'MT 5590' Pattern (Sticker) - Set 5590,"Brick, Decorated",0
-3008,3008,Brick 1 x 8,Brick,45
+3008,3008,Brick 1 x 8,Brick,44
 30080,30080,Panel 4 x 3 x 3 with Porthole,,0
 30080b,30080,Panel 4 x 3 x 3 with Porthole,,0
 30082,30082,Arm Piece with Tow Ball and Clip,Arm,1
@@ -4440,8 +4440,8 @@ ldraw,bricklink,name,category,colors
 30133,30133,Minifigure Bandana / Scarf,"Minifigure, Body Wear",7
 30134,30134,Stairs 7 x 4 x 6 Straight Open,Stairs,12
 30135,30135,"Minifigure, Headgear Cavalry Cap (Kepi)","Minifigure, Headgear",10
-30136,30136,"Brick, Modified 1 x 2 with Log Profile","Brick, Modified",23
-30137,30137,"Brick, Modified 1 x 4 with Log Profile","Brick, Modified",20
+30136,30136,"Brick, Modified 1 x 2 with Log Profile","Brick, Modified",22
+30137,30137,"Brick, Modified 1 x 4 with Log Profile","Brick, Modified",19
 30138,-30138,"Minifigure, Headgear Headdress Indian",,0
 30138p01,30138pb01,"Minifigure, Headgear Headdress Indian with Colored Feathers Pattern","Minifigure, Headgear",0
 30139,30139,"Container, Barrel 4 x 4 x 3.5",Container,5
@@ -4587,7 +4587,7 @@ ldraw,bricklink,name,category,colors
 3024,3024,Plate 1 x 1,Plate,57
 30240,30240,"Spider Web Flat with Hollow Stud, Bar Ends, and Clips","Animal, Accessory",6
 302421,3024,Plate 1 x 1,,57
-30244,2412b,"Tile, Modified 1 x 2 Grille with Bottom Groove / Lip",,32
+30244,2412b,"Tile, Modified 1 x 2 Grille with Bottom Groove / Lip",,31
 30246,30246,Panel 3 x 4 x 6 Turret Wall with Window,Panel,11
 30248,30248,Helicopter Sled Rails 12 x 6,Aircraft,10
 30249,30249,Slope 55 6 x 1 x 5 without Bottom Stud Holders,Slope,16
@@ -4812,7 +4812,7 @@ ldraw,bricklink,name,category,colors
 30367cpx1,553pb033,"Brick, Round 2 x 2 Dome Top with Medium Lavender Turban Wrappings Pattern","Brick, Round, Decorated",0
 30368,30368,"Minifigure, Headgear Helmet SW Darth Vader - One Piece","Minifigure, Headgear",1
 30369,x52,"Minifigure, Headgear Helmet SW Scout Trooper","Minifigure, Headgear",2
-3037,3037,Slope 45 2 x 4,Slope,31
+3037,3037,Slope 45 2 x 4,Slope,30
 30370,x164,"Minifigure, Headgear Helmet SW Rebel Pilot, Plain","Minifigure, Headgear",4
 30370ps1,x164pb07,"Minifigure, Headgear Helmet SW Rebel Pilot with White Grid on Dark Bluish Gray Pattern","Minifigure, Headgear",0
 30370ps2,x164px2,"Minifigure, Headgear Helmet SW Rebel Pilot with Red Rebel Alliance Symbol and Stripe Pattern","Minifigure, Headgear",0
@@ -4828,7 +4828,7 @@ ldraw,bricklink,name,category,colors
 30372ps0,30372p79,Windscreen 7 x 4 x 1 2/3 with SW Pattern,,0
 30373,30373,"Slope, Inverted 65 6 x 6 x 2 Quad with Cutouts","Slope, Inverted",7
 30374,30374,Bar   4L (Lightsaber Blade / Wand),Bar,23
-30375,30375,"Torso Mechanical, Battle Droid","Minifigure, Body Part",23
+30375,30375,"Torso Mechanical, Battle Droid","Minifigure, Body Part",22
 30375ps1,30375ps1,"Torso Mechanical, Battle Droid with Orange Rectangle Pattern","Minifigure, Body Part",0
 30375ps2,30375ps2,"Torso Mechanical, Battle Droid with Tan Insignia Pattern","Minifigure, Body Part",0
 30375ps3,30375ps3,"Torso Mechanical, Battle Droid with Blue Insignia Pattern","Minifigure, Body Part",0
@@ -4869,7 +4869,7 @@ ldraw,bricklink,name,category,colors
 30380p02,x50px2,"Minifigure, Headgear Helmet SW Rocket Pack with Jango Fett Colors Pattern","Minifigure, Headgear",0
 30380p03,x50px1,"Minifigure, Headgear Helmet SW Rocket Pack with Boba Fett Colors, Dark Brown Highlights Pattern","Minifigure, Headgear",1
 30381,30381,"Minifigure, Headgear Hood","Minifigure, Headgear",12
-30382,30382,Wedge 2 x 16 Triple,Wedge,10
+30382,30382,Wedge 2 x 16 Triple,Wedge,9
 30383,30383,Hinge Plate 1 x 2 Locking with 1 Finger on Top,Hinge,18
 30384,30384,Windscreen 7 x 4 x 2 Round,Windscreen,2
 30385,52,Rock 1 x 1 Crystal 5 Point,Rock,4
@@ -4886,11 +4886,11 @@ ldraw,bricklink,name,category,colors
 30389c,30389c,Hinge Brick 2 x 2 Locking with 1 Finger Vertical and Axle Hole (x Shape),Hinge,8
 3038d01,3038pb10,Slope 45 2 x 3 with ?Exxon Logo Pattern (Sticker) - Set 554,"Slope, Decorated",0
 3038p01,3038pb02,Slope 45 2 x 3 with Black and Yellow Vertical Stripe Pattern,"Slope, Decorated",0
-3039,3039,Slope 45 2 x 2,Slope,42
+3039,3039,Slope 45 2 x 2,Slope,41
 30390,30390,"Slope, Inverted 45 4 x 2 Double with Pins","Slope, Inverted",1
 30391,30391,Tire 30.4 x 14 Offset Tread,"Wheel, Tire & Tread",1
-303923,3039,Slope 45 2 x 2,,42
-303926,3039,Slope 45 2 x 2,,42
+303923,3039,Slope 45 2 x 2,,41
+303926,3039,Slope 45 2 x 2,,41
 30394,30394,"Vehicle, Digger Bucket 7 Teeth 3 x 6 with Locking 2 Finger Hinge",Vehicle,8
 30395,30395,Hook with Tow Ball,Hook,3
 30396,30396,Hinge 1 x 2 Locking with 2 Fingers and Tow Ball Socket,Hinge,7
@@ -5010,7 +5010,7 @@ ldraw,bricklink,name,category,colors
 3041,3041,Slope 45 2 x 4 Double,Slope,21
 30413,30413,Panel 1 x 4 x 1,,9
 30413pb003,30413pb003,Panel 1 x 4 x 1 with Gold and Black Arcs over Gold Line Pattern (Sticker) - Sets 4708 / 4758 / 10132,"Panel, Decorated",0
-30414,30414,"Brick, Modified 1 x 4 with Studs on Side","Brick, Modified",30
+30414,30414,"Brick, Modified 1 x 4 with Studs on Side","Brick, Modified",29
 30414pb02,30414pb02,"Brick, Modified 1 x 4 with Studs on Side with Train Logo White on Yellow Background Pattern (Sticker) - Set 7939","Brick, Modified, Decorated",0
 3041p01,3041pb001,Slope 45 2 x 4 Double with Blue and White Headlight Pattern,"Slope, Decorated",0
 3042,3042,Slope 45 2 x 3 Double,Slope,3
@@ -5055,7 +5055,7 @@ ldraw,bricklink,name,category,colors
 3049c,3049b,Slope 45 2 x 1 Double / Inverted without Bottom Tube or Bottom Stud Holder,Slope,18
 3049d,3049c,Slope 45 2 x 1 Double / Inverted with Bottom Stud Holder,Slope,23
 305,2335,Flag 2 x 2 Square,,19
-30503,30503,"Wedge, Plate 4 x 4 Cut Corner","Wedge, Plate",26
+30503,30503,"Wedge, Plate 4 x 4 Cut Corner","Wedge, Plate",25
 30504,30504,"Wedge, Plate 8 x 8 Cut Corner","Wedge, Plate",21
 30505,30505,Wedge 3 x 3 Facet,Wedge,8
 30516,30516,Turntable 4 x 4 Locking Grooved Base,Turntable,5
@@ -5541,7 +5541,7 @@ ldraw,bricklink,name,category,colors
 3068px27,3068px27,"Tile 2 x 2 with Space Port Logo, Shuttle and Yellow Circle Pattern","Tile, Decorated",0
 3068warn,3068bp06,Tile 2 x 2 with Red Warning Triangle Pattern,,0
 3069,3069b,Tile 1 x 2 with Groove,,51
-306901,3069b,Tile 1 x 2 with Groove,,50
+306901,3069b,Tile 1 x 2 with Groove,,51
 30699,30699,Tire 43.2 x 14 Solid,"Wheel, Tire & Tread",1
 3069a,3069a,Tile 1 x 2 without Groove,Tile,6
 3069b,3069,Tile 1 x 2 - (Undetermined Version),,51
@@ -5839,7 +5839,7 @@ ldraw,bricklink,name,category,colors
 3070,3070a,Tile 1 x 1 without Groove (3070),,26
 307024,3070,Tile 1 x 1 with Groove (3070),,20
 3070a,3070a,Tile 1 x 1 without Groove,Tile,6
-3070b,3070,Tile 1 x 1,Tile,51
+3070b,3070,Tile 1 x 1,Tile,52
 3070bd04,3070pb266l,Tile 1 x 1 with White Number 1 and 3 Small Circles Pattern Model Left Side (Sticker) - Set 75872,"Tile, Decorated",0
 3070bd05,3070pb266r,Tile 1 x 1 with White Number 1 and 3 Small Circles Pattern Model Right Side (Sticker) - Set 75872,"Tile, Decorated",0
 3070bd06,3070pb348l,Tile 1 x 1 with 'P1' in Red Square Pattern Model Left Side (Sticker) - Set 75872,"Tile, Decorated",0
@@ -6149,7 +6149,7 @@ ldraw,bricklink,name,category,colors
 32006,2825,"Technic, Liftarm Modified 1 x 4 Thin with Stud Connector",,16
 32007,32007,Technic Tread Hub,Wheel,12
 32008,32008,"Technic, Figure Accessory Scuba Flipper","Technic, Figure Accessory",7
-32009,32009,"Technic, Liftarm, Modified Bent Thick 1 x 11.5 Double","Technic, Liftarm",23
+32009,32009,"Technic, Liftarm, Modified Bent Thick 1 x 11.5 Double","Technic, Liftarm",22
 32009d01,32009pb028l,"Technic, Liftarm, Modified Bent Thick 1 x 11.5 Double with Red and White Danger Stripes Pattern Model Left Side (Sticker) - Set 42055","Technic, Liftarm, Decorated",0
 32009d02,32009pb028r,"Technic, Liftarm, Modified Bent Thick 1 x 11.5 Double with Red and White Danger Stripes Pattern Model Right Side (Sticker) - Set 42055","Technic, Liftarm, Decorated",0
 32009d03,32009pb029l,"Technic, Liftarm, Modified Bent Thick 1 x 11.5 Double with Black Exclamation Mark on Yellow Background Pattern Model Left Side (Sticker) - Set 42055","Technic, Liftarm, Decorated",0
@@ -6177,7 +6177,7 @@ ldraw,bricklink,name,category,colors
 32054,32054,"Technic, Pin 3L with Friction Ridges and Stop Bush","Technic, Pin",15
 32056,32056,"Technic, Liftarm, Modified Bent Thin L-Shape 3 x 3","Technic, Liftarm",19
 32057,32057,Wheel 70 x 14 mm Futuristic,Wheel,1
-32059,32059,"Wedge, Plate 4 x 6 Cut Corners","Wedge, Plate",26
+32059,32059,"Wedge, Plate 4 x 6 Cut Corners","Wedge, Plate",25
 32060,32060,"Technic, Gear Timing Wheel 8 Tooth","Technic, Gear",3
 32061,2850,Technic Engine Cylinder with Side Slots,,0
 32062,32062,"Technic, Axle  2L Notched","Technic, Axle",4
@@ -6223,7 +6223,7 @@ ldraw,bricklink,name,category,colors
 32137,32137,"Technic, Modular Connector","Technic, Connector",0
 32138,32138,"Technic, Pin Double with Axle Hole","Technic, Pin",9
 3213p01,3213pb01,"Minifigure, Hair Combo, Hat with Hair, Animal Hood with Ears and Molded Coral Messy Bangs Pattern","Minifigure, Hair",0
-32140,32140,"Technic, Liftarm, Modified Bent Thick L-Shape 2 x 4","Technic, Liftarm",29
+32140,32140,"Technic, Liftarm, Modified Bent Thick L-Shape 2 x 4","Technic, Liftarm",28
 32146,32146,Wheel 30.4 x 14 Solid Smooth,Wheel,7
 32165,32165,Technic Block 3 x 6 x 1 2/3,Technic,9
 32166,32166,"Technic, Gearbox Half","Technic, Gear",9
@@ -6304,7 +6304,7 @@ ldraw,bricklink,name,category,colors
 32247,32247,Wheel 41mm Znap Thin Tread,Wheel,4
 32248,,Wheel 41 mm Znap Thin Tread with Black Tire 41 mm Directional Tread,,1
 32249,32249,"Technic, Liftarm, Modified L-Shape Quarter Ellipse Thin 3 x 3","Technic, Liftarm",16
-32250,32250,"Technic, Liftarm, Modified L-Shape Quarter Ellipse Thin 3 x 5","Technic, Liftarm",20
+32250,32250,"Technic, Liftarm, Modified L-Shape Quarter Ellipse Thin 3 x 5","Technic, Liftarm",19
 32251,32251,"Technic, Liftarm, Modified L-Shape Quarter Ellipse Thin 5 x 7","Technic, Liftarm",10
 32269,32269,"Technic, Gear 20 Tooth Double Bevel","Technic, Gear",6
 32270,32270,"Technic, Gear 12 Tooth Double Bevel","Technic, Gear",5
@@ -6314,7 +6314,7 @@ ldraw,bricklink,name,category,colors
 32273,32273,Technic Turntable 4 x 6 - Bottom,,0
 32273c01-bl,32273c01,Technic Turntable 4 x 6 (32273 / 32274),Technic,1
 32274,32274,Technic Turntable 4 x 6 - Top,,0
-32278,32278,"Technic, Liftarm Thick 1 x 15","Technic, Liftarm",27
+32278,32278,"Technic, Liftarm Thick 1 x 15","Technic, Liftarm",26
 32278pb037,32278pb037,"Technic, Liftarm Thick 1 x 15 with White 'D' 'N' 'R' Pattern (Sticker) - Set 42110","Technic, Liftarm, Decorated",0
 32278pb038,32278pb038,"Technic, Liftarm Thick 1 x 15 with White 'LO' and 'HI' Pattern (Sticker) - Set 42110","Technic, Liftarm, Decorated",0
 3228,3228a,"Train, Track Tapered Rail Straight 16L",,2
@@ -6344,7 +6344,7 @@ ldraw,bricklink,name,category,colors
 3231,3231,"Train, Track 4.5V Crossing",,1
 32310,32310,Technic Block 3 x 5 x 1 2/3,Technic,16
 32311,32311,"Technic, Arm 1 x 7 x 2 with Gear Ends","Technic, Gear",7
-32316,32316,"Technic, Liftarm Thick 1 x 5","Technic, Liftarm",28
+32316,32316,"Technic, Liftarm Thick 1 x 5","Technic, Liftarm",27
 32316d02,32316pb025,"Technic, Liftarm Thick 1 x 5 with Padlocks and Letter 'N' on Red Background with White Stripes Pattern (Sticker) - Set 42055","Technic, Liftarm, Decorated",0
 32316pb046l,32316pb046l,"Technic, Liftarm Thick 1 x 5 with Red Stripe and White Highlight Pattern Model Left Side (Sticker) - Set 42110","Technic, Liftarm, Decorated",0
 32316pb046r,32316pb046r,"Technic, Liftarm Thick 1 x 5 with Red Stripe and White Highlight Pattern Model Right Side (Sticker) - Set 42110","Technic, Liftarm, Decorated",0
@@ -6430,13 +6430,13 @@ ldraw,bricklink,name,category,colors
 32523,32523,"Technic, Liftarm Thick 1 x 3","Technic, Liftarm",28
 32523p01,32523pb11,"Technic, Liftarm Thick 1 x 3 with Black '40', '1977-2017' and 24 Tooth Gear Pattern","Technic, Liftarm, Decorated",0
 32523p02,32523pb22,"Technic, Liftarm Thick 1 x 3 with Silver and Black Grille Pattern","Technic, Liftarm, Decorated",0
-32524,32524,"Technic, Liftarm Thick 1 x 7","Technic, Liftarm",28
-32525,32525,"Technic, Liftarm Thick 1 x 11","Technic, Liftarm",26
+32524,32524,"Technic, Liftarm Thick 1 x 7","Technic, Liftarm",27
+32525,32525,"Technic, Liftarm Thick 1 x 11","Technic, Liftarm",25
 32525d01,32525pb023,"Technic, Liftarm Thick 1 x 11 with Red and White Danger Stripes Pattern on Both Ends (Stickers) - Set 42055","Technic, Liftarm, Decorated",0
 32525d02,32525pb033l,"Technic, Liftarm Thick 1 x 11 with Black Stripe Pattern Model Left Side (Sticker) - Set 42083","Technic, Liftarm, Decorated",0
 32525d03,32525pb033r,"Technic, Liftarm Thick 1 x 11 with Black Stripe Pattern Model Right Side (Sticker) - Set 42083","Technic, Liftarm, Decorated",0
 32525pb032,32525pb032,"Technic, Liftarm Thick 1 x 11 with Silver 'DEFENDER' Pattern (Sticker) - Set 42110","Technic, Liftarm, Decorated",0
-32526,32526,"Technic, Liftarm, Modified Bent Thick L-Shape 3 x 5","Technic, Liftarm",27
+32526,32526,"Technic, Liftarm, Modified Bent Thick L-Shape 3 x 5","Technic, Liftarm",26
 32526p01,32526pb023,"Technic, Liftarm, Modified Bent Thick L-Shape 3 x 5 with Silver and Black Grille Pattern","Technic, Liftarm, Decorated",0
 32527,32527,"Technic, Panel Fairing # 5 Small Short, Large Hole, Side A","Technic, Panel",13
 32528,32528,"Technic, Panel Fairing # 6 Small Short, Large Hole, Side B","Technic, Panel",17
@@ -6504,7 +6504,7 @@ ldraw,bricklink,name,category,colors
 32602,32602,"Minifigure, Hair Wavy and Windblown to One Side","Minifigure, Hair",1
 32606,32606,Plant Flower with Bar and Small Pin Hole,Plant,5
 32607,32607,"Plant Plate, Round 1 x 1 with 3 Leaves",Plant,25
-3262,553,"Brick, Round 2 x 2 Dome Top with Bottom Axle Holder - Vented Stud",,29
+3262,553,"Brick, Round 2 x 2 Dome Top with Bottom Axle Holder - Vented Stud",,30
 32627,32627,"Tile, Round 4 x 4 with 2 Hollow Studs","Tile, Round",1
 32627p02,32627pb02,"Tile, Round 4 x 4 with 2 Hollow Studs with Black, Light Bluish Gray and Dark Azure Swirl Pattern","Tile, Round, Decorated",0
 3263,3263,"Plate, Round 3 x 4 x 2/3, Raised 1 x 4","Plate, Round",7
@@ -6538,8 +6538,8 @@ ldraw,bricklink,name,category,colors
 3297p15,3297px22,Slope 33 3 x 4 with Train Railyard Switching Pattern,"Slope, Decorated",0
 3297p90,3297p90,Slope 33 3 x 4 with Classic Space Logo Pattern,"Slope, Decorated",0
 3297ps1,3297px4,Slope 33 3 x 4 with Black and Dark Gray Horizontal Grille Pattern,"Slope, Decorated",0
-3298,3298,Slope 33 3 x 2,Slope,38
-329826,3298,Slope 33 3 x 2,,38
+3298,3298,Slope 33 3 x 2,Slope,37
+329826,3298,Slope 33 3 x 2,,37
 3298d01,3298pb038,Slope 33 3 x 2 with Red Cross Pattern (Sticker) - Set 6364,"Slope, Decorated",0
 3298d02,3298pb092,Slope 33 3 x 2 with White Number 1 Pattern (Sticker) - Set 5540,"Slope, Decorated",0
 3298d05,3298pb052,Slope 33 3 x 2 with 'RENAULT' and Red Number 5 Pattern (Sticker) - Set 1750,"Slope, Decorated",0
@@ -6674,7 +6674,7 @@ ldraw,bricklink,name,category,colors
 33299,33299,"Technic, Liftarm, Modified Crank / Pin 1 x 3 - Axle Holes","Technic, Liftarm",1
 33299a,33299,"Technic, Liftarm Modified 1 x 3 with 2 Axle Holes and Pin / Crank",,7
 33303,33303,Fence 1 x 4 x 2 Paled (Picket),Fence,4
-33320,x223,Frog,"Animal, Land",14
+33320,x223,Frog,"Animal, Land",13
 33322,33322,"Minifigure, Crown Tiara, 5 Points, Rounded Ends","Minifigure, Headgear Accessory",3
 3334,3334,Baseplate 16 x 24,Baseplate,4
 33341,4238,Container Trunk Lid 4 x 6 x 1 2/3,,8
@@ -6727,8 +6727,8 @@ ldraw,bricklink,name,category,colors
 3385,3385,"Vehicle, Base 6 x 12 x 1 with 5 x 6 Recessed Center, 12 Holes and 1 x 2 Cutouts on Ends","Vehicle, Base",1
 3386,3386,"Brick, Round 1 x 1 x 2/3 Half Circle Extended with Stud on Side","Brick, Round",12
 3387,3387,"Vehicle, Mudguard 4 x 2 1/2 x 2 with Arch Round","Vehicle, Mudguard",19
-3388,3388,Wedge 5 x 1 x 1 1/3 with 4 x 1 Base Left,Wedge,10
-3389,3389,Wedge 5 x 1 x 1 1/3 with 4 x 1 Base Right,Wedge,10
+3388,3388,Wedge 5 x 1 x 1 1/3 with 4 x 1 Base Left,Wedge,9
+3389,3389,Wedge 5 x 1 x 1 1/3 with 4 x 1 Base Right,Wedge,9
 339,4474,Windscreen 6 x 4 x 2 Canopy,,4
 33909,33909,"Tile, Modified 2 x 2 with Studs on Edge","Tile, Modified",27
 33909pb002,33909pb002,"Tile, Modified 2 x 2 with Studs on Edge with Dark Turquoise and Magenta Buttons and Slider Pattern (Sticker) - Set 70828","Tile, Modified, Decorated",0
@@ -6746,7 +6746,7 @@ ldraw,bricklink,name,category,colors
 3404cc01,3404ac01,"Turntable 4 x 4 Complete, Faceted",Turntable,3
 3404ec01,3404bc01,"Turntable 4 x 4 Complete, Perfectly Round",Turntable,1
 3404ec02,3404ac02,"Turntable 4 x 4 Complete, Faceted with Indented Base",Turntable,1
-34103,34103,"Plate, Modified 1 x 3 with 2 Studs (Double Jumper)","Plate, Modified",33
+34103,34103,"Plate, Modified 1 x 3 with 2 Studs (Double Jumper)","Plate, Modified",32
 34103pb01,34103pb01,"Plate, Modified 1 x 3 with 2 Studs (Double Jumper) with 2 White Rectangles Pattern (Super Mario Bone Goomba Teeth)","Plate, Modified, Decorated",1
 3417,3417,"Door, Frame 3 x 6 x 6 with Channels",Door Frame,2
 34172,34172,"Minifigure, Utensil Bowl","Minifigure, Utensil",2
@@ -6767,7 +6767,7 @@ ldraw,bricklink,name,category,colors
 3443c12,x488c02,Train Battery Box Car with Red Switch and Black Wheels (Undetermined Type),Train,0
 3455,3455,Arch 1 x 6,Arch,18
 3456,3456,Plate 6 x 14,Plate,21
-3460,3460,Plate 1 x 8,Plate,42
+3460,3460,Plate 1 x 8,Plate,41
 3460py0,3460pb01,Plate 1 x 8 with 4 Black Rounded Stripes with Bright Light Yellow and Dark Orange Outlines (Air Vents) Pattern,"Plate, Decorated",0
 3461,3461,Propeller 4 Blade 5 Diameter 5 x 5 with Center Hole for Rotor Holder,Propeller,5
 3462,3462,"Plate, Modified 2 x 3 with Helicopter Rotor Holder","Plate, Modified",5
@@ -6820,9 +6820,9 @@ ldraw,bricklink,name,category,colors
 35032e,35032e,"Power Burst, Shield Large with Bar End",Energy Effect,0
 35032f,35032f,"Power Burst, Shield Small with Bar Ends",Energy Effect,0
 35039,35039,Spider Head and Legs,"Animal, Body Part",0
-3504,3504,Wedge 5 x 2 Left,Wedge,13
+3504,3504,Wedge 5 x 2 Left,Wedge,12
 35044,35044,"Plate, Modified 4 x 4 with 3 x 3 Curved Cutout","Plate, Modified",28
-3505,3505,Wedge 5 x 2 Right,Wedge,13
+3505,3505,Wedge 5 x 2 Right,Wedge,12
 35103,35103,"Door, Frame 2 x 16 x 6 with 3 Openings and 2 Studs on Either Side on Front",Door Frame,6
 35106,35106,"Aircraft Fuselage 4 x 16 x 1 with 2 x 10 Recessed Center and 8 x 4 Wings with Cutaways, 9 Holes",Aircraft,5
 35154,-35154,,,0
@@ -6886,8 +6886,8 @@ ldraw,bricklink,name,category,colors
 35633,35633,"Large Figure Weapon, Blade with 3 Bar Holders and Axle",Large Figure Part,2
 35635,35635,Minifigure Armor Shoulder Pads with Double Flaps,"Minifigure, Body Wear",3
 35646,35646,Rock 1 1/3 x 1 1/3 x 1,Rock,2
-35649,35649,"Tile, Modified 1 x 2 Diamond with Bar","Tile, Modified",8
-3565,3565,"Plant Plate, Round 1 x 2 with Rounded Leaf",Plant,18
+35649,35649,"Tile, Modified 1 x 2 Diamond with Bar","Tile, Modified",7
+3565,3565,"Plant Plate, Round 1 x 2 with Rounded Leaf",Plant,17
 35654,35654,Bar 1 x 4 x 1 2/3 (Grille Guard / Push Bumper),Bar,1
 35660,-35660,"Minifigure, Hair Combo, Hair with Hat, Ponytail",,0
 35660p05,35660pb08,"Minifigure, Hair Combo, Hair with Hat, Ponytail with Molded Dark Turquoise Ball Cap Pattern","Minifigure, Hair",0
@@ -7567,7 +7567,7 @@ ldraw,bricklink,name,category,colors
 3660pb018,3660pb018,"Slope, Inverted 45 2 x 2 with Flat Bottom Pin with Aurebesh Characters 'KURT' Pattern (Sticker) - Set 10212","Slope, Inverted, Decorated",0
 3661,3661,"Plate, Round 1 x 1 Open Stud with Bar Arm Down","Plate, Round",6
 3664,3664,"Duplo, Brick 2 x 2 x 2 Slope Curved Double",,11
-3665,3665,"Slope, Inverted 45 2 x 1","Slope, Inverted",45
+3665,3665,"Slope, Inverted 45 2 x 1","Slope, Inverted",46
 3665ap01,3665pb001,"Slope, Inverted 45 2 x 1 with 2 Black Rectangles (Ferry Windows) Pattern","Slope, Inverted, Decorated",0
 3665p01,3665pb001,"Slope, Inverted 45 2 x 1 with 2 Black Rectangles (Ferry Windows) Pattern",,0
 3666,3666,Plate 1 x 6,Plate,48
@@ -7705,8 +7705,8 @@ ldraw,bricklink,name,category,colors
 3739c01,,Wheel 24 x 43 Technic with Black Tire 24 x 43 Technic (3739 / 3740),,1
 374,374,Baseplate 16 x 32 with Rounded Corners,Baseplate,1
 3740,3740,"Tire 24 x 43 Technic, Solid","Wheel, Tire & Tread",1
-3741,3741,Plant Flower Stem with Stud and 3 Stems,Plant,7
-3741a,3741,Plant Flower Stem,,7
+3741,3741,Plant Flower Stem with Stud and 3 Stems,Plant,6
+3741a,3741,Plant Flower Stem,,6
 3742,3742,Plant Flower Small,Plant,10
 3742c01,3742sprue,"Plant Flower Small, 4 on Sprue",Plant,11
 3743,3743,"Technic, Gear Rack 1 x 4","Technic, Gear",14
@@ -7746,7 +7746,7 @@ ldraw,bricklink,name,category,colors
 3766,3766,"Plate, Round 4 x 6 Oval","Plate, Round",5
 37681,37681,Plant Root Vegetable with Stud and Bar,Plant,1
 3769,3769,Dragon Strike Base,"Animal, Body Part",0
-37695,37695,"Plant Stem with Bar, 3 Leaves, and Small Pin Hole",Plant,7
+37695,37695,"Plant Stem with Bar, 3 Leaves, and Small Pin Hole",Plant,6
 37697,37697,"Minifigure, Hair Mid-Length and Wavy with Bangs","Minifigure, Hair",2
 3770,3770,Dragon Head (Ninjago) Jaw Upper with Horns and Large Eye Openings,"Animal, Body Part",4
 37702,-37702,"Minifigure, Utensil Suitcase Base",,0
@@ -7771,7 +7771,7 @@ ldraw,bricklink,name,category,colors
 37783c01,37783c01,"Arm Large with Pin, Right with Light Nougat Hand","Minifigure, Body Part",1
 37784,37784,"Minifigure, Hair Shaggy and Long with Beard","Minifigure, Hair",1
 3779,3779,"Plate, Modified 2 x 4 with Tow Ball Socket on Top","Plate, Modified",1
-378,40379,"Animal, Body Part Dinosaur Tail End Section / Horn",,32
+378,40379,"Animal, Body Part Dinosaur Tail End Section / Horn",,31
 37822,37822,Minifigure Baby Carrier,"Minifigure, Body Wear",2
 3787,3787,"Vehicle, Mudguard 2 x 4 with Arch Smooth","Vehicle, Mudguard",7
 3788,3788,"Vehicle, Mudguard 2 x 4 with Arch Studded","Vehicle, Mudguard",12
@@ -7956,7 +7956,7 @@ ldraw,bricklink,name,category,colors
 3815pq2,,Minifig Hips with Gold O-Belt and Loincloth Pattern,,1
 3815ps5,970ps5,Hips with SW Gunbelt Pattern,"Minifigure, Body Part",0
 3815pw1,,Minifig Hips with Red/White Triangles Pattern,,1
-3816,971,"Leg, Right",,51
+3816,971,"Leg, Right",,50
 3816b,3816,"Leg, Right",,50
 3816bp30,,Minifig Leg Right with Rags Pattern,,1
 3816bp40,,Minifig Leg Right with Pouch Pattern,,1
@@ -8131,7 +8131,7 @@ ldraw,bricklink,name,category,colors
 3816pw1,,"Minifig Leg Right with Red/White Triangles, Fringe Pattern",,1
 3816pw2,,"Minifig Leg Right with Blue/White Triangles, Fringe Pattern",,1
 3816pw3,,"Minifig Leg Right with Dark Turquoise/White Triangles, White Fringe Pattern",,1
-3817,972,"Leg, Left",,51
+3817,972,"Leg, Left",,50
 3817bp30,,Minifig Leg Left with Rags and Patch Pattern,,1
 3817bp40,,Minifig Leg Left with Amulet Pattern,,1
 3817bp41,,Leg Left with Kingdoms Scale Mail Pattern,,1
@@ -8303,7 +8303,7 @@ ldraw,bricklink,name,category,colors
 3817pw1,,Minifig Leg Left with Red/White Triangles Pattern,,1
 3817pw2,,"Minifig Leg Left with Blue/White Triangles, Fringe Pattern",,1
 3817pw3,,"Minifig Leg Left with Dark Turquoise/White Triangles, White Fringe Pattern",,1
-3818,982,"Arm, Right","Minifigure, Body Part",48
+3818,982,"Arm, Right","Minifigure, Body Part",47
 3818pda2,982pb024,"Arm, Right with Magenta and Medium Azure Markings Pattern","Minifigure, Body Part",0
 3818pda4,982pb200,"Arm, Right with Orange Giraffe Spots Pattern","Minifigure, Body Part",0
 3818pdg1,982pb295,"Arm, Right with Dark Brown Fur Pattern","Minifigure, Body Part",0
@@ -8313,7 +8313,7 @@ ldraw,bricklink,name,category,colors
 3818px0,982pb067,"Arm, Right with Ghostbusters Logo and Elbow Patch Pattern","Minifigure, Body Part",0
 3818px1,982pb079,"Arm, Right with Yellow Stripe Pattern","Minifigure, Body Part",0
 3818px2,982pb100,"Arm, Right with Ghostbusters Logo and Orange and Silver Stripes Pattern","Minifigure, Body Part",0
-3819,981,"Arm, Left","Minifigure, Body Part",48
+3819,981,"Arm, Left","Minifigure, Body Part",47
 3819pda4,981pb200,"Arm, Left with Orange Giraffe Spots Pattern","Minifigure, Body Part",0
 3819pdg1,981pb295,"Arm, Left with Dark Brown Fur Pattern","Minifigure, Body Part",0
 3819pdgb,981pb300,"Arm, Left with Blue Pinstripes, Cuff Pattern","Minifigure, Body Part",0
@@ -8498,7 +8498,7 @@ ldraw,bricklink,name,category,colors
 38799,38799,"Minifigure, Utensil Tea Saucer with Hollow Stud","Minifigure, Utensil",8
 388,6070,Windscreen 5 x 2 x 1 2/3,,16
 38800,38800,"Minifigure, Hair Bowl Cut Parted in Center","Minifigure, Hair",7
-38801,38801,"Snake, Large with Raised Head","Animal, Land",3
+38801,38801,"Snake, Large with Raised Head","Animal, Land",2
 38801p01,38801pb01,"Snake, Large with Raised Head with Black Eyes Pattern (HP Nagini)","Animal, Land",1
 3884,3884,"Minifigure, Hair Mid-Length Swept Right with Side Part","Minifigure, Hair",1
 3885,3885,"Minifigure, Weapon Sword Blade with Bar End (SW Darksaber)","Minifigure, Weapon",4
@@ -8605,7 +8605,7 @@ ldraw,bricklink,name,category,colors
 3957,3957,Antenna 4H - Round Top,Antenna,5
 395701,3957,Antenna 4H - Round Top,,5
 3957b,3957b,Antenna 4H - Flat Top,Antenna,12
-3958,3958,Plate 6 x 6,Plate,43
+3958,3958,Plate 6 x 6,Plate,42
 3959,3959,"Minifigure, Utensil Space Gun / Torch","Minifigure, Utensil",13
 396,4595,"Brick, Modified 1 x 2 x 2/3 with Studs on Sides",,11
 3960,3960,Dish 4 x 4 Inverted (Radar) with Solid Stud,Dish,32
@@ -8768,7 +8768,7 @@ ldraw,bricklink,name,category,colors
 40251,40251,"Minifigure, Hair Female Mid-Length","Minifigure, Hair",5
 40253,40253,"Door, Frame 2 x 8 x 6 Swivel without Bottom Notches",Door Frame,8
 4032,4032,"Plate, Round 2 x 2 with Axle Hole",,14
-4032a,4032,"Plate, Round 2 x 2 with Axle Hole","Plate, Round",41
+4032a,4032,"Plate, Round 2 x 2 with Axle Hole","Plate, Round",40
 4032b,4032,"Plate, Round 2 x 2 with Axle Hole (x Shape)",,25
 4033,4033,Window 1 x 4 x 3 Train - Hollow Studs,Window,10
 40339,40339,Bionicle Weapon Long Axle Trident,Bionicle,5
@@ -8784,8 +8784,8 @@ ldraw,bricklink,name,category,colors
 40373,40373,Dinosaur Body Quarter with Pin Holes,"Animal, Body Part",5
 40374,40374,Dinosaur Body Quarter with Pins,"Animal, Body Part",5
 40375,40375,Dinosaur Neck / Tail Ring,"Animal, Body Part",9
-40378,40378,Dinosaur Tail / Neck Middle Section with Bar Hole and Technic Pin,"Animal, Body Part",21
-40379,40379,Dinosaur Tail End Section / Horn,"Animal, Body Part",32
+40378,40378,Dinosaur Tail / Neck Middle Section with Bar Hole and Technic Pin,"Animal, Body Part",20
+40379,40379,Dinosaur Tail End Section / Horn,"Animal, Body Part",31
 40385,40385,Dinosaur Sail Fin,"Animal, Body Part",6
 40386,40386,Dinosaur Flipper with Pin,"Animal, Body Part",7
 4039,-4039,Friends Accessories Cat Ears,,0
@@ -8896,7 +8896,7 @@ ldraw,bricklink,name,category,colors
 4111802,x239,"Electric, Light & Sound 4 x 20 x 5 Insectoid Stinger",,1
 4113299,78c02,"Hose, Ribbed 7mm D.  2L",,7
 4113993,3795,Plate 2 x 6,,48
-4114324,3460,Plate 1 x 8,,42
+4114324,3460,Plate 1 x 8,,41
 4114505,30153,Rock 1 x 1 Jewel 24 Facet,,0
 4116604,3009pb060,Brick 1 x 6 with White 'TURBO' and Stars Pattern,,0
 4116688,30258pb003,Road Sign 2 x 2 Square with Clip with Crosswalk with Pedestrian Pattern,,0
@@ -8913,10 +8913,10 @@ ldraw,bricklink,name,category,colors
 4121,4121,"Duplo Tile, Modified 2 x 4 x 1/3 (Thin) with 4 Center Studs",,7
 4121715,2780,"Technic, Pin with Friction Ridges Lengthwise, Staggered, with or without Center Slots",,2
 4121921,3623,Plate 1 x 3,,56
-41239,41239,"Technic, Liftarm Thick 1 x 13","Technic, Liftarm",20
+41239,41239,"Technic, Liftarm Thick 1 x 13","Technic, Liftarm",19
 4124174,6222,"Brick, Round 4 x 4 with 4 Side Pin Holes and Center Axle Hole",,17
-4124456,2412b,"Tile, Modified 1 x 2 Grille with Bottom Groove / Lip",,32
-4125254,2412b,"Tile, Modified 1 x 2 Grille with Bottom Groove / Lip",,32
+4124456,2412b,"Tile, Modified 1 x 2 Grille with Bottom Groove / Lip",,31
+4125254,2412b,"Tile, Modified 1 x 2 Grille with Bottom Groove / Lip",,31
 4129555,970c02pb04,Hips and Tan Legs with SW Gunbelt Pattern,,0
 4130,4130,"Door, Frame 2 x 4 x 5",Door Frame,4
 4131,4131,Door 1 x 4 x 5,Door,5
@@ -8934,7 +8934,7 @@ ldraw,bricklink,name,category,colors
 4144485,71137b,Vehicle Exhaust Pipe with Technic Pin,,0
 41475-f1,2909c02,"Technic, Shock Absorber 9.5L (Hard Spring)","Technic, Shock Absorber",1
 415,6217,"Arm Piece with Pin, 3 Fingers",,4
-4150,4150,"Tile, Round 2 x 2","Tile, Round",32
+4150,4150,"Tile, Round 2 x 2","Tile, Round",31
 4150c07,4150p07,"Tile, Round 2 x 2 with Red and White Life Preserver Pattern (Sticker) - Sets 2962 / 6479 / 6540 / 6541 / 6559 / 6598","Tile, Round, Decorated",0
 4150d04,4150pb167,"Tile, Round 2 x 2 with Dark Red SW Semicircles on Tan Background Pattern (Sticker) - Sets 10195 / 75043","Tile, Round, Decorated",0
 4150d05,4150pb160,"Tile, Round 2 x 2 with Dark Bluish Gray Concentric Circles and Line Segments Pattern (Sticker) - Set 75043","Tile, Round, Decorated",0
@@ -9013,7 +9013,7 @@ ldraw,bricklink,name,category,colors
 41612,41612,"Minifigure, Hair Female Long and Straight, Parted in the Middle","Minifigure, Hair",5
 4161266,41764,Wedge 6 x 2 Inverted Right,,26
 4161281,41765,Wedge 6 x 2 Inverted Left,,26
-4162,4162,Tile 1 x 8,Tile,43
+4162,4162,Tile 1 x 8,Tile,42
 4162235,40902,"Hinge Brick 2 x 2 Locking with 2 Fingers Vertical and Axle Hole, 9 Teeth",,5
 4162628,4460a,Slope 75 2 x 1 x 3 - Open Stud,,20
 4162916,970c00,Hips and Legs (Monochrome),,17
@@ -9141,7 +9141,7 @@ ldraw,bricklink,name,category,colors
 4171849,30602,"Slope, Curved 2 x 2 Lip",,30
 41732,x383,"Technic, Pin Connector Round with Slot, Bar Lengthwise and Bars Out (Soccer Goalie Stick Holder Pivot)","Technic, Connector",2
 4173943,4871,"Slope, Inverted 45 4 x 2 Double with 2 x 2 Cutout",,25
-41740,41740,"Plate, Modified 1 x 4 with 2 Studs with Groove","Plate, Modified",34
+41740,41740,"Plate, Modified 1 x 4 with 2 Studs with Groove","Plate, Modified",33
 41747,41747,Wedge 6 x 2 Right,Wedge,30
 41747pq0,41747pb038,Wedge 6 x 2 Right with Bricks and Hieroglyphs Pattern,"Wedge, Decorated",1
 41747ps1,41747pb011,Wedge 6 x 2 Right with SW Mini AT-TE Pattern,"Wedge, Decorated",0
@@ -9153,7 +9153,7 @@ ldraw,bricklink,name,category,colors
 4175,4175,Ladder 1 1/2 x 2 x 2,Ladder,17
 41750,41750,Wedge 8 x 3 x 2 Open Left,Wedge,24
 41750ps1,41750pb001,Wedge 8 x 3 x 2 Open Left with Sand Green Square Pattern,"Wedge, Decorated",0
-41751,x224,Windscreen 8 x 6 x 2 Curved Sloped Sides,Windscreen,18
+41751,x224,Windscreen 8 x 6 x 2 Curved Sloped Sides,Windscreen,17
 41751p01,x224pb005,Windscreen 8 x 6 x 2 Curved Sloped Sides with Red and Silver Racing Stripes Pattern,"Windscreen, Decorated",0
 41752,41752,Rubber Band / Belt Holder 2 x 4 x 2 1/3,Rubber Band & Belt,2
 41753,41753,Rubber Band / Belt Holder 2 x 6 x 2 1/3,Rubber Band & Belt,2
@@ -9164,14 +9164,14 @@ ldraw,bricklink,name,category,colors
 41764,41764,Wedge 6 x 2 Inverted Right,Wedge,26
 41765,41765,Wedge 6 x 2 Inverted Left,Wedge,26
 41766,41766,"Slope, Curved 8 x 2 x 2 with 4 Recessed Studs","Slope, Curved",17
-41767,41767,Wedge 4 x 2 Right,Wedge,23
+41767,41767,Wedge 4 x 2 Right,Wedge,22
 41767d01,41767pb10,Wedge 4 x 2 Right with Black Japanese Logogram 'しんかい' (Shinkai) and '6500' Pattern (Sticker) - Set 21100,"Wedge, Decorated",0
-41768,41768,Wedge 4 x 2 Left,Wedge,22
+41768,41768,Wedge 4 x 2 Left,Wedge,21
 41768d01,41768pb10,Wedge 4 x 2 Left with Black Japanese Logogram 'しんかい' (Shinkai) and '6500' Pattern (Sticker) - Set 21100,"Wedge, Decorated",0
-41769,41769,"Wedge, Plate 4 x 2 Right",,36
-41769b,41769,"Wedge, Plate 4 x 2 Right","Wedge, Plate",36
-41770,41770,"Wedge, Plate 4 x 2 Left",,36
-41770b,41770,"Wedge, Plate 4 x 2 Left","Wedge, Plate",36
+41769,41769,"Wedge, Plate 4 x 2 Right",,35
+41769b,41769,"Wedge, Plate 4 x 2 Right","Wedge, Plate",35
+41770,41770,"Wedge, Plate 4 x 2 Left",,35
+41770b,41770,"Wedge, Plate 4 x 2 Left","Wedge, Plate",35
 4177303,33183,Food & Drink Carrot Top / Twig,,9
 4177932,3023,Plate 1 x 2,,60
 4178,4178,Train Base 6 x 16 Cutout,Train,2
@@ -9261,7 +9261,7 @@ ldraw,bricklink,name,category,colors
 4185,4185,Technic Wedge Belt Wheel (Pulley),Wheel,18
 41850,x351,"Body, Racers Driver","Minifigure, Body Part",7
 4185177,3068b,Tile 2 x 2 with Groove,,47
-41854,41854,"Vehicle, Mudguard 2 x 4 with Flared Wings","Vehicle, Mudguard",25
+41854,41854,"Vehicle, Mudguard 2 x 4 with Flared Wings","Vehicle, Mudguard",24
 4185495,970c00pb018,Hips and Legs with Cargo Pockets Front Pattern,,0
 41855,41855,"Slope, Curved 2 x 2 x 2/3 with 2 Studs and Curved Sides, Lip End","Slope, Curved",15
 4185ac01,4185c01,Technic Wedge Belt Wheel (Pulley) with Black Technic Wedge Belt Wheel Tire (4185 / 2815),Wheel & Tire Assembly,0
@@ -9326,10 +9326,10 @@ ldraw,bricklink,name,category,colors
 42042ja,42042ja,Bionicle Krana Mask Ja,Bionicle,2
 42042vu,42042vu,Bionicle Krana Mask Vu,Bionicle,2
 4206,fabeb4,Fabuland Utensil Ladder,Fabuland,0
-42060,42060,Wedge 12 x 3 Right,Wedge,20
+42060,42060,Wedge 12 x 3 Right,Wedge,19
 42060d01,42060pb18,Wedge 12 x 3 Right with Yellow SW UCS Y-wing Wedge Pattern (Sticker) - Set 10134,"Wedge, Decorated",0
 42060pq0,42060pb17,Wedge 12 x 3 Right with Bricks and Hieroglyphs Pattern,"Wedge, Decorated",1
-42061,42061,Wedge 12 x 3 Left,Wedge,19
+42061,42061,Wedge 12 x 3 Left,Wedge,18
 42061d01,42061pb18,Wedge 12 x 3 Left with Yellow SW UCS Y-wing Wedge Pattern (Sticker) - Set 10134,"Wedge, Decorated",0
 42061pq0,42061pb17,Wedge 12 x 3 Left with Bricks and Hieroglyphs Pattern,"Wedge, Decorated",1
 4206482,43093,"Technic, Axle 1 with Pin with Friction Ridges Lengthwise",,3
@@ -9349,7 +9349,7 @@ ldraw,bricklink,name,category,colors
 4209pb02,4209pb02,String Reel 2 x 4 x 2 Holder with Red and White Life Preserver Pattern on Both Sides (Stickers) - Set 6697,String Reel / Winch,0
 421,bb0018b,Ladder 9.6cm (collapsed) 2-Piece - Top Section with 11 Rungs and 3 Stops,Ladder,2
 4210,4210,String Reel 2 x 4 x 2 Drum,,5
-4210531,2412b,"Tile, Modified 1 x 2 Grille with Bottom Groove / Lip",,32
+4210531,2412b,"Tile, Modified 1 x 2 Grille with Bottom Groove / Lip",,31
 4210633,4073,"Plate, Round 1 x 1",,14
 4210698,4349,"Minifigure, Utensil Loudhailer / Megaphone / SW Blaster",,13
 4210883,44301,Hinge Plate 1 x 2 Locking with 1 Finger On End (Undetermined Type),,1
@@ -9468,7 +9468,7 @@ ldraw,bricklink,name,category,colors
 422,422,"Plate, Modified 2 x 2 with Small Holes for Metal Axle","Plate, Modified",1
 4220,4220,Arm Grab Jaw Holder,,5
 42205,42205,Window 1 x 6 x 6 Flat Front,Window,13
-4220516,47458,"Slope, Curved 1 x 2 x 2/3 Wing End",,19
+4220516,47458,"Slope, Curved 1 x 2 x 2/3 Wing End",,18
 4220539,3049,Slope 45 2 x 1 Double / Inverted (Undetermined Underside Type),,2
 4220a,4220,Arm Grab Jaw Holder,Arm,5
 4220b,4220,Arm Grab Jaw Holder,,5
@@ -9594,7 +9594,7 @@ ldraw,bricklink,name,category,colors
 4277933,44728,Bracket 1 x 2 - 2 x 2,,36
 428,75535,"Technic, Connector Pin Round 2L without Slot (Pin Joiner Round)",,16
 42819,42819,"Door 1 x 4 x 5 Train Right, Thick Support at Bottom",Door,4
-4282,4282,Plate 2 x 16,Plate,31
+4282,4282,Plate 2 x 16,Plate,30
 4284,4284,Windscreen 2 x 4 x 2 Inverted,Windscreen,3
 4284d01,4284pb01,Windscreen 2 x 4 x 2 Inverted with Black 'POLICE' Pattern (Sticker) - Set 6384,"Windscreen, Decorated",0
 4285,4285b,Dish 6 x 6 Inverted (Radar) Webbed - Type 2 (underside attachment positions at 90 degrees),,14
@@ -9602,9 +9602,9 @@ ldraw,bricklink,name,category,colors
 4285879,4285879,"Rock Boulder, Top with Marbled Trans-Neon Orange Pattern",,0
 4285a,4285a,Dish 6 x 6 Inverted (Radar) Webbed - Type 1 (underside attachable at any position),Dish,4
 4285b,4285,Dish 6 x 6 Inverted (Radar) Webbed - (Undetermined Version),,14
-4286,4286,Slope 33 3 x 1,Slope,44
+4286,4286,Slope 33 3 x 1,Slope,43
 42862,42862,Wedge 3 x 3 Sloped Left,Wedge,16
-428621,4286,Slope 33 3 x 1,,44
+428621,4286,Slope 33 3 x 1,,43
 42862d01,42862pb005,Wedge 3 x 3 Sloped Left with Black 'Discovery' Pattern (Sticker) - Set 10283,"Wedge, Decorated",0
 42863,42863,Aircraft Fuselage Forward Bottom Angular 4 x 18 x 1 1/3 with 2 x 14 Recessed Center and 13 Holes,Aircraft,3
 42865,bb1241,"Technic, Pin with Fixed Rotatable Friction","Technic, Pin",0
@@ -9640,7 +9640,7 @@ ldraw,bricklink,name,category,colors
 4289538,48729,Bar   1L with Clip Mechanical Claw,,0
 429,bb0036,Train Brick 2 x 4 with Holder for Sliding Wheel Block,Train,0
 42908,5292c01,"Electric, Motor RC Race Buggy","Electric, Motor",1
-42918,42918,"Slope, Curved 8 x 2","Slope, Curved",17
+42918,42918,"Slope, Curved 8 x 2","Slope, Curved",16
 42918p02,42918pb07,"Slope, Curved 8 x 2 with Porsche Logo Pattern","Slope, Curved, Decorated",0
 42918pb01,42918pb01,"Slope, Curved 8 x 2 with Dark Blue Stripe Pattern","Slope, Curved, Decorated",0
 42918pb02,42918pb02,"Slope, Curved 8 x 2 with Dark Blue Diamond Mesh and Oval Pattern","Slope, Curved, Decorated",0
@@ -9759,8 +9759,8 @@ ldraw,bricklink,name,category,colors
 43702,43702,"Ball, Sports Basketball Plain",Ball,5
 43702p01,43702pb02,"Ball, Sports Basketball with Standard Black Lines Pattern",Ball,0
 43708,43708,Wedge 4 x 4 (Slope 18 Corner),Wedge,16
-43710,43710,Wedge 4 x 2 Triple Left,Wedge,27
-43711,43711,Wedge 4 x 2 Triple Right,Wedge,27
+43710,43710,Wedge 4 x 2 Triple Left,Wedge,26
+43711,43711,Wedge 4 x 2 Triple Right,Wedge,26
 43711dy0,43711pb02,Wedge 4 x 2 Triple Right with Red Dot Pattern (Sticker) - Set 7592,"Wedge, Decorated",0
 43712,43712,Wedge 6 x 4 Triple Curved,Wedge,22
 43713,43713,Wedge 6 x 4 Triple Inverted Curved,Wedge,28
@@ -9845,7 +9845,7 @@ ldraw,bricklink,name,category,colors
 44147,44147,"Bionicle Rahkshi Back Blade, 7 pointed (Guurahk)",,1
 44148,44148,Bionicle Rahkshi Leg Upper Section,Bionicle,2
 44224,44224,Technic Rotation Joint Disk with Large Pin Hole and 3L Liftarm Thick,Technic,4
-44225,44225,Technic Rotation Joint Disk with Large Pin and 3L Liftarm Thick,Technic,8
+44225,44225,Technic Rotation Joint Disk with Large Pin and 3L Liftarm Thick,Technic,7
 4423,4423,"Technic, Steering Arm 7 x 7 Wishbone","Technic, Steering",1
 44237,2456,Brick 2 x 6,,51
 4424,4424,"Container, Barrel Half Large",Container,15
@@ -9896,7 +9896,7 @@ ldraw,bricklink,name,category,colors
 44374,44374,"Technic, Liftarm, Modified Rotor Thin 3 Blade","Technic, Liftarm",1
 44375,44375,Dish 6 x 6 Inverted (Radar) Undetermined Stud Type Version),,0
 44375a,44375,Dish 6 x 6 Inverted (Radar) Undetermined Stud Type Version),,11
-44375b,44375b,Dish 6 x 6 Inverted (Radar) - Solid Studs,Dish,24
+44375b,44375b,Dish 6 x 6 Inverted (Radar) - Solid Studs,Dish,23
 44375bp02,44375bpb16,Dish 6 x 6 Inverted (Radar) - Solid Studs with Scuffed Dark Turquoise Radial Background and Red Warning Label Pattern,"Dish, Decorated",0
 44375bp03,44375bpb15,"Dish 6 x 6 Inverted (Radar) - Solid Studs with Silver and Gold Lines and Chinese Logogram '銀' and '金' (Silver, Gold) Pattern","Dish, Decorated",0
 44375bp04,44375bpb09,Dish 6 x 6 Inverted (Radar) - Solid Studs with Vintage Compass Rose Pattern,"Dish, Decorated",0
@@ -9927,7 +9927,7 @@ ldraw,bricklink,name,category,colors
 4444p07,4444p06,Panel 2 x 5 x 6 Wall with Window with Red Bricks Scattered Pattern,,0
 4444p08,4444pb04,Panel 2 x 5 x 6 Wall with Window with Window Stones and 2 Columns Pattern,"Panel, Decorated",0
 4444pb03,4444pb03,Panel 2 x 5 x 6 Wall with Window with 2 Yellow Dragons Pattern,"Panel, Decorated",0
-4445,4445,Slope 45 2 x 8,Slope,19
+4445,4445,Slope 45 2 x 8,Slope,18
 4445d01,4445pb02r,Slope 45 2 x 8 with 'SEA JET' Pattern Model Right Side (Sticker) - Set 5521,"Slope, Decorated",0
 4445d02,4445pb02l,Slope 45 2 x 8 with 'SEA JET' Pattern Model Left Side (Sticker) - Set 5521,"Slope, Decorated",0
 4446,4446,"Technic, Panel Curved #55 5 x 13 Tapered Right, Ridged","Technic, Panel",2
@@ -10168,7 +10168,7 @@ ldraw,bricklink,name,category,colors
 4536,4536,"Container, Cupboard 2 x 3 Drawer",Container,18
 45360c01,45360c01,"Technic, Gearbox 3 x 3 x 1 2/3 with Dark Gray Base","Technic, Gear",0
 4538781,64711,Wheel Hard Plastic with Small Cleats,,3
-4538782,64712,Wheel Hard Plastic with Small Cleats and Flanges,,7
+4538782,64712,Wheel Hard Plastic with Small Cleats and Flanges,,6
 453a,453a,"Window 1 x 4 x 2 with Extended Lip and Solid Studs, no Glass",Window,1
 453ac01,453ac01,"Window 1 x 4 x 2 with Extended Lip and Solid Studs, with Fixed Glass",Window,2
 453b,453b,"Window 1 x 4 x 2 with Extended Lip, no Glass",Window,0
@@ -10195,7 +10195,7 @@ ldraw,bricklink,name,category,colors
 455p01,x243px1,Baseplate 16 x 24 with Rounded Corners and Set 344 Dots Pattern,Baseplate,0
 455p02,x243px2,Baseplate 16 x 24 with Rounded Corners and Set 362/550 Dots Pattern,Baseplate,0
 4562148,85940,"Technic, Liftarm Modified 1 x 2 with Bar",,2
-45677,45677,Wedge 4 x 4 x 2/3 Triple Curved,Wedge,29
+45677,45677,Wedge 4 x 4 x 2/3 Triple Curved,Wedge,28
 45677d01,45677pb041,Wedge 4 x 4 x 2/3 Triple Curved with Maersk Star Logo Pattern (Sticker) - Set 10219,"Wedge, Decorated",0
 45677d02,45677pb038,Wedge 4 x 4 x 2/3 Triple Curved with Train Logo Yellow on Dark Green Background Pattern (Sticker) - Set 10133,"Wedge, Decorated",0
 45677d03,45677pb001,Wedge 4 x 4 x 2/3 Triple Curved with Fire Logo Badge and 2 White Chevrons Pattern (Sticker) - Sets 7208 / 7942 / 7945,"Wedge, Decorated",0
@@ -10330,7 +10330,7 @@ ldraw,bricklink,name,category,colors
 46834,46834,"Technic, Clutch Connector Female / Outside","Technic, Connector",1
 46835,46835,"Technic, Clutch Connector Male / Inside","Technic, Connector",1
 4688,4866,Windscreen 3 x 4 x 1 1/3 with 6 Studs on Top,,1
-46882,46882,"Technic, Panel Car Mudguard 15 x 2 x 7","Technic, Panel",3
+46882,46882,"Technic, Panel Car Mudguard 15 x 2 x 7","Technic, Panel",2
 46882pb01,46882pb01,"Technic, Panel Car Mudguard 15 x 2 x 7 with Black Stripe Pattern","Technic, Panel, Decorated",0
 46891,46891,Technic Digger Bucket 10 x 19,Technic,1
 469,30261,Road Sign 2 x 2 Round with Clip,,4
@@ -10477,8 +10477,8 @@ ldraw,bricklink,name,category,colors
 47454,47454,"Technic, Brick Modified 2 x 3 with Pin Holes, Rotation Joint Ball Half Horizontal, and Rotation Joint Socket","Technic, Brick",11
 47455,47455,Technic Rotation Joint Ball Loop with 2 Perpendicular Pins with Friction,Technic,15
 47456,47456,"Slope, Curved 3 x 2 x 2/3 with 2 Studs, Wing End","Slope, Curved",26
-47457,47457,"Slope, Curved 2 x 2 x 2/3 with 2 Studs and Curved Sides","Slope, Curved",24
-47458,47458,"Slope, Curved 1 x 2 x 2/3 Wing End","Slope, Curved",19
+47457,47457,"Slope, Curved 2 x 2 x 2/3 with 2 Studs and Curved Sides","Slope, Curved",23
+47458,47458,"Slope, Curved 1 x 2 x 2/3 Wing End","Slope, Curved",18
 4746,4746,"Tail 4 x 2 x 2, Aircraft Rocket Engine",Tail,4
 4747,4747,"Brick, Modified 2 x 4 with Coupling, Male","Brick, Modified",2
 47474,47474,Large Figure Shield Holder with Axle,Large Figure Part,9
@@ -10532,7 +10532,7 @@ ldraw,bricklink,name,category,colors
 47755,47755,Wedge 4 x 3 Open with Cutout and 4 Studs,Wedge,16
 47757,47757,Wedge 4 x 4 x 1 1/3 Pyramid Center,Wedge,7
 47758,47758,Windscreen 4 x 4 x 1 Roll Cage,Windscreen,5
-47759,47759,Wedge 2 x 4 Triple,Wedge,19
+47759,47759,Wedge 2 x 4 Triple,Wedge,18
 47759pm0,47759pb09,Wedge 2 x 4 Triple with Spider Eyes Pattern,"Wedge, Decorated",0
 47759pq1,47759pb07,Wedge 2 x 4 Triple with Brick Pattern (Scarab Thorax),"Wedge, Decorated",0
 4779,4779,Fabuland Ferris Wheel Axle Half,Fabuland,1
@@ -10603,8 +10603,8 @@ ldraw,bricklink,name,category,colors
 48201,48201,Quatro Brick 2 x 4,,3
 48202,48202,Technic Rubber Bumper 2 x 18 with Angled Ends,Technic,1
 48203,48203,Technic Rubber Bumper 2 x 6 with Angled Ends,Technic,1
-48205,48205,"Wedge, Plate 6 x 4 Right","Wedge, Plate",20
-48208,48208,"Wedge, Plate 6 x 4 Left","Wedge, Plate",20
+48205,48205,"Wedge, Plate 6 x 4 Right","Wedge, Plate",19
+48208,48208,"Wedge, Plate 6 x 4 Left","Wedge, Plate",19
 4823c01,4823c01,Fabuland Building Wall 2 x 10 x 7 with Blue Bay Window,Fabuland,1
 4823c02,4823c02,Fabuland Building Wall 2 x 10 x 7 with Yellow Bay Window,Fabuland,1
 48245,48245,"Container, Bucket 2 x 2 x 2 with Handle Holes",Container,3
@@ -10761,7 +10761,7 @@ ldraw,bricklink,name,category,colors
 48989,48989,"Technic, Pin Connector Perpendicular 3L with 4 Pins","Technic, Connector",2
 48995,48995,"Tile, Modified 3 x 2 with Hole","Tile, Modified",1
 48995pt1,48995pb02,"Tile, Modified 3 x 2 with Hole with LEGO Logo Large Pattern","Tile, Modified, Decorated",0
-49097,49097,"Vehicle, Mudguard 3 x 3 x 1 with Arch Round","Vehicle, Mudguard",19
+49097,49097,"Vehicle, Mudguard 3 x 3 x 1 with Arch Round","Vehicle, Mudguard",18
 49098,49098,Wheel Cover 10 Spoke Recessed,"Wheel, Accessory",1
 49098py0,49098pb01,Wheel Cover 10 Spoke Recessed with Yellow 'CHEVROLET CAMARO' Pattern,"Wheel, Accessory",0
 49098py1,49098pb02,"Wheel Cover 10 Spoke Recessed with Blue 'PIRELLI' and 'Cinturato' Logo, Dark Turquoise Circle Pattern","Wheel, Accessory",0
@@ -10788,7 +10788,7 @@ ldraw,bricklink,name,category,colors
 49295c02,49295pb02,Wheel 88 x 14 Technic with Axle Hole and 28 Pin Holes with Molded Black Hard Rubber Tire Pattern,Wheel,0
 49295p03,49295pb03,Wheel 88 x 14 Technic with Axle Hole and 28 Pin Holes with Molded Red Hard Rubber Tire Pattern,Wheel,0
 49307,49307,"Slope, Curved 1 x 1 x 2/3 Double","Slope, Curved",31
-49308,49308,"Brick, Round 3 x 3 x 1 1/3 Dome Top - Open Stud","Brick, Round",15
+49308,49308,"Brick, Round 3 x 3 x 1 1/3 Dome Top - Open Stud","Brick, Round",16
 49308p01,49308pb001,"Brick, Round 3 x 3 x 1 1/3 Dome Top - Open Stud with Face with Smile, Eyes with Pupils, Pink Cheeks and Topping Pattern","Brick, Round, Decorated",0
 49309,49309,Cone 2 x 2 x 2 Inverted,Cone,5
 49309p01,49309pb001,Cone 2 x 2 x 2 Inverted with Waffle Pattern,"Cone, Decorated",1
@@ -10843,7 +10843,7 @@ ldraw,bricklink,name,category,colors
 49743c01-bl,49743c01,"Projectile Launcher, 2 x 6 x 1 1/3 Spring Shooter with Light Bluish Gray Top",Projectile Launcher,1
 497c01,7039b,Wheel with 4 Studs and Axle Cam for Motor,Wheel,1
 498,x486,Tread with 30 Treads,"Wheel, Tire & Tread",1
-49803,49308,"Brick, Round 3 x 3 x 1 1/3 Dome Top - Open Stud",,15
+49803,49308,"Brick, Round 3 x 3 x 1 1/3 Dome Top - Open Stud",,16
 4986,4986,Cockpit Front 4 x 5 x 2 with Bar Handle and Studs on Sides,Cockpit,3
 4987,4987,"Minifigure Backpack Space Utility with 2 Front Studs, 2 Bar Handles, and 6 Back Studs","Minifigure, Body Wear",2
 4988,4988,Minifigure Costume Flying Saucer,"Minifigure, Body Wear",0
@@ -10908,16 +10908,16 @@ ldraw,bricklink,name,category,colors
 50901,50901,Bionicle Rhotuka Connector Block 1 x 3 x 2 with 2 Pins and Axle Hole,Bionicle,2
 50903,x1307,Bionicle Gear 8 Tooth with Rhotuka Spinner Rod 2.5L,Bionicle,2
 50904,50904,"Bionicle Visorak Torso, Liftarm 8 x 3 x 2",Bionicle,1
-5091,5091,"Tile, Modified 1 x 2 Wedge Left","Tile, Modified",30
+5091,5091,"Tile, Modified 1 x 2 Wedge Left","Tile, Modified",29
 50914,50914,Bionicle Visorak Fang with 2 Pin Holes (Suukorak),Bionicle,3
-5092,5092,"Tile, Modified 1 x 2 Wedge Right","Tile, Modified",31
+5092,5092,"Tile, Modified 1 x 2 Wedge Right","Tile, Modified",30
 50920,50920,Bionicle Toa Hordika Leg Section,Bionicle,6
 50921,50921,Bionicle Toa Hordika Arm Lower Section with Ball Joint,Bionicle,8
 50922,50922,Bionicle Toa Hordika Arm Upper Section with Ball Joint,Bionicle,6
 50923,50923,"Technic, Liftarm, Modified Ball Joint Angled 1 x 2","Technic, Liftarm",4
 50925,50925,Bionicle Toa Hordika Torso,Bionicle,6
 5093,5093,Wedge 2 x 2 x 2/3 Right,Wedge,24
-50943,50943,"Vehicle, Air Scoop Engine Top 2 x 2",Vehicle,7
+50943,50943,"Vehicle, Air Scoop Engine Top 2 x 2",Vehicle,6
 50944,50944,Wheel 11mm D. x 6mm with 5 Spokes,Wheel,2
 50944c01,50944c01,Wheel 11mm D. x 6mm with 5 Spokes with Black Tire 14mm D. x 6mm Solid Smooth (50944 / 50945),Wheel & Tire Assembly,0
 50944p01c01,50944pb01c01,Wheel 11mm D. x 6mm with 5 Spokes with Silver Outline Pattern with Black Tire 14mm D. x 6mm Solid Smooth (50944pb01 / 50945),Wheel & Tire Assembly,0
@@ -11176,8 +11176,8 @@ ldraw,bricklink,name,category,colors
 54101,54101,"Boat, Hull Unitary 51 x 12 x 6, Top",Boat,2
 54120,54120,Tire 94.8 x 44 R Balloon,"Wheel, Tire & Tread",1
 54125,,Dino Mutant Lizard with Blue Specks on Back,,1
-5414,5414,Wedge 4 x 1 Right,Wedge,17
-5415,5415,Wedge 4 x 1 Left,Wedge,16
+5414,5414,Wedge 4 x 1 Right,Wedge,16
+5415,5415,Wedge 4 x 1 Left,Wedge,15
 54195,4738a,Container Treasure Chest Bottom - Slots in Back,,4
 54196,2654,"Plate, Round 2 x 2 with Rounded Bottom (Boat Stud)",,30
 54200,54200,Slope 30 1 x 1 x 2/3,Slope,40
@@ -11245,7 +11245,7 @@ ldraw,bricklink,name,category,colors
 54872p01,54872pb01,"Minifigure, Head, Modified SpongeBob SquarePants with Open Mouth Smile Small Pattern","Minifigure, Head, Modified",0
 54872p02,54872pb02,"Minifigure, Head, Modified SpongeBob SquarePants with Open Downturned Mouth Pattern","Minifigure, Head, Modified",0
 54872p09,54872pb09,"Minifigure, Head, Modified SpongeBob SquarePants with Super Hero Pattern","Minifigure, Head, Modified",0
-5489,5489,"Brick, Round 2 x 2 D. 45 degrees Elbow (27.7mm Standing Height)","Brick, Round",22
+5489,5489,"Brick, Round 2 x 2 D. 45 degrees Elbow (27.7mm Standing Height)","Brick, Round",21
 5491,5491,"Minifigure, Utensil Stroller / Baby Carriage Seat","Minifigure, Utensil",1
 5492,-5492,,,0
 54923c02d01,54092c02pb02,"Aircraft Fuselage Forward Top Curved 8 x 16 x 5 with Trans-Light Blue Glass with Orange, Light Bluish Gray, White Pattern on Both Sides (Stickers) - Set 60104","Aircraft, Decorated",0
@@ -11307,7 +11307,7 @@ ldraw,bricklink,name,category,colors
 55969,55969,"Electric Sensor, Light - NXT",Electric,1
 55976,55976,Tire 56 x 26 Balloon,"Wheel, Tire & Tread",1
 55978,55978,Tire 37 x 22 ZR,"Wheel, Tire & Tread",1
-55981,55981,"Wheel 18mm D. x 14mm with Pin Hole, Fake Bolts and Shallow Spokes",Wheel,12
+55981,55981,"Wheel 18mm D. x 14mm with Pin Hole, Fake Bolts and Shallow Spokes",Wheel,11
 55981c01,55981c05,"Wheel 18mm D. x 14mm with Pin Hole, Fake Bolts and Shallow Spokes with Black Tire 30.4 x 14 Offset Tread - Band Around Center of Tread (55981 / 92402)",Wheel & Tire Assembly,1
 55981c02,55981c07,"Wheel 18mm D. x 14mm with Pin Hole, Fake Bolts and Shallow Spokes with Black Tire 37 x 14 (55981 / 35578)",Wheel & Tire Assembly,0
 55981c03,55981c03,"Wheel 18mm D. x 14mm with Pin Hole, Fake Bolts and Shallow Spokes with Black Tire 30.4 x 14 Solid (55981 / 58090)",Wheel & Tire Assembly,0
@@ -11496,7 +11496,7 @@ ldraw,bricklink,name,category,colors
 58381,58381,Door 1 x 3 x 4 Left - Open Between Top and Bottom Hinge,Door,6
 58381pb06,58381pb06,Door 1 x 3 x 4 Left - Open Between Top and Bottom Hinge with Clipboard Pattern (Sticker) - Set 3315,"Door, Decorated",0
 584,x1299,Technic Bush with Lip,Technic,1
-5841,5841,"Slope, Curved 2 x 1 with Recessed Stud","Slope, Curved",34
+5841,5841,"Slope, Curved 2 x 1 with Recessed Stud","Slope, Curved",35
 5842,5842,"Slope, Curved 2 x 4 with 4 Recessed Studs","Slope, Curved",13
 5843,5843,Arch 1 x 3 x 1 2/3 Curved Top,Arch,19
 5844,5844,Arch 1 x 4 x 2 1/3 Curved Top,Arch,4
@@ -11574,7 +11574,7 @@ ldraw,bricklink,name,category,colors
 593c01,bb0045c02,Electric 4.5V Battery Box 6 x 11 x 3 Type II for 1-Prong & 2-Prong Connectors,"Electric, Battery Box",0
 59426,32209,"Technic, Axle 5.5 with Stop",,1
 59443,6538c,"Technic, Axle Connector 2L (Smooth with x Hole + Orientation)","Technic, Connector",20
-59489,3069b,Tile 1 x 2 with Groove,,50
+59489,3069b,Tile 1 x 2 with Groove,,51
 5950,-5950,Windscreen 8 x 8 Bubble Canopy with Dual 2 Fingers,,0
 59521,59521,Wheel Hard Plastic Spoked Giant Thin (160mm D. x 28mm),Wheel,2
 59595,-59595,,,0
@@ -11624,7 +11624,7 @@ ldraw,bricklink,name,category,colors
 602,32000,"Technic, Brick 1 x 2 with Holes",,24
 6020,6020,Bar 7 x 3 with 2 U Clips (Ladder),Bar,16
 60208,60208,Wheel 31mm D. x 15mm Technic,Wheel,16
-6021,6021,"Boat, Canoe",Boat,6
+6021,6021,"Boat, Canoe",Boat,5
 60212,60212,"Vehicle, Mudguard 2 x 4 with Arch Studded with Hole","Vehicle, Mudguard",17
 60219,60219,"Slope, Inverted 45 6 x 4 Double with 4 x 4 Cutout and 3 Holes","Slope, Inverted",18
 6022422,75902pb02,"Minifigure, Shield Round with Rounded Front with Dark Green and Gold Rohan Pattern",,0
@@ -11634,7 +11634,7 @@ ldraw,bricklink,name,category,colors
 6025,6025,"Minifigure, Hair Islander","Minifigure, Hair",1
 6026,6026,Alligator / Crocodile Body with 4 Bottom Teeth,"Animal, Body Part",6
 6026c01,6026c01,Alligator / Crocodile with 8 Teeth,"Animal, Water",0
-6027,6027,Alligator / Crocodile / Dragon Jaw Upper / Dinosaur Tongue,"Animal, Body Part",10
+6027,6027,Alligator / Crocodile / Dragon Jaw Upper / Dinosaur Tongue,"Animal, Body Part",9
 6028,6028,Alligator / Crocodile / Dragon / Dinosaur Tail,"Animal, Body Part",7
 60288,57587,"Brick, Round 7 x 7 x 4 Dome Top",,3
 6029a,6029a,"Animal, Body Part Cattle Horns",,0
@@ -11667,7 +11667,7 @@ ldraw,bricklink,name,category,colors
 60470a,60470,"Plate, Modified 1 x 2 with 2 U Clips (Horizontal Grip)","Plate, Modified",6
 60470b,60470b,"Plate, Modified 1 x 2 with 2 Open O Clips (Horizontal Grip)","Plate, Modified",14
 60471,60471,Hinge Plate 1 x 2 Locking with 2 Fingers on Side,Hinge,5
-60474,60474,"Plate, Round 4 x 4 with Hole","Plate, Round",29
+60474,60474,"Plate, Round 4 x 4 with Hole","Plate, Round",28
 60475,30241,"Brick, Modified 1 x 1 with Open U Clip (Vertical Grip) - Solid Stud",,2
 60475a,60475,"Brick, Modified 1 x 1 with U Clip (Vertical Grip) - Solid Stud","Brick, Modified",8
 60475b,60475b,"Brick, Modified 1 x 1 with Open O Clip (Vertical Grip) - Hollow Stud","Brick, Modified",16
@@ -11684,7 +11684,7 @@ ldraw,bricklink,name,category,colors
 60481ady0,60481pb016r,"Slope 65 2 x 1 x 2 with Ford Logo, White '66' in Green Rectangle, Exhaust and Air Vent Pattern Model Right Side (Stickers) - Set 75881","Slope, Decorated",0
 60481ady1,60481pb016l,"Slope 65 2 x 1 x 2 with Ford Logo, White '66' in Green Rectangle, Exhaust and Air Vent Pattern Model Left Side (Stickers) - Set 75881","Slope, Decorated",0
 60481ap01,60481pb007,Slope 65 2 x 1 x 2 with Silver Star and Bright Light Blue Triangle Pattern on Both Sides (Disco Kitty Shoe),"Slope, Decorated",0
-60483,60483,"Technic, Liftarm Thick 1 x 2 - Axle Hole","Technic, Liftarm",19
+60483,60483,"Technic, Liftarm Thick 1 x 2 - Axle Hole","Technic, Liftarm",18
 60483pb007,60483pb007,"Technic, Liftarm Thick 1 x 2 - Axle Hole with Lamborghini Bull Logo Pattern","Technic, Liftarm, Decorated",0
 60483pt2,60483pb010,"Technic, Liftarm Thick 1 x 2 - Axle Hole with Silver 'P1' Pattern","Technic, Liftarm, Decorated",0
 60484,60484,"Technic, Liftarm, Modified T-Shape Thick 3 x 3","Technic, Liftarm",9
@@ -11925,7 +11925,7 @@ ldraw,bricklink,name,category,colors
 6104,6104,"Wedge, Plate 8 x 8 with 3 x 4 Cutout","Wedge, Plate",10
 6105,6105,Door 1 x 4 x 8 Curved Top,Door,3
 61054,61054,"Technic, Axle and Pin Connector 2 x 7 with 2 Ball Joint Sockets, Squared Ends, Closed Side Axle Holes","Technic, Connector",8
-6106,6106,"Wedge, Plate 6 x 6 Cut Corner","Wedge, Plate",28
+6106,6106,"Wedge, Plate 6 x 6 Cut Corner","Wedge, Plate",27
 61068,61068,"Slope, Curved 2 x 4 x 2/3 without Bottom Tubes","Slope, Curved",9
 61068p01,61068pb001,"Slope, Curved 2 x 4 x 2/3 without Bottom Tubes with 2 Gold Stripes Pattern","Slope, Curved, Decorated",1
 61069,61069,"Technic, Panel Engine Block Half / Side Intake","Technic, Panel",9
@@ -12005,8 +12005,8 @@ ldraw,bricklink,name,category,colors
 61406p0b,61406pb11,"Plate, Modified 1 x 2 with Angular Extension with Molded Flexible Rubber Dark Bluish Gray Tip Pattern","Plate, Modified",0
 61406pb06,61406pb06,"Plate, Modified 1 x 2 with Angular Extension with Molded Flexible Rubber Sand Green Tip Pattern","Plate, Modified",1
 61406pb07,61406pb07,"Plate, Modified 1 x 2 with Angular Extension with Molded Flexible Rubber White Tip Pattern","Plate, Modified",0
-61409,61409,Slope 18 2 x 1 x 2/3 with Grille,,25
-61409b,61409,Slope 18 2 x 1 x 2/3 with Grille,Slope,25
+61409,61409,Slope 18 2 x 1 x 2/3 with Grille,,24
+61409b,61409,Slope 18 2 x 1 x 2/3 with Grille,Slope,24
 6141,4073,"Plate, Round 1 x 1","Plate, Round",42
 6141p01,4073,"Plate, Round 1 x 1",,14
 6143,3941,"Brick, Round 2 x 2 with Axle Hole",,40
@@ -12175,7 +12175,7 @@ ldraw,bricklink,name,category,colors
 6223,3003,Brick 2 x 2,,26
 62233-f2,60932cx1,"Projectile Launcher, Bionicle Weapon Midak (Zamor) Skyblaster with Black Housing",Projectile Launcher,0
 6225,3023,Plate 1 x 2,,60
-6227,3039,Slope 45 2 x 2,,42
+6227,3039,Slope 45 2 x 2,,41
 6228,6228b,Dolphin with Normal Connection and Axle Holder,"Animal, Water",2
 6228a,bb0022m2,"Electric, Motor 12V Type 2 for 2-prong connectors with Middle Pin","Electric, Motor",1
 6229,bb0164,"Plate, Modified 2 x 2 Thin with Dual Wheels Holder - Solid Pins",Aircraft,0
@@ -12189,7 +12189,7 @@ ldraw,bricklink,name,category,colors
 6236,6236,Window 2 x 6 x 6 FreeStyle,Window,2
 62360,62360,Windscreen 3 x 6 x 1 Curved,Windscreen,11
 62360p01,62360pb001,Windscreen 3 x 6 x 1 Curved with Black Window Outline Pattern,"Windscreen, Decorated",0
-62361,62361,"Vehicle, Mudguard 1 1/2 x 6 x 1 with Arch","Vehicle, Mudguard",25
+62361,62361,"Vehicle, Mudguard 1 1/2 x 6 x 1 with Arch","Vehicle, Mudguard",24
 6237,601,Pane for Window 2 x 6 x 6 FreeStyle,"Window, Glass & Shutter",2
 6238,6238,Windscreen 4 x 4 x 1,,6
 62386,62386,"Bionicle Foot with Ball Joint Socket 3 x 6 x 2 1/3, Squared Tops",Bionicle,8
@@ -12208,7 +12208,7 @@ ldraw,bricklink,name,category,colors
 62408,62408,Minifigure Armor Breastplate with Shoulder Pads - Troll Warrior (Orc),"Minifigure, Body Wear",0
 6245,6245,Elephant Head 6 x 7 x 4 with Eyes Pattern,,0
 6245p01,6245px1,Elephant Head Brick with Black and White Eyes Pattern,"Animal, Body Part, Decorated",0
-62462,62462,"Technic, Pin Connector Round 2L with Slot (Pin Joiner Round)","Technic, Connector",22
+62462,62462,"Technic, Pin Connector Round 2L with Slot (Pin Joiner Round)","Technic, Connector",21
 6246a,6246a,"Minifigure, Utensil Tool Screwdriver - Narrow Head - 6-Rib Handle",,2
 6246b,6246b,"Minifigure, Utensil Tool Cross Pein Hammer - 6-Rib Handle",,2
 6246c,6246c,"Minifigure, Utensil Tool Power Drill",,2
@@ -12228,7 +12228,7 @@ ldraw,bricklink,name,category,colors
 6252,6252,Belville Umbrella Top with Rounded Bottom Flaps,,4
 62520,62520,"Technic, Universal Joint 3L, End","Technic, Connector",1
 6253,6253,Belville Umbrella Stand with Square Base,Belville,3
-62531,62531,"Technic, Panel Curved 11 x 3 with 2 Pin Holes through Panel Surface","Technic, Panel",17
+62531,62531,"Technic, Panel Curved 11 x 3 with 2 Pin Holes through Panel Surface","Technic, Panel",16
 62537,,minifig jester's cap,,1
 62537p01,62537pb02,"Minifigure, Headgear Jester's Cap with Blue Left Side and Blue Pom Pom Right Side Pattern","Minifigure, Headgear",0
 62537p02,62537pb01,"Minifigure, Headgear Jester's Cap with Black Left Side and White Pom Poms Pattern","Minifigure, Headgear",0
@@ -12271,9 +12271,9 @@ ldraw,bricklink,name,category,colors
 62712,62712,"Technic, Brick Modified 2 x 2 with Ball Socket and Axle Hole - Angled Forks with Flat Ends and Open Sides","Technic, Brick",5
 6272,bb1381c01,Electric RC Race Buggy Battery / Receiver Unit with Auxiliary Output,Electric,0
 62743,62743,"Plate, Modified 2 x 16 with Angled Side Extensions and Axle Hole (Rotor Blade)","Plate, Modified",7
-62791,62791,"Boat, Hull Unitary 51 x 12 x 6 with Side Bulges, Base",Boat,7
+62791,62791,"Boat, Hull Unitary 51 x 12 x 6 with Side Bulges, Base",Boat,6
 62792,-62792,Boat Hull Floating 51 x 12 with Side Bulges with Dark Bluish Grey Deck Pattern,,0
-62792p01,62791c01,"Boat, Hull Unitary 51 x 12 x 6 with Side Bulges with Dark Bluish Gray Top (62791 / 54101)",Boat,7
+62792p01,62791c01,"Boat, Hull Unitary 51 x 12 x 6 with Side Bulges with Dark Bluish Gray Top (62791 / 54101)",Boat,6
 62808,40359a,"Minifigure, Utensil Key","Minifigure, Utensil",4
 62809c01,40359,"Minifigure, Utensil Keys, 2 on Sprue","Minifigure, Utensil",1
 62810,62810,"Minifigure, Hair Short Tousled with Side Part","Minifigure, Hair",9
@@ -12339,20 +12339,20 @@ ldraw,bricklink,name,category,colors
 63208,-63208,,,0
 63208p91,973pb1652c02,Torso Space Classic Moon with Simulated Wear Pattern / Blue Arm Left / Blue Hand Left / Pearl Dark Gray Mechanical Arm Right / Black Claw Right,"Minifigure, Torso Assembly, Decor.",0
 63278,50950,"Slope, Curved 3 x 1",,38
-63286,3069b,Tile 1 x 2 with Groove,,50
+63286,3069b,Tile 1 x 2 with Groove,,51
 63290,54200,Slope 30 1 x 1 x 2/3,,40
 633,633,Conveyor Belt Inclined Frame,Conveyor,0
 6331,6331,"Brick, Round 1 x 1 with 3 Diagonal Bars","Brick, Round",4
-63322,3008,Brick 1 x 8,,45
-63324,6636,Tile 1 x 6,,47
-63325,2420,Plate 2 x 2 Corner,,39
+63322,3008,Brick 1 x 8,,44
+63324,6636,Tile 1 x 6,,46
+63325,2420,Plate 2 x 2 Corner,,38
 63326,3024,Plate 1 x 1,,57
 63327,3068b,Tile 2 x 2 with Groove,,47
 6333,-6333,,,0
-63330,41769,"Wedge, Plate 4 x 2 Right",,36
-63333,41770,"Wedge, Plate 4 x 2 Left",,36
+63330,41769,"Wedge, Plate 4 x 2 Right",,35
+63333,41770,"Wedge, Plate 4 x 2 Left",,35
 6333p01,6333pb01,"Bird, Parrot Cockatoo with Yellow Crest and Cheeks, Black Eyes and Beak Pattern","Animal, Air",0
-63341,3039,Slope 45 2 x 2,,42
+63341,3039,Slope 45 2 x 2,,41
 634,634,Conveyor Belt Inclined 12 Tread Links,Conveyor,0
 63417,3942b,Cone 2 x 2 x 2 - Blocked Open Stud,Cone,5
 6348,6348,Bicycle Frame with Clip for Handlebars,Riding Cycle,2
@@ -12364,7 +12364,7 @@ ldraw,bricklink,name,category,colors
 6361,6361,Duplo Airport Tower Glass Enclosure,,0
 637,637,Conveyor Belt Inclined Stand,Conveyor,0
 6377,6377,"Duplo, Train Track Straight (short)",,3
-63864,63864,Tile 1 x 3,Tile,41
+63864,63864,Tile 1 x 3,Tile,40
 63864d01,63864pb175,Tile 1 x 3 with 'HEMI' on Red Background Pattern (Sticker) - Set 75893,"Tile, Decorated",0
 63864d03,63864pb076,Tile 1 x 3 with Black 'ONE WAY' in White Arrow on Blue Background Pattern (Sticker) - Set 75827,"Tile, Decorated",0
 63864d06,63864pb136r,"Tile 1 x 3 with 'Santander', 'WEICHAI' and Ferrari Logo Pattern Model Right Side (Sticker) - Set 75879","Tile, Decorated",0
@@ -12436,7 +12436,7 @@ ldraw,bricklink,name,category,colors
 64276,64276,"Technic, Liftarm, Modified Ball Joint Straight 1 x 2 with 1 Hole in Ball","Technic, Liftarm",3
 64288,4589b,Cone 1 x 1 with Top Groove,,6
 64289,40490,"Technic, Liftarm Thick 1 x 9",,22
-64290,32525,"Technic, Liftarm Thick 1 x 11",,26
+64290,32525,"Technic, Liftarm Thick 1 x 11",,25
 64292,64292,Bionicle Shin / Ankle Guard,Bionicle,4
 64296,64296,Bionicle Toa Webbed Fin Armor,Bionicle,3
 64297,64297,Bionicle Weapon Glatorian Flame Sword,Bionicle,0
@@ -12499,7 +12499,7 @@ ldraw,bricklink,name,category,colors
 646cc01,646,Window 1 x 6 x 2 with Shutters,Window,2
 647,,roadsign square,,1
 64711,64711,Wheel Hard Plastic with Small Cleats,Wheel,3
-64712,64712,Wheel Hard Plastic with Small Cleats and Flanges,Wheel,7
+64712,64712,Wheel Hard Plastic with Small Cleats and Flanges,Wheel,6
 64713,64713,Cone Spiral Jagged - Step Drill,Cone,5
 64727,64727,"Minifigure, Weapon Sword, Spike Flexible 3.5L with Bar End","Minifigure, Weapon",16
 64728,64728,"Minifigure, Utensil Dynamite Sticks Bundle","Minifigure, Utensil",1
@@ -12507,7 +12507,7 @@ ldraw,bricklink,name,category,colors
 6475,6475,"Duplo, Baseplate 16 x 24",,3
 64776,64776pb01,Die Cube with Molded Hard Plastic Red 2 x 2 Studs Pattern on All Sides - Flexible Rubber,"Accessory, Human Tool",0
 64781,64781,"Technic, Gear Rack 1 x 13 with Axle and Pin Holes","Technic, Gear",1
-64782,64782,"Technic, Panel Plate 5 x 11 x 1","Technic, Panel",18
+64782,64782,"Technic, Panel Plate 5 x 11 x 1","Technic, Panel",17
 64796,64796,"Arm Mechanical, Super Battle Droid with Blaster End","Minifigure, Body Part",0
 64798,64798,"Minifigure, Hair Swept Back with Widow's Peak","Minifigure, Hair",9
 64799,64799,"Plate, Modified 4 x 4 with 2 x 2 Open Center","Plate, Modified",12
@@ -12516,12 +12516,12 @@ ldraw,bricklink,name,category,colors
 64802,64802,Minifigure Jet Pack with Nozzles,"Minifigure, Body Wear",4
 64807,64807,"Minifigure, Hair Female Short, Braided on Sides, Hole on Top","Minifigure, Hair",9
 64847,64847,"Cattle Horn, Short","Animal, Body Part",11
-64867,64867,Wedge 4 x 4 Fractured Polygon Top,Wedge,9
+64867,64867,Wedge 4 x 4 Fractured Polygon Top,Wedge,8
 64867p01,64867pb01,Wedge 4 x 4 Fractured Polygon Top with Dark Bluish Gray Facets Pattern,"Wedge, Decorated",0
 64867p02,64867pb02,Wedge 4 x 4 Fractured Polygon Top with Black Facets Pattern,"Wedge, Decorated",0
 64867pb03,64867pb03,Wedge 4 x 4 Fractured Polygon Top with Gold Facets Pattern,"Wedge, Decorated",0
 64867pb04,64867pb04,Wedge 4 x 4 Fractured Polygon Top with Light Bluish Gray Facets Pattern,"Wedge, Decorated",0
-64871,32278,"Technic, Liftarm Thick 1 x 15",,27
+64871,32278,"Technic, Liftarm Thick 1 x 15",,26
 64892,64892,"Electric Sensor, Color - NXT2",Electric,1
 649,649,Road Sign Triangle,"Road Sign, Decorated",0
 6490,6490,"Duplo, Plate 8 x 16",,22
@@ -12563,7 +12563,7 @@ ldraw,bricklink,name,category,colors
 653,653,Hinge Brick 1 x 8 Female,Hinge,0
 6536,6536,"Technic, Axle and Pin Connector Perpendicular","Technic, Connector",25
 6538,6538a,"Technic, Connector Axle 2L (Ridged with + Hole + Orientation)",,1
-65384c01,65384,"Minifigure Cape Cloth, Straight Sides - Traditional Starched Fabric","Minifigure, Body Wear",5
+65384c01,65384,"Minifigure Cape Cloth, Straight Sides - Traditional Starched Fabric","Minifigure, Body Wear",4
 6538a,6538,"Technic, Connector Axle 2L (Ridged Undetermined Type)",,1
 6538b,6538b,"Technic, Axle Connector 2L (Ridged with x Hole x Orientation)","Technic, Connector",16
 6539,6539,Technic Driving Ring 2L with 4 Teeth,Technic,2
@@ -12648,7 +12648,7 @@ ldraw,bricklink,name,category,colors
 65783,65783,"Panel 10 x 4 x 13 Curved Tapered with Handle at Each End, 4 Studs On Side",Panel,5
 6579,6579,Tire 43.2 x 28 S Balloon Small,"Wheel, Tire & Tread",1
 6580,6580,Wheel 43.2 x 28 Balloon Small,Wheel,7
-65803,65803,"Technic, Brick 16 x 16 x 1 1/3 with Holes","Technic, Brick",7
+65803,65803,"Technic, Brick 16 x 16 x 1 1/3 with Holes","Technic, Brick",6
 6580a,6580a,Wheel 43.2 x 28 Balloon Small with Axle Hole (+ Shape),Wheel,2
 6580bc01,6580ac01,Wheel 43.2 x 28 Balloon Small with Axle Hole (+ Shape) with Black Tire 43.2 x 28 S Balloon Small (6580a / 6579),Wheel & Tire Assembly,0
 6580c01,6580c01,Wheel 43.2 x 28 Balloon Small with Black Tire 43.2 x 28 S Balloon Small (6580 / 6579),Wheel & Tire Assembly,0
@@ -12696,8 +12696,8 @@ ldraw,bricklink,name,category,colors
 6630,6630,"Technic, Gear Rack 1 x 8 with Holes","Technic, Gear",10
 6631,6631,Technic Changeover Plate,Technic,2
 6632,6632,"Technic, Liftarm Thin 1 x 3 - Axle Holes","Technic, Liftarm",22
-6636,6636,Tile 1 x 6,Tile,47
-663626,6636,Tile 1 x 6,,47
+6636,6636,Tile 1 x 6,Tile,46
+663626,6636,Tile 1 x 6,,46
 6636d01,6636pb307,Tile 1 x 6 with Red Rectangle on Black Background Pattern (Sticker) - Set 75893,"Tile, Decorated",0
 6636d02,6636pb191,Tile 1 x 6 with 'BRICKSTON' on Black Background Pattern (Sticker) - Set 10258,"Tile, Decorated",0
 6636d03,6636pb165,Tile 1 x 6 with 'MKIII 42055' on Dark Blue and Yellow Stripe Pattern (Sticker) - Set 42055,"Tile, Decorated",0
@@ -12991,7 +12991,7 @@ ldraw,bricklink,name,category,colors
 69947p01,69947pb01,"Minifigure, Utensil Musical Instrument, Violin with Silver Strings and Black Fingerboard, F-holes, and Chin Rest Pattern","Minifigure, Utensil, Decorated",0
 69948,69948,Minifigure Wings Insect Beetle with Neck Hole,"Minifigure, Body Wear",1
 69949,69949,Minifigure Costume Tail Bird Feathers,"Minifigure, Body Wear",1
-69958,69958,"Brick, Modified 16 x 16 x 2/3 with 1 x 4 and 2 x 4 Indentations","Brick, Modified",4
+69958,69958,"Brick, Modified 16 x 16 x 2/3 with 1 x 4 and 2 x 4 Indentations","Brick, Modified",3
 69963,69963,"Vehicle, Base 2 x 4 with Suspension","Vehicle, Base",1
 69964,69964,"Vehicle, Axle Flattened with Cutout and Wheels Holders",Vehicle,1
 69969,-235145,"Micro Doll, Body with Molded Magenta Short Layered Dress and Shoes and Printed Dark Turquoise Shirt, Gold Sparkles and Sash with Star Pattern",,0
@@ -13504,7 +13504,7 @@ ldraw,bricklink,name,category,colors
 74650c02,2847c02,Electric 9V Battery Box 4 x 14 x 4 with Red Buttons and Contact Plate with Yellow Base (2846 / 2847c00),"Electric, Battery Box",2
 74650c03,2847c03,Electric 9V Battery Box 4 x 14 x 4 with Red Buttons and Contact Plate with Dark Bluish Gray Base (2846 / 2847c00),"Electric, Battery Box",1
 7469,7469,"Technic, Brick 5 x 6 Right Angles (U Shape)","Technic, Brick",1
-74695,60483,"Technic, Liftarm Thick 1 x 2 with Pin Hole and Axle Hole",,19
+74695,60483,"Technic, Liftarm Thick 1 x 2 with Pin Hole and Axle Hole",,18
 74698,74698,"Tile, Round 2 x 2 with Lifting Ring Thick and Bottom Stud Holder","Tile, Round",2
 74699,74699,"Bionicle Foot Claw with Ball Socket, Rounded Ends",Bionicle,1
 74741-f1,2909c03,"Technic, Shock Absorber 9.5L (Soft Spring)","Technic, Shock Absorber",2
@@ -13592,7 +13592,7 @@ ldraw,bricklink,name,category,colors
 75972,32021c01,Code Pilot,"Electric, Programmable",0
 75973,879,"Electric Sensor, Touch",Electric,2
 75974,67c01,Pneumatic Air Tank,Pneumatic,2
-75977,30086c01,"Boat, Rubber Raft, Small",Boat,12
+75977,30086c01,"Boat, Rubber Raft, Small",Boat,11
 75979,30080c01,Panel 4 x 3 x 3 with Trans-Light Blue Porthole,,2
 75979b,-75979b,,,0
 75979bp01,30080c01,Panel 4 x 3 x 3 with Trans-Light Blue Porthole,Panel,2
@@ -13601,7 +13601,7 @@ ldraw,bricklink,name,category,colors
 76110,32133,"Projectile Arrow, Liftarm Shaft with Solid Lime Rubber End",,0
 76110p04,32133ac04,"Projectile Arrow, Liftarm Shaft with Solid Pearl Light Gray Rubber End",Projectile Launcher,0
 76110p05,32133ac05,"Projectile Arrow, Liftarm Shaft with Solid Lime Rubber End",Projectile Launcher,0
-76116,98313,"Arm Mechanical, Exo-Force / Bionicle, Thick Support","Minifigure, Body Part",18
+76116,98313,"Arm Mechanical, Exo-Force / Bionicle, Thick Support","Minifigure, Body Part",17
 76138,731c04,"Technic, Shock Absorber 6.5L - Hard Spring",,6
 7616,7616,Tire 43 x 22 Tractor,"Wheel, Tire & Tread",1
 76244,60c01,"Technic, Gear 24 Tooth Clutch",,2
@@ -14004,7 +14004,7 @@ ldraw,bricklink,name,category,colors
 77822,-77822,Sports Stuntz Loop Ramp Base,,3
 77823,-77823,Sports Stuntz Loop Ramp Section,,2
 77842,77842,"Plate, Modified 3 x 6 with 2 x 4 Cutout","Plate, Modified",1
-77844,77844,Plate 3 x 3 Corner,Plate,15
+77844,77844,Plate 3 x 3 Corner,Plate,14
 77845,77845,"Plate, Round 1 x 4 with 2 Open Studs","Plate, Round",12
 77850,77850,"Plate, Round 1 x 3 with Open Studs","Plate, Round",15
 77873p01,77873pb01,"Large Figure Legs, Super Mario Luigi Overalls with Molded Reddish Brown Shoes Pattern",,0
@@ -14121,7 +14121,7 @@ ldraw,bricklink,name,category,colors
 79987,79987,"Plate, Modified 1 x 3 with 2 Open O Clips on Top","Plate, Modified",1
 79996,79996,Bag Tag with 3 x 8 Studs,,4
 8,8,"Plate, Modified 2 x 2 with Wheel Holder Bottom","Plate, Modified",4
-80015,80015,"Plate, Round Corner 5 x 5 Macaroni","Plate, Round",25
+80015,80015,"Plate, Round Corner 5 x 5 Macaroni","Plate, Round",24
 80029,80029,Tower Roof 2 x 4 x 4 Half Cone Shaped with Roof Tiles and Window,Roof,2
 80031,80031,"Plate, Round 10 x 10 Rounded End","Plate, Round",13
 80039,80039,Road Sign Round with Left Turn Prohibited Pattern,,1
@@ -14135,8 +14135,8 @@ ldraw,bricklink,name,category,colors
 8011,8011,Minifigure Belt with Scabbard,"Minifigure, Body Wear",2
 80120,4215ap01,Panel 1 x 4 x 3 - Solid Studs with Red Stripe and White Stripes Pattern,,0
 80123,3298p90,Slope 33 3 x 2 with Classic Space Logo Pattern,,0
-80177,80177,Wedge 3 x 2 Left No Studs,Wedge,32
-80178,80178,Wedge 3 x 2 Right No Studs,Wedge,32
+80177,80177,Wedge 3 x 2 Left No Studs,Wedge,31
+80178,80178,Wedge 3 x 2 Right No Studs,Wedge,31
 80179,80179,"Minifigure, Utensil Spoon - Handle with Flat End","Minifigure, Utensil",2
 801pb01,801pb01,Door 1 x 3 x 3 Left with Vertical Handle with Blue Bottom Pattern,"Door, Decorated",0
 801pb02,801pb02,Door 1 x 3 x 3 Left with Vertical Handle with Red Bottom Pattern,"Door, Decorated",0
@@ -14188,7 +14188,7 @@ ldraw,bricklink,name,category,colors
 80432,80432,"Brick, Modified 2 x 2 x 3 Hollow with 2 x 4 Plate Base and Technic Hole","Brick, Modified",0
 80433,80433,"Brick, Modified 2 x 2 x 3 Hollow with Spring Attachment and Technic Hole","Brick, Modified",0
 80477,80477,"Technic, Pin with Bar and Tow Ball, 3L","Technic, Pin",1
-80497,80497,Elephant Tail / Trunk with Bar End - Long Straight Tip,"Animal, Body Part",15
+80497,80497,Elephant Tail / Trunk with Bar End - Long Straight Tip,"Animal, Body Part",14
 805,805,"Vehicle, Base 4 x 16 for Steering Gear","Vehicle, Base",2
 80503,80503,"Minifigure, Utensil Musical Instrument, Lute with Dark Brown Neck and Silver Strings Pattern",,0
 80513,80513,"Bird, Toucan with Molded Bright Light Orange Beak and White Chest and Printed Eyes, Tip of Beak, and Red Markings Pattern",,0
@@ -14196,7 +14196,7 @@ ldraw,bricklink,name,category,colors
 80514,80514,"Vehicle, Tipper Drum 3 x 6 x 8 Half with 2 Pin Holes",Vehicle,1
 80519,80519,Wave Rounded Straight Small with Clip End (Flame),Energy Effect,0
 80542,80542,Tire 75.1mm D. x 20mm Motorcycle,"Wheel, Tire & Tread",1
-80543,80543,Arch 1 x 4 x 3,Arch,15
+80543,80543,Arch 1 x 4 x 3,Arch,14
 80545,80545,"Slope 45 2 x 4 x 1 1/3 Double, Tapered",Slope,4
 80546,2359p01,"Baseplate, Road 32 x 32 7-Stud Curve with Road Pattern",,0
 80547,2358pb04,"Baseplate, Road 32 x 32 7-Stud Straight with Road with Green Lines and White Sidelines Pattern","Baseplate, Road",0
@@ -14396,7 +14396,7 @@ ldraw,bricklink,name,category,colors
 85961,85961,Minifigure Armor Breastplate with Back Stud,"Minifigure, Body Wear",2
 85962,85962,Windscreen 8 x 8 x 5 Dome with Dual 2 Fingers,Windscreen,0
 85969,85969,Wheel Cover 5 Spoke Thick - for Wheel 56145,"Wheel, Accessory",1
-85970,85970,"Slope, Curved 10 x 1","Slope, Curved",17
+85970,85970,"Slope, Curved 10 x 1","Slope, Curved",16
 85970dy0,85970pb013r,"Slope, Curved 10 x 1 with Black Vent on Yellow Background Pattern Model Right (Sticker) - Set 75870","Slope, Curved, Decorated",0
 85970dy1,85970pb013l,"Slope, Curved 10 x 1 with Black Vent on Yellow Background Pattern Model Left (Sticker) - Set 75870","Slope, Curved, Decorated",0
 85974,85974,"Minifigure, Hair Female Mid-Length with Part over Right Shoulder","Minifigure, Hair",11
@@ -14497,7 +14497,7 @@ ldraw,bricklink,name,category,colors
 86644,44728,Bracket 1 x 2 - 2 x 2,,36
 86652,86652,Wheel 43.2mm D. x 18mm - Flush Axle Stem,Wheel,4
 86652c01,,"Wheel 62.4 x 20 with Short Axle Hub, with Black Tire 62.4 x 20 (86652 / 32019)",,1
-86849,62462,"Technic, Connector Pin Round 2L with Slot (Pin Joiner Round)",,22
+86849,62462,"Technic, Connector Pin Round 2L with Slot (Pin Joiner Round)",,21
 86876,86876,"Brick, Modified 1 x 2 with Stud on Side with Bottom Stud Holder","Brick, Modified",21
 86879,86879,Axolotl Body Pixelated,"Animal, Body Part",4
 86996,86996,"Brick, Modified 1 x 1 x 2/3 with Open Stud","Brick, Modified",22
@@ -14645,7 +14645,7 @@ ldraw,bricklink,name,category,colors
 87083,87083,"Technic, Axle  4L with Stop","Technic, Axle",1
 87084,87084,"Duplo, Brick 2 x 3",,11
 87086,87086,"Technic, Panel Fairing # 2 Small Smooth Short, Side B","Technic, Panel",17
-87087,87087,"Brick, Modified 1 x 1 with Stud on Side","Brick, Modified",39
+87087,87087,"Brick, Modified 1 x 1 with Stud on Side","Brick, Modified",38
 871,871,"Vehicle, Tractor Chassis Steering Arm",Vehicle,1
 872,872,"Vehicle, Tractor Chassis Center Steering Link",Vehicle,0
 873,873,"Vehicle, Tractor Chassis End Steering Link",Vehicle,0
@@ -14698,7 +14698,7 @@ ldraw,bricklink,name,category,colors
 87574,87574c01,"Electric, Train Motor 9V RC Train with Integrated PF Attachment, Orange Wheel Holders","Electric, Train",1
 87576,bb0491,Electric Energy Display,Electric,1
 87577,87577c01,"Electric, Motor 9V Power Functions with Gear Reduction Ratio 9.5 : 1","Electric, Motor",1
-87580,87580,"Plate, Modified 2 x 2 with Groove and 1 Stud in Center (Jumper)","Plate, Modified",39
+87580,87580,"Plate, Modified 2 x 2 with Groove and 1 Stud in Center (Jumper)","Plate, Modified",38
 87580p01,87580pb002,"Plate, Modified 2 x 2 with Groove and 1 Stud in Center with Gold Filigree Pattern","Plate, Modified, Decorated",0
 87585,87585,"Minifigure, Utensil Oar / Paddle Reinforced","Minifigure, Utensil",3
 87587,87587,Shark Head with Rounded Nose and Debossed Eyes,"Animal, Body Part",2
@@ -14840,7 +14840,7 @@ ldraw,bricklink,name,category,colors
 88290,88290,Minifigure Scabbard for 2 Katanas,"Minifigure, Body Wear",2
 88291,-88291,,,0
 88291p01,88291c01pb01,Camel with Black Eyes and White Pupils Pattern,"Animal, Land",1
-88292,88292,Arch 1 x 3 x 2,Arch,19
+88292,88292,Arch 1 x 3 x 2,Arch,18
 88293,88293,"Brick, Round Corner 3 x 3 x 2 Dome Top","Brick, Round",22
 88295,88295,Minifigure Armor Shoulder Pads with Spikes on Top,"Minifigure, Body Wear",3
 88393,88393,"Brick, Modified 1 x 2 x 5 with Channel","Brick, Modified",9
@@ -14939,7 +14939,7 @@ ldraw,bricklink,name,category,colors
 89953p02,731c09,"Technic, Shock Absorber 6.5L with Pearl Gold Piston Rod - Soft Spring, Tight Coils","Technic, Shock Absorber",0
 8c01,8c02,"Plate, Modified 2 x 2 with Wheel Holder Bottom with Red Wheel with Black Tire Offset Tread Small (8 / 3464c02)",Aircraft,0
 8c02,8c01,"Plate, Modified 2 x 2 with Wheel Holder Bottom with Red Wheel with Black Tire 14mm D. x 4mm Smooth Small Single (8 / 3464c01)",Aircraft,0
-9,3460,Plate 1 x 8,,42
+9,3460,Plate 1 x 8,,41
 90,90,"Technic, Connector Axle Universal Joint 4L, End",,0
 90001c01p01,90001,Octopus Legs,"Animal, Body Part",1
 90109,90109,"Vehicle, Tipper Bed 12 x 8 x 5 with Studs on Front Top only",Vehicle,1
@@ -15010,7 +15010,7 @@ ldraw,bricklink,name,category,colors
 90605,90605,Hero Factory Arm / Leg with Ball Joint on Axle and Ball Socket and 4 Pin Holes,Hero Factory,2
 90607,90607,Hero Factory Arm / Leg with Ball Joint on Axle and Ball Socket and 2 Pin Holes,Hero Factory,2
 90608,90608,Hero Factory Arm / Leg with Ball Joint on Axle and Ball Socket and Pin Hole,Hero Factory,5
-90609,90609,Hero Factory Arm / Leg with Ball Joint on Axle and Ball Socket,Hero Factory,6
+90609,90609,Hero Factory Arm / Leg with Ball Joint on Axle and Ball Socket,Hero Factory,5
 90611,90611,"Hero Factory Arm / Leg with Ball Joint on Axle and Ball Socket, Short",Hero Factory,5
 90612,90612,"Hero Factory Arm / Leg with Ball Joint and Ball Socket, Short",Hero Factory,4
 90613,90613,Hero Factory Arm / Leg with Ball Joint and Ball Socket and 4 Pin Holes,Hero Factory,4
@@ -15025,7 +15025,7 @@ ldraw,bricklink,name,category,colors
 90634,90634,"Technic, Pin Connector Perpendicular 3L with 2 Pins, 2 Ball Joint on Axle","Technic, Connector",1
 90636,90636,Hero Factory Armor with Ball Joint Socket - Size 8,Hero Factory,1
 90638,90638,Hero Factory Armor with Ball Joint Socket - Size 6,Hero Factory,8
-90639,90639,Hero Factory Armor with Ball Joint Socket - Size 5,Hero Factory,18
+90639,90639,Hero Factory Armor with Ball Joint Socket - Size 5,Hero Factory,17
 90640,90640,Hero Factory Armor with Ball Joint Socket - Size 4,Hero Factory,20
 90641,90641,Hero Factory Armor with Ball Joint Socket - Size 3,Hero Factory,18
 90649,90649,Hero Factory Upper Torso Armor,Hero Factory,1
@@ -15039,7 +15039,7 @@ ldraw,bricklink,name,category,colors
 91,91,"Technic, Connector Axle Universal Joint 4L, Center",,0
 91049,91049,"Minifigure, Utensil Barbell Weight","Minifigure, Utensil",3
 911,911,Baseplate 10 x 48 with Train Ferry Set 343 Stud Pattern,Baseplate,1
-91143,2431,Tile 1 x 4,,49
+91143,2431,Tile 1 x 4,,50
 91176,91176,Support 2 x 2 x 13 with 5 Pin Holes,Support,12
 912,912,Baseplate 16 x 16 with Control Tower Set 340 Stud Pattern,Baseplate,1
 91347,91347,Crane Grab Jaw Curved,Crane,2
@@ -15351,7 +15351,7 @@ ldraw,bricklink,name,category,colors
 92589,92589,Bar 1 x 4 x 6 Grille with End Protrusions,Bar,3
 92590,92590,Minifigure Backpack / Bag Open,"Minifigure, Body Wear",1
 92591,92591,Cylinder Half 3 x 6 x 10 with 1 x 2 Cutout,Cylinder,3
-92593,92593,"Plate, Modified 1 x 4 with 2 Studs without Groove","Plate, Modified",24
+92593,92593,"Plate, Modified 1 x 4 with 2 Studs without Groove","Plate, Modified",23
 92593df0,92593pb015,"Plate, Modified 1 x 4 with 2 Studs without Groove with Magenta Number 8 on Lime Background Pattern (Sticker) - Set 41007","Plate, Modified, Decorated",0
 92593pb001,92593pb001,"Plate, Modified 1 x 4 with 2 Studs without Groove with Train Logo White Pattern (Sticker) - Set 3677","Plate, Modified, Decorated",0
 92593pb038,92593pb038,"Plate, Modified 1 x 4 with 2 Studs without Groove with Black Rectangle Pattern","Plate, Modified, Decorated",0
@@ -15541,7 +15541,7 @@ ldraw,bricklink,name,category,colors
 9326t01,973p01,Torso Vertical Striped Red/Blue Pattern,,0
 9326t02,973p02,Torso Vertical Striped Blue/Red Pattern,,0
 9327,970c00,Hips and Legs (Monochrome),,17
-93273,93273,"Slope, Curved 4 x 1 x 2/3 Double","Slope, Curved",39
+93273,93273,"Slope, Curved 4 x 1 x 2/3 Double","Slope, Curved",38
 93273d02,93273pb154,"Slope, Curved 4 x 1 x 2/3 Double with Silver 'CAUTION FAN' with Border on Orange Background Pattern (Sticker) - Set 10265","Slope, Curved, Decorated",0
 93273d03,93273pb071,"Slope, Curved 4 x 1 x 2/3 Double with Grille and Lavender Flower Pattern (Sticker) - Set 41013","Slope, Curved, Decorated",0
 93273d04,93273pb077,"Slope, Curved 4 x 1 x 2/3 Double with 'MF 1013' Pattern (Sticker) - Set 41013","Slope, Curved, Decorated",0
@@ -15608,7 +15608,7 @@ ldraw,bricklink,name,category,colors
 93568p01,93568pb01,Pie with White Cream Filling Pattern,Food & Drink,0
 93568p02,93568pb02,Pie with Bright Light Yellow Cream Filling Pattern,Food & Drink,0
 93571,93571,"Technic, Axle Connector 2 x 3 with Ball Joint Socket - Closed Sides, Straight Forks with Open Axle Holes","Technic, Connector",6
-93575,93575,Hero Factory Fist with Axle Hole - 4 Fingers,Hero Factory,14
+93575,93575,Hero Factory Fist with Axle Hole - 4 Fingers,Hero Factory,13
 9358,3067pb09,Brick 1 x 6 without Bottom Tubes with White 'POLICE' Sans-Serif Bold Pattern,,0
 93587,93587,"Vehicle, Mudguard 3 x 4 x 1 2/3 Curved","Vehicle, Mudguard",6
 93589,93589,Wedge 4 x 2 x 1 1/3 with 1 x 4 Base,Wedge,6
@@ -15618,7 +15618,7 @@ ldraw,bricklink,name,category,colors
 93589pb006,93589pb006,Wedge 4 x 2 x 1 1/3 with 1 x 4 Base with Ferrari Logo on White Stripe Pattern (Sticker) - Set 30195,"Wedge, Decorated",0
 9359,3067pb07,Brick 1 x 6 without Bottom Tubes with White 'TAXI' Pattern,,0
 93590,93590,"Vehicle, Mudguard 2 x 4 with Headlights and Curved Fenders","Vehicle, Mudguard",12
-93591,93591,Wedge 6 x 4 x 1 1/3 with 4 x 4 Base,Wedge,6
+93591,93591,Wedge 6 x 4 x 1 1/3 with 4 x 4 Base,Wedge,5
 93593,93593,Wheel 11mm D. x 6mm with 8 Spokes,Wheel,3
 93594,93594,Wheel 11mm D. x 6mm with Smooth Hubcap,Wheel,1
 93595,93595,Wheel 11mm D. x 6mm with 8 'Y' Spokes,Wheel,4
@@ -15663,7 +15663,7 @@ ldraw,bricklink,name,category,colors
 93791,2654,"Plate, Round 2 x 2 with Rounded Bottom (Boat Stud)",,30
 93792,3004,Brick 1 x 2,,59
 93794,93794,"Tile, Modified 1 x 1 with Clip with Center Cut","Tile, Modified",1
-93888,3007,Brick 2 x 8,,39
+93888,3007,Brick 2 x 8,,38
 94,3865,Baseplate 8 x 16,,10
 9401,3680c01,"Turntable 2 x 2 Plate, Base with Light Gray Turntable 2 x 2 Plate, Top (3680 / 3679)",,0
 94148,3022,Plate 2 x 2,,57
@@ -15692,7 +15692,7 @@ ldraw,bricklink,name,category,colors
 95053,94158c,"Minifigure, Weapon Sword, Small with Angular Hilt","Minifigure, Weapon",1
 95054,94158a,"Minifigure, Weapon Knife with Flat Hilt End","Minifigure, Weapon",1
 95120,-95120,Hinge Tile 1 x 4 Locking with 2 Single Fingers on Top with Double Lock,,12
-95188,95188,"Brick, Round Corner 6 x 6 with Slope 33 Edge, Facet Cutout","Brick, Round",23
+95188,95188,"Brick, Round Corner 6 x 6 with Slope 33 Edge, Facet Cutout","Brick, Round",22
 95198,95198,Windscreen 8 x 8 x 3 Canopy Dome Half Sphere with Dual 2 Fingers,Windscreen,2
 95199,95199,"Minifigure, Weapon Gun, Two Barrel Pistol - 10-Rib Top Barrel","Minifigure, Weapon",3
 95200,95200,"Minifigure, Headgear Brain, Alien","Minifigure, Headgear",0
@@ -16666,7 +16666,7 @@ ldraw,bricklink,name,category,colors
 97895,97895,"Minifigure Life Jacket, Center Buckle","Minifigure, Body Wear",1
 98,3685,Slope 75 2 x 2 x 3 Double Convex,,22
 98067,98067,Dinosaur Jaw Lower Raptor,"Animal, Body Part",1
-98087,98087,Dinosaur Jaw Lower Pteranodon with Pin - Flexible Plastic,"Animal, Body Part",6
+98087,98087,Dinosaur Jaw Lower Pteranodon with Pin - Flexible Plastic,"Animal, Body Part",5
 981,981,"Minifigure, Body Part Arm, Left",,21
 98100,98100,Cone 2 x 2 Truncated,Cone,20
 98100p01,98100pb13,Cone 2 x 2 Truncated with 4 Black Squares Pattern,"Cone, Decorated",0
@@ -16677,7 +16677,7 @@ ldraw,bricklink,name,category,colors
 98100ps2,98100pb05,Cone 2 x 2 Truncated with Black Millennium Falcon Cockpit Pattern,"Cone, Decorated",0
 98100ps3,98100pb08,Cone 2 x 2 Truncated with Dark Bluish Gray Millennium Falcon Cockpit on Top and Side Pattern,"Cone, Decorated",0
 98102,98102,Windscreen 8 x 6 x 2 1/3 Bubble Canopy with Bar Handle,Windscreen,0
-98107,98107,"Cylinder Hemisphere 11 x 11, Studs on Top",Cylinder,9
+98107,98107,"Cylinder Hemisphere 11 x 11, Studs on Top",Cylinder,8
 98108,98108,"Minifigure, Headgear Helmet SW Death Star Trooper / Imperial Navy Trooper","Minifigure, Headgear",1
 98119,-98119,,,0
 98119p01,98119pb01,"Minifigure, Hair Bun with Braid and Gold Hood with Royal Insignia Pattern (SW Queen Amidala)","Minifigure, Hair",0
@@ -17161,7 +17161,7 @@ ldraw,bricklink,name,category,colors
 98729,98729,"Minifigure, Headgear Mask Catwoman, Small Gap between Eye Holes","Minifigure, Headgear",1
 988,70022,"Electric, Train 12V 2 x 3 Signal Light Brick with Red and Green Lights",,1
 98834,98834,"Vehicle, Spoiler with Bar Handle",Vehicle,13
-98835,98835,"Vehicle, Mudguard 3 x 4 x 1 2/3 Curved Front","Vehicle, Mudguard",17
+98835,98835,"Vehicle, Mudguard 3 x 4 x 1 2/3 Curved Front","Vehicle, Mudguard",16
 98878,98878,Windscreen 10 x 4 x 2 with Bar Handle,Windscreen,0
 989,989,Hinge Brick 1 x 2 Locking with 1 Finger Top,,0
 98989,98989,"Technic, Axle and Pin Connector Perpendicular Double 4L","Technic, Connector",2
@@ -17199,7 +17199,7 @@ ldraw,bricklink,name,category,colors
 99301,99301,Slope 33 3 x 3 Double Concave,Slope,7
 99380,99380,"Electric Sensor, Gyro - EV3",Electric,1
 99455,99455,"Electric, Motor EV3, Medium","Electric, Motor",1
-99464,99464,"Minifigure Cape Cloth, Very Short - Traditional Starched Fabric","Minifigure, Body Wear",14
+99464,99464,"Minifigure Cape Cloth, Very Short - Traditional Starched Fabric","Minifigure, Body Wear",13
 99498,99498c01,"Electric, Motor 9V Power Functions Servo with Dark Bluish Gray Bottom","Electric, Motor",1
 99499,99499c01,"Electric, Motor 9V Power Functions L with Dark Bluish Gray Bottom","Electric, Motor",1
 99563,99563,"Minifigure, Utensil Ingot 1 x 2","Minifigure, Utensil",19
@@ -17647,8 +17647,8 @@ bl_3231pb01,3231pb01,"Minifigure, Headgear Headdress with Fabric Panels and Crow
 bl_3245cpb289,3245cpb289,Brick 1 x 2 x 2 with Inside Stud Holder with Flames and Black and Silver Fire Logo Badge Pattern,"Brick, Decorated",0
 bl_3277,3277,"Minifigure, Hair Short Wavy, Parted on Right","Minifigure, Hair",5
 bl_3379,3379,Whale / Orca Jaw Lower,"Animal, Body Part",1
-bl_3388,3388,Wedge 5 x 1 x 1 1/3 with 4 x 1 Base Left,,10
-bl_3389,3389,Wedge 5 x 1 x 1 1/3 with 4 x 1 Base Right,,10
+bl_3388,3388,Wedge 5 x 1 x 1 1/3 with 4 x 1 Base Left,,9
+bl_3389,3389,Wedge 5 x 1 x 1 1/3 with 4 x 1 Base Right,,9
 bl_3417,3417,"Door, Frame 3 x 6 x 6 with Channels",,2
 bl_3448pb01,3448pb01,"Minifigure, Headgear Ninjago Wrap / Hood Smooth with Molded Pearl Gold Armor Plate with Horns Pattern","Minifigure, Headgear",1
 bl_3464c04,3464c04,Wheel Center Small with Stub Axles (Pulley Wheel) with Black Tire 15mm D. x 6mm Offset Tread Small - Band Around Center of Tread (3464 / 87414),Wheel & Tire Assembly,0
@@ -17955,8 +17955,8 @@ bl_53933p01,30293pb01,"Rock 4 x 4 Octagonal Boulder, Top with Marbled Trans-Neon
 bl_53934p01,30294pb01,"Rock 4 x 4 Octagonal Boulder, Bottom with Marbled Trans-Neon Orange Pattern",Rock,0
 bl_53934p01c01,30294c01pb01,Rock 4 x 4 Octagonal Boulder with Marbled Trans-Neon Orange Pattern (30293pb01 / 30294pb01),Rock,0
 bl_54001pb02,54001pb02,"Minifigure, Headgear Hood with 5 Large Petals with Bright Pink and Dark Pink Orchid Flower Pattern","Minifigure, Headgear",0
-bl_5414,5414,Wedge 4 x 1 Right,,17
-bl_5415,5415,Wedge 4 x 1 Left,,16
+bl_5414,5414,Wedge 4 x 1 Right,,16
+bl_5415,5415,Wedge 4 x 1 Left,,15
 bl_54200pb103,54200pb103,Slope 30 1 x 1 x 2/3 with Swiss Cheese Pattern,"Slope, Decorated",0
 bl_5443,5443,"Technic, Axle Connector 5L without Friction on 1 End","Technic, Connector",3
 bl_5492pb02,5492pb02,"Mini Doll, Hair Combo, Hair with Hat, Short Tousled with Molded Red Beanie / Knit Cap Pattern",,0
@@ -18063,12 +18063,12 @@ bl_67095pb129,67095pb129,"Tile, Round 3 x 3 with Gold and Copper Dog Bone and St
 bl_67095pb146,67095pb146,"Tile, Round 3 x 3 with Gold Spiral Swirl and Reddish Orange Center Circle Pattern","Tile, Round, Decorated",0
 bl_67095pb147,67095pb147,"Tile, Round 3 x 3 with Gold Spiral Swirl and Center Circle Pattern","Tile, Round, Decorated",0
 bl_67241pb01,67241pb01,Aircraft Fuselage Forward Top Curved 8 x 12 x 6 with 6 Window Panes with Molded Trans-Light Blue Glass Pattern,Aircraft,0
-bl_67361,67361,Dragon Tail / Neck Curved,"Animal, Body Part",12
+bl_67361,67361,Dragon Tail / Neck Curved,"Animal, Body Part",11
 bl_67649,67649,"Minifigure, Head, Modified Minion, Tall","Minifigure, Head, Modified",1
 bl_67697,67697,"Technic, Liftarm, Modified Ball Joint Straight 1 x 2 with 6 Holes in Ball","Technic, Liftarm",4
 bl_67906c03,67906c03,Arm with Technic Pin with Yellow Hand,"Minifigure, Body Part",2
 bl_67906c04,67906c04,Arm with Technic Pin with Light Nougat Hand,"Minifigure, Body Part",4
-bl_68212,68212,"Minifigure, Hair Small Stud Size Spiky Tuft","Minifigure, Hair",5
+bl_68212,68212,"Minifigure, Hair Small Stud Size Spiky Tuft","Minifigure, Hair",6
 bl_6825,6825a,"Wheel Cover 5 Spoke Rimless and 9 Spoke Rimless for Wheel 72206pb01, 8 in Bag - 4 of Each (Multipack)","Wheel, Accessory",1
 bl_68444pb02,68444pb02,Dinosaur Leg Small (Front) with 2 Elbow Spikes with Molded Black Pin Pattern - Right,"Animal, Body Part",1
 bl_68445pb02,68445pb02,Dinosaur Leg Small (Front) with 2 Elbow Spikes with Molded Black Pin Pattern - Left,"Animal, Body Part",1
@@ -18257,7 +18257,7 @@ bl_7836,7836,"Tile, Round Corner 2 x 2 Macaroni with Bottom Stud Holder",,0
 bl_7840,7840,"Minifigure, Hat with Small Pin, Fedora","Minifigure, Headgear",1
 bl_78522pb010,78522pb010,"Slope, Curved 6 x 4 Double with Black Eyes, White and Light Bluish Gray Bushy Eyebrows and Moustache, Medium Nougat Crow's Feet Pattern (Santa Face)","Slope, Curved, Decorated",0
 bl_7853,7853,"Tile, Round 2 x 3 Oval",,2
-bl_78611,78611,"Boat, Rubber Raft 12 x 6 x 2",Boat,8
+bl_78611,78611,"Boat, Rubber Raft 12 x 6 x 2",Boat,7
 bl_7863,7863,"Plate, Modified 3 x 6 x 2/3, 1 x 6 with Raised 2 x 3",,1
 bl_7864,7864,"Plate, Round 4 x 4 with Rounded Corners and 9 Holes",,3
 bl_78643,-bl_78643,"Minifigure Armor Breastplate with Shoulder Pads and 2 Back Studs with Gold Diamonds, Silver Circles and Tan Cloth with Dark Turquoise and Reddish Orange Geometric Lines Pattern",,0
@@ -18286,7 +18286,7 @@ bl_7985,7985,Hand Vecna Claw (fits Minifigure Hand),"Minifigure, Body Part",1
 bl_79895pb02,79895pb02,Propeller 1 Blade 14L with 2 Axle Holes and Jagged Edges (Sword Blade) with Marbled Dark Red Pattern,Propeller,0
 bl_79895pb03,79895pb03,Propeller 1 Blade 14L with 2 Axle Holes and Jagged Edges (Sword Blade) with Marbled Yellowish Green Pattern,Propeller,0
 bl_79897,79897,"Slope, Curved 4 x 2 with 4 Studs on Top, 2 Hollow Studs on Each Side, Wing End",,9
-bl_79973,79973,Minifigure Costume Tail Dinosaur,"Minifigure, Body Wear",3
+bl_79973,79973,Minifigure Costume Tail Dinosaur,"Minifigure, Body Wear",2
 bl_80017,80017,Dragon Head (Ninjago) Jaw with Small Spikes and 2 Bar Handles on Back,"Animal, Body Part",6
 bl_8010,8010,Panel 5 x 5 x 3 1/3 Corner Convex with Curved Top,Panel,1
 bl_8012,8012,Panel 1 x 4 x 2,Panel,2

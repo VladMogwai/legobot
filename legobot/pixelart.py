@@ -296,8 +296,12 @@ def is_flat(rgb, mask) -> bool:
         segs, angle = _segments(rgb, mask)
     except ValueError:
         return False
-    axis_aligned = (np.minimum(angle, 180 - angle) < 1.5) | (np.abs(angle - 90) < 1.5)
+    axis_aligned = (np.minimum(angle, 180 - angle) < FLAT_ANGLE) | (np.abs(angle - 90) < FLAT_ANGLE)
     return axis_aligned.mean() > 0.9
+
+
+FLAT_ANGLE = 1.5   # градусов: у ровного снимка мозаики короткие отрезки по краям плиток дают ±3°, у снимка
+                   # под углом (перспектива) линии расходятся сильнее — доля осевых падает до ~0.5
 
 
 def _segments(rgb, mask):
@@ -323,7 +327,11 @@ def _rectify(rgb, mask, known_flat: bool = False):
     if horizontal.sum() < 5 or vertical.sum() < 5:
         raise ValueError("не нашёл линии сетки на фото")
     center = np.array([rgb.shape[1] / 2, rgb.shape[0] / 2, 1.0])
-    H = np.linalg.inv(np.c_[_vanishing_point(segs[horizontal]), _vanishing_point(segs[vertical]), center])
+    vps = [_vanishing_point(segs[horizontal]), _vanishing_point(segs[vertical])]
+    if all(_vanishing_distance(vp, rgb.shape) > NO_PERSPECTIVE for vp in vps):
+        H = np.eye(3)   # линии параллельны — перспективы нет; гомография по далёким точкам схода только исказила бы сетку
+    else:
+        H = np.linalg.inv(np.c_[vps[0], vps[1], center])
     ys, xs = np.nonzero(mask)
     pts = np.c_[xs, ys, np.ones(len(xs))] @ H.T
     pts = pts[:, :2] / pts[:, 2:3]
@@ -339,6 +347,16 @@ def _rectify(rgb, mask, known_flat: bool = False):
     rect = transform.warp(rgb, tf.inverse, output_shape=shape)
     rmask = transform.warp(mask.astype(float), tf.inverse, output_shape=shape) > 0.5
     return rect, rmask, False
+
+
+NO_PERSPECTIVE = 50   # точки схода дальше стольких размеров кадра — снимок ровный (у снимка под углом: 7–31)
+
+
+def _vanishing_distance(vp, shape) -> float:
+    """Расстояние точки схода от центра кадра в размерах кадра; бесконечность — в бесконечности."""
+    if abs(vp[2]) < 1e-12:
+        return np.inf
+    return float(np.hypot(vp[0] / vp[2] - shape[1] / 2, vp[1] / vp[2] - shape[0] / 2) / max(shape[:2]))
 
 
 def _vanishing_point(segs):
