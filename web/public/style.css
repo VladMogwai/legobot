@@ -49,3 +49,19 @@ button.secondary { background: #e9e7e2; color: var(--ink); }
 .downloads a.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
 .options { display: flex; gap: 20px; align-items: center; margin-top: 10px; font-size: 14px; color: var(--muted); flex-wrap: wrap; }
 .options input[type=number] { width: 90px; padding: 4px 6px; border: 1px solid var(--line); border-radius: 6px; margin-left: 6px; }
+
+/* история моделей */
+.history-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.saved-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; margin-top: 12px; }
+.saved { display: grid; grid-template-columns: 96px 1fr; gap: 10px; align-items: start; border: 1px solid var(--line, #ddd); border-radius: 10px; padding: 10px; }
+.saved img { width: 96px; aspect-ratio: 1; object-fit: cover; border-radius: 6px; background: #eee; }
+.saved-meta { display: grid; gap: 3px; min-width: 0; }
+.saved-meta b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.saved-meta span { font-size: 13px; color: #666; }
+.saved-date { font-size: 12px; }
+.saved-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-top: 6px; }
+.saved-actions [data-files] { display: flex; flex-wrap: wrap; gap: 4px 6px; }
+.saved-actions a { font-size: 12px; padding: 2px 7px; border: 1px solid var(--line); border-radius: 5px; text-decoration: none; color: var(--ink); }
+.saved-actions a:hover { border-color: var(--accent); color: var(--accent); }
+.saved-actions button { margin-top: 0; font-size: 13px; padding: 3px 10px; background: #e9e7e2; color: var(--ink); }
+.saved-actions button.link-danger { background: none; padding: 3px 4px; color: #b40000; }

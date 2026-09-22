@@ -4,6 +4,7 @@ import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { LDrawLoader } from "three/addons/loaders/LDrawLoader.js";
 import { LDrawConditionalLineMaterial } from "three/addons/materials/LDrawConditionalLineMaterial.js";
+import * as history from "./history.js";
 
 const API = new URLSearchParams(location.search).get("api") || window.LEGOBOT_API || "";
 // Без бэкенда модель считается прямо в браузере: Pyodide + legobot в веб-воркере (engine/worker.js).
@@ -37,12 +38,9 @@ async function runLocal(message, transfer, statusEl, title) {
     clearInterval(tick);
     if (m.type === "error") { statusEl.textContent = "Ошибка: " + m.error; return; }
     statusEl.textContent = `Готово за ${Math.round((Date.now() - started) / 1000)} с`;
-    const files = Object.fromEntries(Object.entries(m.files).map(([name, data]) => {
-      const type = name.endsWith(".png") ? "image/png" : name.endsWith(".csv") ? "text/csv" : name.endsWith(".io") ? "application/zip" : "text/plain";
-      return [name, URL.createObjectURL(new Blob([data], { type }))];
-    }));
-    await showResult(files, m.summary, title);
-    if (m.summary.grid) await showEditor(m.summary.grid);
+    const blobs = Object.fromEntries(Object.entries(m.files).map(([name, data]) => [name, history.blobFor(name, data)]));
+    await showFiles(blobs, m.summary, title);
+    await saveToHistory(title, m.summary, blobs);
   } catch (err) {
     clearInterval(tick);
     statusEl.textContent = "Ошибка: " + err.message;
@@ -155,6 +153,84 @@ async function showResult(files, summary, title) {
   $("parts").innerHTML = rows.join("");
   await showModel(files["model.mpd"]);
 }
+
+// --- история моделей (IndexedDB, только на этом устройстве) ---
+async function showFiles(blobs, summary, title) {
+  const urls = Object.fromEntries(Object.entries(blobs).map(([name, blob]) => [name, URL.createObjectURL(blob)]));
+  await showResult(urls, summary, title);
+  if (summary.grid) await showEditor(summary.grid);
+}
+
+async function saveToHistory(title, summary, blobs) {
+  try {
+    await history.save({ title, summary, files: blobs, thumb: blobs["check.png"] || blobs["chart.png"] });
+    await renderHistory();
+  } catch (err) {
+    $("history-note").textContent = "История не сохранилась: " + err.message;
+  }
+}
+
+function historyCard(row) {
+  const date = new Date(row.saved).toLocaleString("ru-RU", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+  const price = row.summary.price_usd != null ? ` · $${row.summary.price_usd}` : "";
+  const thumb = row.thumb ? `<img src="${URL.createObjectURL(row.thumb)}" alt="">` : "";
+  return `<article class="saved" data-id="${row.id}">
+      ${thumb}
+      <div class="saved-meta">
+        <b>${row.title}</b>
+        <span>${row.summary.kind} · ${row.summary.parts} дет.${price}</span>
+        <span class="saved-date">${date}</span>
+        <div class="saved-actions">
+          <button type="button" data-act="open">Открыть</button>
+          <span data-files></span>
+          <button type="button" data-act="remove" class="link-danger">Удалить</button>
+        </div>
+      </div>
+    </article>`;
+}
+
+async function renderHistory() {
+  const rows = await history.list();
+  $("history").hidden = rows.length === 0;
+  $("history-list").innerHTML = rows.map(historyCard).join("");
+  for (const [id, blobs] of rows.map((r) => [r.id, r.files])) {
+    const holder = $("history-list").querySelector(`[data-id="${id}"] [data-files]`);
+    holder.innerHTML = Object.keys(blobs)
+      .filter((name) => name !== "check.png" && name !== "model.mpd")
+      .map((name) => `<a href="${URL.createObjectURL(blobs[name])}" download="${name}">${name}</a>`).join("");
+  }
+  const mb = await history.usageMb();
+  $("history-note").textContent = `${rows.length} ${plural(rows.length, "модель", "модели", "моделей")} в этом браузере` + (mb ? `, ${mb.toFixed(1)} МБ` : "");
+}
+
+function plural(n, one, few, many) {
+  const mod10 = n % 10, mod100 = n % 100;
+  if (mod10 === 1 && mod100 !== 11) return one;
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return few;
+  return many;
+}
+
+$("history-list").addEventListener("click", async (e) => {
+  const button = e.target.closest("button");
+  if (!button) return;
+  const id = button.closest("[data-id]").dataset.id;
+  if (button.dataset.act === "remove") {
+    await history.remove(id);
+    await renderHistory();
+    return;
+  }
+  const row = await history.get(id);
+  await showFiles(row.files, row.summary, row.title);
+  $("result").scrollIntoView({ behavior: "smooth", block: "start" });
+});
+
+$("history-clear").addEventListener("click", async () => {
+  if (!confirm("Удалить все сохранённые модели из этого браузера?")) return;
+  await history.clear();
+  await renderHistory();
+});
+
+renderHistory();
 
 // --- жив ли сервис (бэкенд крутится на домашнем Mac) ---
 let online = false, local = false;
