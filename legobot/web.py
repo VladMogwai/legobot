@@ -99,7 +99,8 @@ def _outputs(bricks, mosaic, tmp: Path, mode: str) -> dict:
     depth = max(b.z + b.length for b in bricks) - min(b.z for b in bricks)
     height = (max(b.layer for b in bricks) + 1) * bricks[0].part.height / 20
     summary = {
-        "kind": kind, "pixels": [mosaic.width, mosaic.height], "parts": len(bricks),
+        "kind": kind, "mode": mode,   # mode нужен странице: у «определить по картинке» тип знает только движок
+        "pixels": [mosaic.width, mosaic.height], "parts": len(bricks),
         "steps": len(steps), "pages": guide_pages,
         "size_cm": [round(width_studs * 0.8, 1), round(depth * 0.8, 1), round(height * 0.8, 1)],
         "colors": [[names.get(c, str(c)), n] for c, n in Counter(b.color for b in bricks).most_common()],

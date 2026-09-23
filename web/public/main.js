@@ -6,6 +6,17 @@ import { LDrawLoader } from "three/addons/loaders/LDrawLoader.js";
 import { LDrawConditionalLineMaterial } from "three/addons/materials/LDrawConditionalLineMaterial.js";
 import * as history from "./history.js";
 
+const TOAST_MS = 5000;   // сколько висит сообщение об ошибке
+function toast(text) {
+  const el = document.createElement("div");
+  el.className = "toast";
+  el.textContent = text;
+  el.onclick = () => close();
+  $("toasts").append(el);
+  const close = () => { el.classList.add("leaving"); setTimeout(() => el.remove(), 200); };
+  setTimeout(close, TOAST_MS);
+}
+
 const API = new URLSearchParams(location.search).get("api") || window.LEGOBOT_API || "";
 // Без бэкенда модель считается прямо в браузере: Pyodide + legobot в веб-воркере (engine/worker.js).
 const engine = { worker: null, ready: false, pending: new Map(), seq: 0 };
@@ -17,10 +28,10 @@ function startEngine() {
     const m = e.data;
     if (m.type === "progress") { el.textContent = "● " + m.text; $("status").textContent = m.text + " Кнопка «Собрать» оживёт, когда движок будет готов."; }
     else if (m.type === "ready") { engine.ready = true; online = true; el.textContent = "● считает в браузере"; el.className = "health on"; if (file) $("submit").disabled = false; $("status").textContent = file ? "Готов собирать" : ""; }
-    else if (m.type === "fatal") { el.textContent = "● движок не загрузился: " + m.error; el.className = "health off"; $("status").textContent = "Движок не загрузился: " + m.error; }
+    else if (m.type === "fatal") { el.textContent = "● движок не загрузился"; el.className = "health off"; $("status").textContent = ""; toast("Движок не загрузился: " + m.error); }
     else if (m.id && engine.pending.has(m.id)) { engine.pending.get(m.id)(m); engine.pending.delete(m.id); }
   };
-  engine.worker.onerror = (e) => { el.textContent = "● движок не загрузился: " + e.message; el.className = "health off"; };
+  engine.worker.onerror = (e) => { el.textContent = "● движок не загрузился"; el.className = "health off"; toast("Движок не загрузился: " + e.message); };
   engine.worker.postMessage({ type: "init", version: window.LEGOBOT_ENGINE || "" });
 }
 function engineCall(message, transfer) {
@@ -36,14 +47,15 @@ async function runLocal(message, transfer, statusEl, title) {
   try {
     const m = await engineCall(message, transfer);
     clearInterval(tick);
-    if (m.type === "error") { statusEl.textContent = "Ошибка: " + m.error; return; }
+    if (m.type === "error") { statusEl.textContent = ""; toast("Ошибка: " + m.error); return; }
     statusEl.textContent = `Готово за ${Math.round((Date.now() - started) / 1000)} с`;
     const blobs = Object.fromEntries(Object.entries(m.files).map(([name, data]) => [name, history.blobFor(name, data)]));
     await showFiles(blobs, m.summary, title);
     await saveToHistory(title, m.summary, blobs);
   } catch (err) {
     clearInterval(tick);
-    statusEl.textContent = "Ошибка: " + err.message;
+    statusEl.textContent = "";
+    toast("Ошибка: " + err.message);
   }
 }
 function buildOptions() {
@@ -123,9 +135,16 @@ async function colorHex(name) {
   return (await colors).find((c) => c.name === name)?.hex || "#888";
 }
 
+// Тип собранной модели: пересобирать правку надо им, а не тем, что стоит в списке — там может
+// быть «определить по картинке», а по одной сетке тип уже не определить. У моделей из старой
+// истории mode не сохранён, там берём его по названию типа.
+const MODE_BY_KIND = { "стоячая": "standing", "объёмная": "volume", "панно": "flat" };
+let builtMode = "standing";
+
 async function showResult(files, summary, title) {
   $("result").hidden = false;
   $("title").textContent = title;
+  builtMode = summary.mode || MODE_BY_KIND[summary.kind] || "standing";
   const [sx, sy, sz] = summary.size_cm;
   $("summary").innerHTML = [
     summary.kind && ["Тип", summary.kind], summary.pixels && ["Пикселей", `${summary.pixels[0]} × ${summary.pixels[1]}`],
@@ -397,7 +416,7 @@ $("undo").addEventListener("click", () => {
 $("rebuild").addEventListener("click", async () => {
   $("rebuild").disabled = true;
   if (!API) {
-    await runLocal({ type: "regrid", codes: grid, options: { mode: $("mode").value, base: $("base").checked } }, [], $("editor-status"), $("title").textContent + " (правка)");
+    await runLocal({ type: "regrid", codes: grid, options: { mode: builtMode, base: $("base").checked } }, [], $("editor-status"), $("title").textContent + " (правка)");
     $("rebuild").disabled = false;
     return;
   }

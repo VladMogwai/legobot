@@ -10,7 +10,7 @@
   --shadow: #16181d;      /* тень-ступенька */
   --blue: #61afef; --green: #98c379; --red: #e06c75;
   --yellow: #e5c07b; --purple: #c678dd; --cyan: #56b6c2;
-  --accent: var(--blue);
+  --accent: var(--purple);   /* ключевые слова Atom One Dark: им красим кнопки и активные состояния */
   --display: "Raleway", system-ui, sans-serif;   /* заголовки и кнопки — жирным */
   --text: "Raleway", system-ui, sans-serif;
 }
@@ -130,3 +130,22 @@ input[type=checkbox] { accent-color: var(--accent); width: 14px; height: 14px; }
 .saved-actions a:hover { border-color: var(--accent); color: var(--accent); }
 .saved-actions button { margin-top: 0; font-size: 12px; padding: 3px 10px; background: var(--raised); color: var(--ink); border-color: var(--line); box-shadow: 2px 2px 0 var(--shadow); }
 .saved-actions button.link-danger { background: none; border-color: transparent; box-shadow: none; padding: 3px 4px; color: var(--red); }
+
+/* всплывающие ошибки (как react-toastify, только квадратные): правый верхний угол,
+   красная полоса слева, снизу — отсчёт до автозакрытия */
+.toasts { position: fixed; top: 16px; right: 16px; z-index: 50; display: flex; flex-direction: column; gap: 10px; }
+.toast {
+  position: relative; max-width: 360px; padding: 12px 14px 14px; cursor: pointer;
+  background: var(--panel); color: var(--ink); font-size: 13px; line-height: 1.5;
+  border: 2px solid var(--line); border-left: 8px solid var(--red); box-shadow: 4px 4px 0 var(--shadow);
+  overflow-wrap: anywhere; animation: toast-in .18s steps(3);
+}
+.toast::after {   /* полоска обратного отсчёта */
+  content: ""; position: absolute; left: 0; bottom: 0; height: 3px; background: var(--red);
+  animation: toast-countdown 5s linear forwards;
+}
+.toast.leaving { animation: toast-out .18s steps(3) forwards; }
+@keyframes toast-in { from { transform: translateX(24px); opacity: 0; } }
+@keyframes toast-out { to { transform: translateX(24px); opacity: 0; } }
+@keyframes toast-countdown { from { width: 100%; } to { width: 0; } }
+@media (max-width: 560px) { .toasts { left: 16px; right: 16px; } .toast { max-width: none; } }
