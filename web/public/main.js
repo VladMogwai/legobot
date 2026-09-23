@@ -49,7 +49,7 @@ async function runLocal(message, transfer, statusEl, title) {
 function buildOptions() {
   return {
     mode: $("mode").value, background: "auto",   // фон решают тип модели и сама картинка
-    width: +($("width").value || 0), contrast: $("contrast").checked,
+    width: +($("width").value || 0), contrast: $("contrast").checked, base: $("base").checked,
   };
 }
 const $ = (id) => document.getElementById(id);
@@ -385,7 +385,7 @@ $("undo").addEventListener("click", () => {
 $("rebuild").addEventListener("click", async () => {
   $("rebuild").disabled = true;
   if (!API) {
-    await runLocal({ type: "regrid", codes: grid, options: { mode: $("mode").value } }, [], $("editor-status"), $("title").textContent + " (правка)");
+    await runLocal({ type: "regrid", codes: grid, options: { mode: $("mode").value, base: $("base").checked } }, [], $("editor-status"), $("title").textContent + " (правка)");
     $("rebuild").disabled = false;
     return;
   }

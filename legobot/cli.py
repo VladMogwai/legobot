@@ -43,6 +43,7 @@ def main() -> None:
     ap.add_argument("--slopes", action="store_true", help="закрывать ступеньки скосами")
     ap.add_argument("--mosaic", action="store_true", help="плоская пиксельная фигура: один пиксель = один тайл 1x1 (с фото — напрямую, без 3D)")
     ap.add_argument("--flat", action="store_true", help="для --mosaic: плоская мозаика из тайлов на пластинах вместо стоячей фигурки")
+    ap.add_argument("--no-base", action="store_true", help="для --mosaic --flat: без своей подложки — плитки кладутся на готовые строительные пластины (панно дешевеет примерно на треть)")
     ap.add_argument("--volume", nargs="?", const="sandwich", choices=["sandwich", "inflate"],
                     help="для --mosaic: объёмная фигурка. sandwich — картинка | прокладка | зеркало картинки; inflate — силуэт «надувается» к середине")
     ap.add_argument("--depth", type=int, help="для --mosaic --volume: толщина в штырьках (по умолчанию 4: две грани по 2 встык; больше — с прокладкой)")
@@ -96,7 +97,7 @@ def _build_mosaic(args, source: str, variant: str) -> None:
         from .inflate import VOLUME_DEPTH, volume_bricks
         bricks = volume_bricks(mosaic, args.depth or VOLUME_DEPTH, args.volume)
     else:
-        bricks = mosaic_bricks(mosaic) if args.flat else standing_bricks(mosaic)
+        bricks = mosaic_bricks(mosaic, base=not args.no_base) if args.flat else standing_bricks(mosaic)
     suffix = (f"_{variant}" if variant else "") + ("_volume" if args.volume else "_mosaic")
     io_path = Path(args.out) if args.out else _model_dir(args.input) / f"{Path(args.input).stem}{suffix}.io"
     io_path.parent.mkdir(parents=True, exist_ok=True)
@@ -106,11 +107,14 @@ def _build_mosaic(args, source: str, variant: str) -> None:
     names = {c.code: c.name for c in load_palette(common_only=False)}
     print(f"мозаика {mosaic.width}x{mosaic.height} пикселей, шаг сетки {mosaic.pitch_px:.1f} px растра")
     if args.flat:
-        colors = Counter(b.color for b in bricks if b.layer == 1)
-        sizes = Counter(b.part.label for b in bricks if b.layer == 1)
-        cells = sum(b.part.area for b in bricks if b.layer == 1)
-        print(f"панно {cells} клеток, деталей {len(bricks)}: тайлы " + ", ".join(f"{k} x{n}" for k, n in sorted(sizes.items()))
-              + f", подложка {sum(1 for b in bricks if b.layer == 0)}")
+        top = max(b.layer for b in bricks)          # плитки — верхний слой; подложки может не быть
+        tiles = [b for b in bricks if b.layer == top]
+        colors = Counter(b.color for b in tiles)
+        sizes = Counter(b.part.label for b in tiles)
+        base = len(bricks) - len(tiles)
+        print(f"панно {sum(b.part.area for b in tiles)} клеток, деталей {len(bricks)}: плитки "
+              + ", ".join(f"{k} x{n}" for k, n in sorted(sizes.items()))
+              + (f", подложка {base}" if base else ", без подложки (плитки на готовые пластины)"))
     else:
         colors = Counter(b.color for b in bricks)
         parts = Counter(b.part.label for b in bricks)

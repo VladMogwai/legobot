@@ -72,6 +72,12 @@ def _cover(pdf, plt, bricks, title, kind, rgb, names) -> None:
         "",
         "Цвета названы так же, как в каталоге LEGO Pick a Brick и BrickLink.",
     ]
+    if kind == "панно" and len({b.layer for b in bricks}) == 1:   # плитки без своей подложки
+        studs_x = max(b.x + b.width for b in bricks) - min(b.x for b in bricks)
+        studs_z = max(b.z + b.length for b in bricks) - min(b.z for b in bricks)
+        plates = -(-studs_x // 48) * -(-studs_z // 48)
+        lines += ["", f"Подложки в наборе нет: {studs_x} × {studs_z} штырьков нужно закрыть готовыми "
+                      f"строительными пластинами — это {plates} шт. 48×48 или пластины 16×16 по площади."]
     fig.text(0.08, 0.76, "\n".join(lines), fontsize=11, va="top", linespacing=1.6)
     if price is not None:
         fig.text(0.08, 0.60, f"Детали на Pick a Brick: ${price:.2f}", fontsize=12, weight="bold")
@@ -152,8 +158,9 @@ def _ink(color) -> str:
 # --- панно: секции ---
 
 def _panel_pages(pdf, plt, bricks, rgb, names) -> int:
-    tiles = [b for b in bricks if b.layer == 1] or bricks
-    base = [b for b in bricks if b.layer == 0]
+    top = max(b.layer for b in bricks)
+    tiles = [b for b in bricks if b.layer == top]
+    base = [b for b in bricks if b.layer < top]
     x0, z0 = min(b.x for b in tiles), min(b.z for b in tiles)
     nx = max(b.x + b.width for b in tiles) - x0
     nz = max(b.z + b.length for b in tiles) - z0

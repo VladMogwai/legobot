@@ -26,9 +26,11 @@ from .studio import PARTS_DB_VERSION, STUDIO_VERSION
 
 
 def build(image_bytes: bytes, mode: str = "auto", background: str = "auto", width: int = 0,
-          max_colors: int = 0, volume_depth: int = 4, recolor: dict | None = None, contrast: bool = False) -> dict:
+          max_colors: int = 0, volume_depth: int = 4, recolor: dict | None = None, contrast: bool = False,
+          base: bool = True) -> dict:
     """mode: auto | standing | volume | flat. background: auto | cut | keep. width > 0 — переложить
-    любую картинку в пиксель-арт такой ширины. Возвращает {"files": {имя: bytes|str}, "summary": {...}}."""
+    любую картинку в пиксель-арт такой ширины. base — класть ли у панно свою подложку из пластин.
+    Возвращает {"files": {имя: bytes|str}, "summary": {...}}."""
     with tempfile.TemporaryDirectory() as tmp:
         image_path = Path(tmp) / "input.png"
         image_path.write_bytes(image_bytes)
@@ -49,7 +51,7 @@ def build(image_bytes: bytes, mode: str = "auto", background: str = "auto", widt
             from .inflate import volume_bricks
             bricks = volume_bricks(mosaic, volume_depth)
         elif mode == "flat":
-            bricks = mosaic_bricks(mosaic)
+            bricks = mosaic_bricks(mosaic, base=base)
         else:
             bricks = standing_bricks(mosaic)
         out = _outputs(bricks, mosaic, Path(tmp), mode)
@@ -59,7 +61,7 @@ def build(image_bytes: bytes, mode: str = "auto", background: str = "auto", widt
         return out
 
 
-def build_from_grid(codes: list[list[int]], mode: str = "standing", volume_depth: int = 4) -> dict:
+def build_from_grid(codes: list[list[int]], mode: str = "standing", volume_depth: int = 4, base: bool = True) -> dict:
     """Пересборка из сетки, отредактированной на странице: codes[x][y], -1 — пусто."""
     from .mosaic import Mosaic
     grid = np.array(codes, dtype=int)
@@ -68,7 +70,7 @@ def build_from_grid(codes: list[list[int]], mode: str = "standing", volume_depth
         from .inflate import volume_bricks
         bricks = volume_bricks(mosaic, volume_depth)
     elif mode == "flat":
-        bricks = mosaic_bricks(mosaic)
+        bricks = mosaic_bricks(mosaic, base=base)
     else:
         bricks = standing_bricks(mosaic)
     with tempfile.TemporaryDirectory() as tmp:

@@ -117,16 +117,19 @@ def _sample_cells(image, present, pitch, phase_x, phase_z):
 TILE_VOCABULARY = Vocabulary("tiles", tuple(TILES.values()))
 
 
-def mosaic_bricks(mosaic: Mosaic, base_color: int = BLACK) -> list[PlacedBrick]:
-    """Слой 0 — подложка из пластин по силуэту, слой 1 — тайлы по цветам: соседние клетки одного
-    цвета кладутся одной деталью (1×2, 2×2, 1×4, 2×4, 1×6, 1×8), и панно выходит вдвое дешевле
-    и быстрее в сборке, чем из одних 1×1."""
+def mosaic_bricks(mosaic: Mosaic, base_color: int = BLACK, base: bool = True) -> list[PlacedBrick]:
+    """Слой 0 — подложка из пластин по силуэту, слой 1 — плитки по цветам: соседние клетки одного
+    цвета кладутся одной деталью (1×2, 2×2, 1×4, 2×3, 6×6 и т.д.), и панно выходит вдвое дешевле
+    и быстрее в сборке, чем из одних 1×1.
+
+    base=False — только плитки, без своей подложки: её берут готовую (строительные пластины),
+    и панно дешевеет примерно на треть, потому что невидимая подложка стоит как её площадь."""
     mosaic_codes = np.flip(mosaic.codes, axis=0)   # в Studio сверху ось X смотрит влево: без отражения панно выходит зеркальным
     mask = mosaic_codes >= 0
     voxels = mask[:, :, None]
-    base = layout_bricks(voxels, np.full(voxels.shape, ANY_COLOR), base_color, PLATES)
+    plates = layout_bricks(voxels, np.full(voxels.shape, ANY_COLOR), base_color, PLATES) if base else []
     tiles = layout_bricks(voxels, mosaic_codes[:, :, None], base_color, TILE_VOCABULARY)
-    return base + [replace(t, layer=1) for t in tiles]
+    return plates + [replace(t, layer=1 if base else 0) for t in tiles]
 
 
 def standing_bricks(mosaic: Mosaic) -> list[PlacedBrick]:

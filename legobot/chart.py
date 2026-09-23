@@ -14,9 +14,10 @@ MARGIN = 40        # поле под номера
 LEGEND_ROW = 22
 
 
-def write_chart(bricks: list, path: str, layer: int = 1) -> int:
-    """PNG-схема по тайлам слоя `layer` (у плоской мозаики слой 1 — тайлы). Возвращает число клеток."""
-    tiles = [b for b in bricks if b.layer == layer]
+def write_chart(bricks: list, path: str) -> int:
+    """PNG-схема по плиткам — это верхний слой: 1, когда у панно есть своя подложка, иначе 0.
+    Возвращает число плиток."""
+    tiles = [b for b in bricks if b.layer == max(x.layer for x in bricks)]
     rgb = {c.code: c.rgb for c in studio_palette(common_only=False)}
     names = {c.code: c.name for c in load_palette(common_only=False)}
     x0, z0 = min(b.x for b in tiles), min(b.z for b in tiles)
