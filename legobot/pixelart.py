@@ -44,7 +44,7 @@ def mosaic_from_photo(image_path: str, max_colors: int = 16, keep_background: bo
     """keep_background — панно: у плоского рисунка фон выкладывается как цвет, а не отбрасывается."""
     rgb, mask, known_flat = _cutout(image_path, keep_background)
     rect, rmask, flat = _rectify(rgb, mask, known_flat)
-    bounds_x, bounds_y = _grid(rect, rmask, flat)
+    bounds_x, bounds_y = _refine_grid(rect, *_grid(rect, rmask, flat))
     colors, present = _sample_cells(rect, rmask, bounds_x, bounds_y, flat)
     if keep_background:
         colors, present = _fill_panel(colors, _trim_panel(present))
@@ -449,6 +449,80 @@ def _grid(rect, rmask, flat: bool):
     return out   # границы клеток по x, по y
 
 
+def _refine_grid(rect, bounds_x, bounds_y):
+    """Дробит сетку вдвое, пока в клетке видно больше одной плитки.
+
+    Шаг ищется по автокорреляции и находит самый заметный период — у мозаики, где ровные поля
+    выложены плитками 2×2, это период плитки, а не штырька. Мелкие места (город на «Звёздной
+    ночи») набраны деталями 1×1 и при таком шаге усредняются в кашу. Признак: четвертинки клетки
+    различаются по цвету — значит, внутри клетки не одна деталь."""
+    lab = color.rgb2lab(rect)
+    for _ in range(MAX_SPLITS):
+        if max(len(bounds_x), len(bounds_y)) > MAX_CELLS or np.diff(bounds_x).mean() < 2 * MIN_SPLIT_PITCH:
+            break
+        median, share = _quarter_difference(lab, bounds_x, bounds_y)
+        # Разница внутри клетки больше, чем между соседними, значит сетка просто не попала в
+        # рисунок — дробить такую нельзя, станет только хуже.
+        if median < SPLIT_DE or share < SPLIT_SHARE or median > SPLIT_RATIO * _neighbour_difference(lab, bounds_x, bounds_y):
+            break
+        bounds_x, bounds_y = _halve(bounds_x), _halve(bounds_y)
+    return bounds_x, bounds_y
+
+
+def _halve(bounds):
+    return np.sort(np.concatenate([bounds, (bounds[:-1] + bounds[1:]) / 2]))
+
+
+def _quarter_difference(lab, bounds_x, bounds_y):
+    """(медиана, доля клеток) по разнице цвета четвертинок клетки: у одной детали она около нуля."""
+    diffs = []
+    for i in range(len(bounds_x) - 1):
+        for j in range(len(bounds_y) - 1):
+            w, h = bounds_x[i + 1] - bounds_x[i], bounds_y[j + 1] - bounds_y[j]
+            radius = max(1, int(min(w, h) * 0.10))
+            quarters = []
+            for qx in (0.25, 0.75):
+                for qy in (0.25, 0.75):
+                    cx, cy = int(bounds_x[i] + w * qx), int(bounds_y[j] + h * qy)
+                    block = lab[cy - radius:cy + radius + 1, cx - radius:cx + radius + 1].reshape(-1, 3)
+                    if len(block):
+                        quarters.append(np.median(block, axis=0))
+            if len(quarters) == 4:
+                q = np.array(quarters)
+                diffs.append(np.sqrt(((q[:, None] - q[None]) ** 2).sum(2)).max())
+    if not diffs:
+        return 0.0, 0.0
+    diffs = np.array(diffs)
+    return float(np.median(diffs)), float((diffs > SPLIT_DE).mean())
+
+
+def _neighbour_difference(lab, bounds_x, bounds_y) -> float:
+    """Медиана разницы цвета соседних клеток — мера контраста самого рисунка."""
+    centres = []
+    for i in range(len(bounds_x) - 1):
+        row = []
+        for j in range(len(bounds_y) - 1):
+            w, h = bounds_x[i + 1] - bounds_x[i], bounds_y[j + 1] - bounds_y[j]
+            cx, cy = int(bounds_x[i] + w / 2), int(bounds_y[j] + h / 2)
+            radius = max(1, int(min(w, h) * 0.15))
+            row.append(np.median(lab[cy - radius:cy + radius + 1, cx - radius:cx + radius + 1].reshape(-1, 3), axis=0))
+        centres.append(row)
+    c = np.array(centres)
+    if c.shape[0] < 2 or c.shape[1] < 2:
+        return float("inf")
+    dx = np.sqrt(((c[1:] - c[:-1]) ** 2).sum(2)).ravel()
+    dy = np.sqrt(((c[:, 1:] - c[:, :-1]) ** 2).sum(2)).ravel()
+    return float(np.median(np.concatenate([dx, dy])))
+
+
+SPLIT_DE = 12.0      # ΔE между четвертинками клетки, выше которого в ней больше одной детали
+SPLIT_RATIO = 1.2    # во сколько раз различие внутри клетки может превышать различие между клетками
+SPLIT_SHARE = 0.5    # и так должно быть у большинства клеток, а не у нескольких бликов
+MAX_SPLITS = 2       # дальше дробить нечего: деталь мельче 1×1 не бывает
+MAX_CELLS = 220      # клеток по стороне: больше — это уже не мозаика, а шум
+MIN_SPLIT_PITCH = 5  # px на клетку после дробления: из меньшего цвет уже не снять
+
+
 def _track_boundaries(pitch, phase, edges, length):
     """Границы клеток вдоль оси: от фазы шагаем на шаг, и если рядом (±SNAP шага) есть граница
     пикселей рисунка — встаём на неё. Ровная решётка «фаза + k·шаг» на реальных картинках не
@@ -480,8 +554,9 @@ def _sample_cells(rect, rmask, bounds_x, bounds_y, flat: bool):
     for i in range(nx):
         for j in range(ny):
             (x0, x1), (y0, y1) = bounds_x[i:i + 2], bounds_y[j:j + 2]
-            xs = slice(int(x0 + (x1 - x0) * 0.3), int(x0 + (x1 - x0) * 0.7))
-            ys = slice(int(y0 + (y1 - y0) * 0.3), int(y0 + (y1 - y0) * 0.7))
+            lo, hi = FLAT_CORE if flat else PHOTO_CORE
+            xs = slice(int(x0 + (x1 - x0) * lo), int(x0 + (x1 - x0) * hi))
+            ys = slice(int(y0 + (y1 - y0) * lo), int(y0 + (y1 - y0) * hi))
             if rmask[ys, xs].mean() < 0.6:
                 continue
             present[i, j] = True
@@ -492,6 +567,9 @@ def _sample_cells(rect, rmask, bounds_x, bounds_y, flat: bool):
     return colors, present
 
 
+FLAT_CORE = 0.3, 0.7     # какую часть клетки считать её цветом: у рисунка клетка ровная до краёв,
+PHOTO_CORE = 0.35, 0.65  # а на фото по краям шов, тень и блик на штырьке — из-за них мелкие детали
+                         # и превращались в кашу
 FRINGE = 0.2           # ширина каймы у края силуэта в долях шага сетки — эти пиксели в цвет не идут
 MIN_CORE_PIXELS = 4    # меньше — клетка целиком кайма, берём медиану по всем пикселям маски
 
