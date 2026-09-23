@@ -15,9 +15,9 @@ function startEngine() {
   engine.worker = new Worker("engine/worker.js?v=" + (window.LEGOBOT_ENGINE || ""));   // версия — чтобы браузер не взял старый воркер из кэша
   engine.worker.onmessage = (e) => {
     const m = e.data;
-    if (m.type === "progress") el.textContent = "● " + m.text;
-    else if (m.type === "ready") { engine.ready = true; online = true; el.textContent = "● считает в браузере"; el.className = "health on"; if (file) $("submit").disabled = false; $("status").textContent = ""; }
-    else if (m.type === "fatal") { el.textContent = "● движок не загрузился: " + m.error; el.className = "health off"; }
+    if (m.type === "progress") { el.textContent = "● " + m.text; $("status").textContent = m.text + " Кнопка «Собрать» оживёт, когда движок будет готов."; }
+    else if (m.type === "ready") { engine.ready = true; online = true; el.textContent = "● считает в браузере"; el.className = "health on"; if (file) $("submit").disabled = false; $("status").textContent = file ? "Готов собирать" : ""; }
+    else if (m.type === "fatal") { el.textContent = "● движок не загрузился: " + m.error; el.className = "health off"; $("status").textContent = "Движок не загрузился: " + m.error; }
     else if (m.id && engine.pending.has(m.id)) { engine.pending.get(m.id)(m); engine.pending.delete(m.id); }
   };
   engine.worker.onerror = (e) => { el.textContent = "● движок не загрузился: " + e.message; el.className = "health off"; };
@@ -48,7 +48,7 @@ async function runLocal(message, transfer, statusEl, title) {
 }
 function buildOptions() {
   return {
-    mode: $("mode").value, background: $("keep-bg").checked ? "keep" : "cut",
+    mode: $("mode").value, background: "auto",   // фон решают тип модели и сама картинка
     width: +($("width").value || 0), contrast: $("contrast").checked,
   };
 }
@@ -267,7 +267,7 @@ function pick(f) {
   $("preview").hidden = false;
   $("drop-text").textContent = f.name;
   $("submit").disabled = !online;
-  if (!online) $("status").textContent = API ? "Сервис сейчас офлайн — попробуй позже." : "Движок ещё загружается — подожди несколько секунд.";
+  if (!online) $("status").textContent = API ? "Сервис сейчас офлайн — попробуй позже." : "Движок ещё загружается — кнопка оживёт через несколько секунд.";
 }
 
 async function runJob(request, statusEl, title) {
@@ -307,7 +307,7 @@ $("form").addEventListener("submit", async (e) => {
   const body = new FormData();
   body.append("photo", file);
   body.append("width", $("width").value || "0");
-  body.append("background", $("keep-bg").checked ? "keep" : "cut");
+  body.append("background", $("mode").value === "flat" ? "keep" : "cut");
   body.append("contrast", $("contrast").checked ? "true" : "false");
   await runJob({ path: "/jobs", init: { method: "POST", body } }, $("status"), file.name);
   $("submit").disabled = false;

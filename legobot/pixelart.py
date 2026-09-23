@@ -242,7 +242,7 @@ def _cutout(path, keep_background: bool = False):
     image = Image.fromarray(rgba[..., :3])
     rgb = rgba[..., :3].astype(float) / 255
     alpha_mask = rgba[..., 3] >= 128
-    if keep_background:
+    if keep_background or is_full_frame(rgb):
         return rgb, np.ones(alpha_mask.shape, dtype=bool), False
     if (~alpha_mask).mean() > ALPHA_BACKGROUND:
         return rgb, alpha_mask, True
@@ -253,17 +253,51 @@ def _cutout(path, keep_background: bool = False):
         flat_mask = np.abs(rgb - background).max(axis=2) > FLAT_BACKGROUND_TOLERANCE
         if 0.02 < flat_mask.mean() < 0.9 and is_flat(rgb, flat_mask):
             return rgb, _fill_hollow(flat_mask), True
-    try:
-        import onnxruntime
-        import rembg
-    except ImportError:   # браузер: нейросети для вырезания фона нет
-        raise ValueError("пёстрый фон: вырезать его здесь нечем — нужна картинка на ровном, прозрачном или шахматном фоне") from None
-    onnxruntime.disable_telemetry_events()   # иначе onnxruntime падает (abort) при выходе из Python — поток телеметрии
-    mask = _fill_small_holes(np.asarray(rembg.remove(image))[..., 3] > 128)
+    mask = _fill_small_holes(_object_mask(rgb, image))
     # Вне маски — чёрное (как в выводе rembg), а не фон: при выправлении перспективы и в краевых
     # клетках примешивается именно оно, и краевые клетки темнеют — как боковые грани, которые
     # и отбрасываются. Цвет самой фигуры — из оригинала: под залитыми дырами у rembg тоже чёрное.
     return np.where(mask[..., None], rgb, 0.0), mask, False
+
+
+def is_full_frame(rgb) -> bool:
+    """Картинка занимает весь кадр — фото панно, скан картины: по рамке идут разные цвета, а не фон.
+    У предмета на фоне (хоть на фактурном) рамка одного цвета: разброс там 0–2, у панно — за 30."""
+    lab = color.rgb2lab(rgb)
+    inset = max(2, min(lab.shape[:2]) // 100)
+    border = np.concatenate([lab[inset], lab[-1 - inset], lab[:, inset], lab[:, -1 - inset]])
+    spread = np.sqrt(((border - np.median(border, axis=0)) ** 2).sum(1))
+    return float(np.median(spread)) > BORDER_SPREAD
+
+
+BORDER_SPREAD = 10.0   # ΔE по рамке, выше которого это не фон, а сама картинка
+
+
+def _object_mask(rgb, image) -> np.ndarray:
+    """Маска предмета на непростом фоне. rembg (нейросеть) точнее, но в браузере её нет — там
+    заливка от рамки по близкому цвету: на проверенных фото она совпадает с rembg на 94–99 %."""
+    try:
+        import onnxruntime
+        import rembg
+    except ImportError:
+        return _flood_object(rgb)
+    onnxruntime.disable_telemetry_events()   # иначе onnxruntime падает (abort) при выходе из Python — поток телеметрии
+    return np.asarray(rembg.remove(image))[..., 3] > 128
+
+
+def _flood_object(rgb) -> np.ndarray:
+    """Заливка от рамки: фон — связные куски цвета рамки, касающиеся края; остальное — предмет."""
+    lab = color.rgb2lab(rgb)
+    inset = max(2, min(lab.shape[:2]) // 100)
+    border = np.concatenate([lab[inset], lab[-1 - inset], lab[:, inset], lab[:, -1 - inset]])
+    close = np.sqrt(((lab - np.median(border, axis=0)) ** 2).sum(2)) < FLOOD_TOLERANCE
+    labels, count = ndimage.label(close)
+    edge = {int(l) for l in np.concatenate([labels[0], labels[-1], labels[:, 0], labels[:, -1]]) if l}
+    background = np.isin(labels, sorted(edge)) if edge else np.zeros(labels.shape, bool)
+    return ndimage.binary_fill_holes(~background)
+
+
+FLOOD_TOLERANCE = 18.0   # ΔE: насколько пиксель может отличаться от цвета рамки и всё ещё считаться фоном
 
 
 def _fill_hollow(mask):

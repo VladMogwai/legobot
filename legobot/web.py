@@ -11,6 +11,9 @@ import zipfile
 from collections import Counter
 from pathlib import Path
 
+import numpy as np
+from PIL import Image
+
 from .chart import write_chart
 from .guide import write_guide
 from .colors import code_by_name, load_palette
@@ -18,18 +21,22 @@ from .instructions import bill_of_materials, split_steps
 from .ldraw import write_ldr
 from .mosaic import mosaic_bricks, standing_bricks
 from .pack import pack_model
-from .pixelart import mosaic_from_image, mosaic_from_photo, write_check
+from .pixelart import is_full_frame, mosaic_from_image, mosaic_from_photo, write_check
 from .studio import PARTS_DB_VERSION, STUDIO_VERSION
 
 
-def build(image_bytes: bytes, mode: str = "standing", background: str = "cut", width: int = 0,
+def build(image_bytes: bytes, mode: str = "auto", background: str = "auto", width: int = 0,
           max_colors: int = 0, volume_depth: int = 4, recolor: dict | None = None, contrast: bool = False) -> dict:
-    """mode: standing | volume | flat. background: cut | keep. width > 0 — переложить любую
-    картинку в пиксель-арт такой ширины. Возвращает {"files": {имя: bytes|str}, "summary": {...}}."""
-    keep = background == "keep"
+    """mode: auto | standing | volume | flat. background: auto | cut | keep. width > 0 — переложить
+    любую картинку в пиксель-арт такой ширины. Возвращает {"files": {имя: bytes|str}, "summary": {...}}."""
     with tempfile.TemporaryDirectory() as tmp:
         image_path = Path(tmp) / "input.png"
         image_path.write_bytes(image_bytes)
+        panel = is_full_frame(np.asarray(Image.open(image_path).convert("RGB")).astype(float) / 255)
+        if mode == "auto":                       # фото панно собираем панно, всё остальное — фигуркой
+            mode = "flat" if panel else "standing"
+        # панно — это вся картинка целиком: фон у него не вырезают, а выкладывают
+        keep = mode == "flat" or background == "keep" or (background == "auto" and panel)
         colors = max_colors or (32 if keep else 16)
         if width:
             result = mosaic_from_image(str(image_path), width, max_colors=colors, keep_background=keep, contrast=contrast)
@@ -54,7 +61,6 @@ def build(image_bytes: bytes, mode: str = "standing", background: str = "cut", w
 
 def build_from_grid(codes: list[list[int]], mode: str = "standing", volume_depth: int = 4) -> dict:
     """Пересборка из сетки, отредактированной на странице: codes[x][y], -1 — пусто."""
-    import numpy as np
     from .mosaic import Mosaic
     grid = np.array(codes, dtype=int)
     mosaic = Mosaic(grid, 1.0, *grid.shape)

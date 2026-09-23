@@ -27,19 +27,19 @@
       </label>
       <div class="options">
         <label>Тип <select id="mode">
+          <option value="auto">определить по картинке</option>
           <option value="standing">стоячая фигурка</option>
           <option value="volume">объёмная (две грани)</option>
           <option value="flat">панно из тайлов</option>
         </select></label>
         <label>Ширина, клеток <input type="number" id="width" min="0" max="120" placeholder="как есть" title="Пусто — читать сетку картинки как есть; число — переложить любую картинку в пиксель-арт такой ширины"></label>
-        <label><input type="checkbox" id="keep-bg"> выложить фон (панно)</label>
         <label><input type="checkbox" id="contrast"> контраст (тёмные картинки)</label>
       </div>
       <button type="submit" id="submit" disabled>Собрать</button>
     </form>
     <p id="status" class="status"></p>
-    <p class="hint">Подходит пиксель-арт с чётким контуром на ровном, прозрачном или шахматном фоне; фото мозаики — с галочкой «панно». Первая загрузка движка — около 15 МБ, дальше из кэша; сборка — секунды.
-      Живопись, градиенты и HD-иллюстрации в кирпичах не читаются. Пёстрый фон вырезать здесь пока нечем — обрежь его заранее.</p>
+    <p class="hint">Подходит пиксель-арт с чётким контуром и фото мозаики: фигурку бот вырежет из фона сам, фото панно соберёт панно целиком — тип определяется по картинке.
+      Живопись, градиенты и HD-иллюстрации в кирпичах не читаются. Первая загрузка движка — около 15 МБ и полминуты, дальше из кэша; сборка — секунды.</p>
     <p class="hint hidden-without-api">Уже правил модель в Studio? <label class="link"><input type="file" id="model-file" accept=".io,.ldr,.mpd" hidden>Загрузи .io</label> — получишь инструкцию, список деталей и превью.</p>
   </section>
 
