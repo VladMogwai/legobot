@@ -59,7 +59,7 @@ const canvas = $("viewer");
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0xf6f5f2);
+scene.background = new THREE.Color(0x282c34);   // фон страницы (Atom One Dark)
 const camera = new THREE.PerspectiveCamera(35, 1, 1, 100000);
 const controls = new OrbitControls(camera, canvas);
 controls.enableDamping = true;
