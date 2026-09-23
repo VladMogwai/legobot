@@ -94,6 +94,61 @@ def nearest_codes(rgb: np.ndarray, max_colors: int = 4) -> np.ndarray:
     return center_codes[labels]
 
 
+def panel_codes(colors: np.ndarray, present: np.ndarray, black: np.ndarray | None = None,
+                white: np.ndarray | None = None, common_only: bool = True) -> tuple[np.ndarray, np.ndarray]:
+    """Подбор для панно — фотографии выложенной картины.
+
+    У картины нет ни контура, ни плоских заливок: полутона и тени — её часть. Поэтому эвристики
+    фигурки картину портят: «всё тёмное и неяркое — чёрный контур» съедает ночное небо и крыши,
+    а k-means на десяток-другой цветов уходит целиком в самую большую область, и мелким местам
+    цветов не остаётся. Здесь клетка берёт ближайший продающийся пластик, но с оглядкой на
+    соседей: за каждого соседа другого цвета к расстоянию добавляется SMOOTH_DE. Клетка, что
+    болталась между двумя почти одинаковыми синими, садится на цвет соседей, а настоящая деталь
+    (жёлтое окно среди синего) эту доплату перевешивает и остаётся.
+
+    Возвращает (коды [W, H], -1 где пусто; откалиброванные цвета клеток present)."""
+    lo = np.zeros(3) if black is None else np.asarray(black, float)
+    hi = np.full(3, 255.0) if white is None else np.asarray(white, float)
+    calibrated = np.clip((colors[present].astype(float) - lo) / np.maximum(hi - lo, 1) * 255, 0, 255).astype(np.uint8)
+    palette = studio_palette(common_only)
+    if common_only and catalog.purchasable_colors() is not None:
+        palette = tuple(c for c in palette if c.code in catalog.purchasable_colors())
+    palette_lab = _rgb_to_lab(np.array([c.rgb for c in palette]))
+    distance = np.full(present.shape + (len(palette),), np.inf)
+    distance[present] = np.sqrt(((_rgb_to_lab(calibrated)[:, None] - palette_lab[None]) ** 2).sum(2))
+    chosen = _smooth_choice(distance, present)
+    codes = np.full(present.shape, -1)
+    codes[present] = np.array([c.code for c in palette])[chosen[present]]
+    return codes, calibrated
+
+
+def _smooth_choice(distance: np.ndarray, present: np.ndarray) -> np.ndarray:
+    """Цвет каждой клетки: расстояние до пластика плюс SMOOTH_DE за каждого соседа другого цвета.
+    Проходов несколько — каждый считает соседей по выбору предыдущего."""
+    chosen = np.argmin(distance, axis=2)
+    for _ in range(SMOOTH_PASSES):
+        same, neighbours = np.zeros(distance.shape), np.zeros(present.shape)
+        for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            shifted = _shift(np.where(present, chosen, -1), dx, dy)
+            near = shifted >= 0
+            neighbours += near
+            same[near, shifted[near]] += 1
+        chosen = np.argmin(distance + SMOOTH_DE * (neighbours[..., None] - same), axis=2)
+    return chosen
+
+
+def _shift(grid: np.ndarray, dx: int, dy: int) -> np.ndarray:
+    """Сетка, сдвинутая на (dx, dy); за краем -1."""
+    out = np.full_like(grid, -1)
+    w, h = grid.shape
+    out[max(-dx, 0):w + min(-dx, 0), max(-dy, 0):h + min(-dy, 0)] = grid[max(dx, 0):w + min(dx, 0), max(dy, 0):h + min(dy, 0)]
+    return out
+
+
+SMOOTH_DE = 4.0      # ΔE за соседа другого цвета: столько стоит одинокая крапина в картине
+SMOOTH_PASSES = 3    # дальше выбор почти не меняется
+
+
 def flat_codes(rgb: np.ndarray, max_colors: int, black: np.ndarray | None = None,
                white: np.ndarray | None = None, outline_black: bool = True,
                common_only: bool = True, dark_l: float | None = None, exact_hues: bool = False) -> tuple[np.ndarray, np.ndarray]:

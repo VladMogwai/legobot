@@ -16,7 +16,7 @@ from PIL import Image
 from scipy import ndimage
 from skimage import color, feature, morphology, transform
 
-from .colors import DARK_L_FLAT, flat_codes, studio_palette
+from .colors import DARK_L_FLAT, flat_codes, panel_codes, studio_palette
 from .colors import DARK_L as DARK_L_PHOTO
 from .mosaic import Mosaic
 from .preferences import preferences
@@ -41,7 +41,9 @@ class PhotoMosaic:
 
 
 def mosaic_from_photo(image_path: str, max_colors: int = 16, keep_background: bool = False) -> PhotoMosaic:
-    """keep_background — панно: у плоского рисунка фон выкладывается как цвет, а не отбрасывается."""
+    """keep_background — панно: фон выкладывается как цвет, а не отбрасывается, и цвет клетки
+    подбирается как у картины (panel_codes), а не как у фигурки с контуром; max_colors при этом
+    не нужен."""
     rgb, mask, known_flat = _cutout(image_path, keep_background)
     rect, rmask, flat = _rectify(rgb, mask, known_flat)
     bounds_x, bounds_y = _refine_grid(rect, *_grid(rect, rmask, flat))
@@ -51,11 +53,14 @@ def mosaic_from_photo(image_path: str, max_colors: int = 16, keep_background: bo
     colors, present = _symmetrize(colors, present)
     front = present if keep_background else _front_face(colors, present)
     black, white = _anchors(colors, present, front)
-    codes = np.full(present.shape, -1)
     prefs = preferences()["mosaic"]
-    codes[front], calibrated = flat_codes(colors[front], max_colors, black, white,
-                                          outline_black=prefs["outline_black"], common_only=prefs["palette"] == "common",
-                                          dark_l=DARK_L_FLAT if flat else DARK_L_PHOTO, exact_hues=flat)
+    if keep_background:      # панно — картина целиком, max_colors ей не нужен: цветов столько, сколько продаётся
+        codes, calibrated = panel_codes(colors, front, black, white, common_only=prefs["palette"] == "common")
+    else:
+        codes = np.full(present.shape, -1)
+        codes[front], calibrated = flat_codes(colors[front], max_colors, black, white,
+                                              outline_black=prefs["outline_black"], common_only=prefs["palette"] == "common",
+                                              dark_l=DARK_L_FLAT if flat else DARK_L_PHOTO, exact_hues=flat)
     cell_colors = np.zeros_like(colors)
     cell_colors[front] = calibrated
     pitch = (np.diff(bounds_x).mean() + np.diff(bounds_y).mean()) / 2

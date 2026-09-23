@@ -87,3 +87,47 @@ def test_standing_is_one_piece(case):
         if j is not None:
             parent[find(i)] = find(j)
     assert len({find(i) for i in range(len(bricks))}) == 1
+
+
+# Панно — фотография выложенной картины: свой подбор цвета (panel_codes), своя проверка.
+# файл, сетка, цветов не меньше, средняя ΔE не выше, чёрных клеток и одиночных — не больше доли
+PANELS = [
+    ("examples/stock/starry2.jpg", (130, 168), 25, 14.5, 0.20, 0.07),   # фото мозаики 128×166: мелкие места набраны 1×1, сетка дробится
+    ("examples/purple-phantom.png", (46, 54), 4, 10.0, 0.60, 0.05),     # рисунок панно: контур намеренно чёрный
+]
+
+
+@pytest.fixture(scope="module", params=PANELS, ids=[p[0].split("/")[-1] for p in PANELS])
+def panel(request):
+    path, *rest = request.param
+    if not Path(path).exists():
+        pytest.skip(f"{path} нет (стоковые картинки не в git)")
+    return (mosaic_from_photo(path, max_colors=32, keep_background=True), *rest)
+
+
+def test_panel(panel):
+    result, size, min_colors, max_de, max_black, _ = panel
+    m, photo = result.mosaic, result.cell_colors
+    assert (m.width, m.height) == size, (m.width, m.height)
+    present = m.codes >= 0
+    used = m.codes[present]
+    assert len(np.unique(used)) >= min_colors, len(np.unique(used))
+    lego = {c.code: c.rgb for c in studio_palette(common_only=False)}
+    black = next(c.code for c in studio_palette(common_only=False) if c.name == "Black")
+    # тёмное у картины — не контур: если «всё тёмное в чёрный», ночное небо и крыши пропадают
+    assert (used == black).mean() <= max_black, (used == black).mean()
+    chosen = np.array([lego[int(c)] for c in used], dtype=np.uint8)
+    de = np.sqrt(((_rgb_to_lab(photo[present]) - _rgb_to_lab(chosen)) ** 2).sum(1))
+    assert de.mean() < max_de, de.mean()
+
+
+def test_panel_has_no_speckle(panel):
+    """Клетка, не совпавшая ни с одним из четырёх соседей, — крапина: лишняя деталь и шум.
+    Совсем до нуля не свести: у «Звёздной ночи» около 5 % — это мазки самой картины (звёзды,
+    окна в один пиксель). Без оглядки на соседей при подборе цвета было 13 %."""
+    m = panel[0].mosaic
+    codes = m.codes
+    lone = np.zeros(codes.shape, bool)
+    lone[1:-1, 1:-1] = ((codes[1:-1, 1:-1] != codes[:-2, 1:-1]) & (codes[1:-1, 1:-1] != codes[2:, 1:-1])
+                        & (codes[1:-1, 1:-1] != codes[1:-1, :-2]) & (codes[1:-1, 1:-1] != codes[1:-1, 2:]))
+    assert lone.mean() < panel[5], lone.mean()
