@@ -160,7 +160,7 @@ async function showResult(files, summary, title) {
 async function showFiles(blobs, summary, title) {
   const urls = Object.fromEntries(Object.entries(blobs).map(([name, blob]) => [name, URL.createObjectURL(blob)]));
   await showResult(urls, summary, title);
-  if (summary.grid) await showEditor(summary.grid);
+  if (summary.grid) await showEditor(summary.grid, summary.palette);
 }
 
 async function saveToHistory(title, summary, blobs) {
@@ -284,7 +284,7 @@ async function runJob(request, statusEl, title) {
         statusEl.textContent = "Готово";
         const files = Object.fromEntries(Object.entries(state.files).map(([k, v]) => [k, API + v]));
         await showResult(files, state.summary, title);
-        if (state.summary.grid) await showEditor(state.summary.grid);
+        if (state.summary.grid) await showEditor(state.summary.grid, state.summary.palette);
         return;
       }
       if (state.status === "error") { statusEl.textContent = "Ошибка: " + state.error; return; }
@@ -323,18 +323,26 @@ $("model-file").addEventListener("change", async () => {
 });
 
 // --- редактор пикселей ---
-const CELL = 18;
-let grid = null, undoStack = [], brush = 0, painting = false;
+const MIN_CELL = 5, MAX_CELL = 18, EDITOR_MAX_HEIGHT = 0.62;   // доля высоты окна под сетку
+let grid = null, undoStack = [], brush = 0, painting = false, cell = MAX_CELL;
 const gridCanvas = $("grid"), gctx = gridCanvas.getContext("2d");
 let hexByCode = {};
 
-async function showEditor(codes) {
+function fitCell() {
+  const box = gridCanvas.parentElement.getBoundingClientRect();
+  const byWidth = (box.width - 2) / grid.length;
+  const byHeight = (innerHeight * EDITOR_MAX_HEIGHT) / grid[0].length;
+  return Math.max(MIN_CELL, Math.min(MAX_CELL, Math.floor(Math.min(byWidth, byHeight))));
+}
+
+async function showEditor(codes, allowed) {
   grid = codes.map((col) => col.slice());
   undoStack = [];
   const all = await colors;
   hexByCode = Object.fromEntries(all.map((c) => [c.code, c.hex]));
   const used = new Set(grid.flat().filter((c) => c >= 0));
-  const palette = all.filter((c) => c.common || used.has(c.code));
+  const buyable = allowed ? new Set(allowed) : null;   // цвета, которыми бот реально красит
+  const palette = all.filter((c) => (buyable ? buyable.has(c.code) : c.common) || used.has(c.code));
   $("palette").innerHTML = `<button class="erase" data-code="-1" title="Стереть"></button>` +
     palette.map((c) => `<button data-code="${c.code}" title="${c.name.replaceAll("_", " ")}" style="--sw:${c.hex}"></button>`).join("");
   selectBrush(palette[0].code);
@@ -349,16 +357,19 @@ $("palette").addEventListener("click", (e) => { const b = e.target.closest("butt
 
 function drawGrid() {
   const w = grid.length, h = grid[0].length;
-  gridCanvas.width = w * CELL + 1; gridCanvas.height = h * CELL + 1;
+  cell = fitCell();
+  gridCanvas.width = w * cell + 1; gridCanvas.height = h * cell + 1;
   gctx.fillStyle = "#ececec"; gctx.fillRect(0, 0, gridCanvas.width, gridCanvas.height);
+  const gap = cell >= 8 ? 1 : 0;            // на мелкой клетке сетка съедает цвет — рисуем встык
   for (let x = 0; x < w; x++) for (let y = 0; y < h; y++) {
     gctx.fillStyle = grid[x][y] >= 0 ? hexByCode[grid[x][y]] || "#888" : "#fff";
-    gctx.fillRect(x * CELL + 1, y * CELL + 1, CELL - 1, CELL - 1);
+    gctx.fillRect(x * cell + gap, y * cell + gap, cell - gap, cell - gap);
   }
 }
+addEventListener("resize", () => { if (grid) drawGrid(); });
 function cellAt(e) {
   const r = gridCanvas.getBoundingClientRect();
-  const x = Math.floor((e.clientX - r.left) / CELL), y = Math.floor((e.clientY - r.top) / CELL);
+  const x = Math.floor((e.clientX - r.left) / cell), y = Math.floor((e.clientY - r.top) / cell);
   return x >= 0 && y >= 0 && x < grid.length && y < grid[0].length ? [x, y] : null;
 }
 function paint(e) {
@@ -369,7 +380,8 @@ function paint(e) {
   undoStack.push([x, y, grid[x][y]]);
   grid[x][y] = code;
   gctx.fillStyle = code >= 0 ? hexByCode[code] : "#fff";
-  gctx.fillRect(x * CELL + 1, y * CELL + 1, CELL - 1, CELL - 1);
+  const gap = cell >= 8 ? 1 : 0;
+  gctx.fillRect(x * cell + gap, y * cell + gap, cell - gap, cell - gap);
 }
 gridCanvas.addEventListener("contextmenu", (e) => e.preventDefault());
 gridCanvas.addEventListener("pointerdown", (e) => { painting = true; paint(e); });
@@ -399,5 +411,5 @@ $("rebuild").addEventListener("click", async () => {
   const summary = await (await fetch("demo/summary.json")).json();
   const files = Object.fromEntries(["model.mpd", "model.io", "instructions.pdf", "parts.csv", "check.png"].map((f) => [f, `demo/${f}`]));
   await showResult(files, summary, "Пример: Марио (Pixel Pals)");
-  if (summary.grid) await showEditor(summary.grid);
+  if (summary.grid) await showEditor(summary.grid, summary.palette);
 })();

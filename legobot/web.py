@@ -103,7 +103,7 @@ def _outputs(bricks, mosaic, tmp: Path, mode: str) -> dict:
         "steps": len(steps), "pages": guide_pages,
         "size_cm": [round(width_studs * 0.8, 1), round(depth * 0.8, 1), round(height * 0.8, 1)],
         "colors": [[names.get(c, str(c)), n] for c, n in Counter(b.color for b in bricks).most_common()],
-        "grid": mosaic.codes.tolist(), "price_usd": _price(bricks),
+        "grid": mosaic.codes.tolist(), "price_usd": _price(bricks), "palette": _palette(),
     }
     return {"files": files, "summary": summary}
 
@@ -115,6 +115,13 @@ def _io_bytes(ldr: str) -> bytes:
         z.writestr("model.ldr", ldr)
         z.writestr(".info", json.dumps({"version": STUDIO_VERSION, "total_parts": total, "parts_db_version": PARTS_DB_VERSION}))
     return buf.getvalue()
+
+
+def _palette() -> list[int]:
+    """Цвета, которыми бот красит модель: ходовые и продающиеся — ими же красит редактор."""
+    from . import catalog
+    purchasable = catalog.purchasable_colors()
+    return [c.code for c in load_palette(common_only=True) if purchasable is None or c.code in purchasable]
 
 
 def _price(bricks) -> float | None:

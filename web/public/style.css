@@ -39,8 +39,8 @@ td:first-child { text-align: right; color: var(--muted); }
 .palette button { width: 28px; height: 28px; padding: 0; margin: 0; border: 2px solid transparent; border-radius: 6px; background: var(--sw); cursor: pointer; }
 .palette button.selected { border-color: var(--ink); box-shadow: 0 0 0 2px #fff inset; }
 .palette button.erase { background: repeating-linear-gradient(45deg, #fff 0 4px, #ddd 4px 8px); }
-.editor-body { overflow: auto; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
-#grid { display: block; image-rendering: pixelated; cursor: crosshair; }
+.editor-body { border: 1px solid var(--line); border-radius: 8px; background: #fff; padding: 4px; display: flex; justify-content: center; }
+#grid { display: block; image-rendering: pixelated; cursor: crosshair; max-width: 100%; }
 .editor-actions { display: flex; gap: 12px; align-items: center; margin-top: 8px; }
 button.secondary { background: #e9e7e2; color: var(--ink); }
 .health { font-size: 13px; font-weight: 500; color: var(--muted); margin-left: 12px; vertical-align: middle; }

@@ -32,12 +32,15 @@ PAB = Path(__file__).resolve().parent.parent / "catalog" / "pab.csv"
 
 
 @lru_cache
-def _pab() -> dict[tuple[str, int], int] | None:
-    """(деталь, цвет) -> цена в центах на Pick a Brick; None — выгрузки нет (см. tools/pab.py)."""
+def _pab() -> dict[tuple[str, int], int | None] | None:
+    """(деталь, цвет) -> цена в центах на Pick a Brick, None — цены нет, но деталь продаётся.
+    Весь словарь None — выгрузки нет (см. tools/pab.py). В браузер уезжает список без цен:
+    доступность деталей и цветов — факт каталога, цены lego.com мы не публикуем."""
     if not PAB.exists():
         return None
     with open(PAB, newline="") as f:
-        return {(row["ldraw"], int(row["color_code"])): int(row["cents"]) for row in csv.DictReader(f)}
+        return {(row["ldraw"], int(row["color_code"])): int(row["cents"]) if row.get("cents") else None
+                for row in csv.DictReader(f)}
 
 
 def available(number: str, color: int) -> bool | None:
@@ -53,6 +56,12 @@ def price_cents(number: str, color: int) -> int | None:
     """Цена на Pick a Brick, если известна."""
     pab = _pab()
     return None if pab is None else pab.get((number.lower(), color))
+
+
+def purchasable_parts() -> set[tuple[str, int]] | None:
+    """Пары деталь+цвет, которые продаются; None — выгрузки нет."""
+    pab = _pab()
+    return None if pab is None else set(pab)
 
 
 def unavailable(parts: list[tuple[str, int]]) -> list[tuple[str, int]]:

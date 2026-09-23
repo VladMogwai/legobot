@@ -59,6 +59,17 @@ def check_geometry() -> None:
         raise SystemExit(f"нет геометрии в vendor/ldraw: {sorted(missing)[:8]} — запусти tools/vendor_ldraw.py")
 
 
+def availability_csv() -> str:
+    """Список пар деталь+цвет с Pick a Brick без цен: в браузере нужна доступность, а цены
+    lego.com мы не публикуем."""
+    src = ROOT / "catalog" / "pab.csv"
+    if not src.exists():
+        return "ldraw,color_code,cents,channel\n"
+    with open(src, newline="") as f:
+        rows = [(r["ldraw"], r["color_code"]) for r in csv.DictReader(f)]
+    return "ldraw,color_code,cents,channel\n" + "".join(f"{n},{c},,\n" for n, c in rows)
+
+
 def main() -> None:
     check_geometry()
     OUT.mkdir(parents=True, exist_ok=True)
@@ -71,6 +82,7 @@ def main() -> None:
         z.writestr("catalog/colors.csv", (ROOT / "catalog" / "colors.csv").read_text())
         z.writestr("catalog/parts.csv", trimmed_csv(ROOT / "catalog" / "parts.csv", "ldraw", numbers))
         z.writestr("catalog/part_colors.csv", trimmed_csv(ROOT / "catalog" / "part_colors.csv", "ldraw", numbers))
+        z.writestr("catalog/pab.csv", availability_csv())
         for f in sorted((ROOT / "vendor" / "ldraw").rglob("*")):
             if f.is_file():
                 z.write(f, f"vendor/ldraw/{f.relative_to(ROOT / 'vendor' / 'ldraw')}")
