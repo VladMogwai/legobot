@@ -9,13 +9,16 @@ lego.com для личного пользования; без него поку�
 import csv
 import hashlib
 import io
+import sys
 import zipfile
 from pathlib import Path
 
-from legobot.finish import TILES
-from legobot.parts import BRICKS, PLATES
-
 ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT))   # скрипт запускают и без PYTHONPATH — пакет лежит рядом
+
+from legobot.finish import TILES      # noqa: E402 — после настройки пути
+from legobot.parts import BRICKS, PLATES   # noqa: E402
+
 OUT = ROOT / "web" / "public" / "engine"
 
 
