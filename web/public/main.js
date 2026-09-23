@@ -169,8 +169,10 @@ async function showResult(files, summary, title) {
     b.onclick = async (e) => { e.preventDefault(); const r = await fetch(`${API}/jobs/${jobId}/open`, { method: "POST" }); b.textContent = r.ok ? "Открыто в Studio" : "Studio не найден"; };
     $("downloads").prepend(b);
   }
-  const rows = await Promise.all(summary.colors.map(async ([name, n]) =>
-    `<tr><td>${n}</td><td><i class="swatch" style="background:${await colorHex(name)}"></i>${name.replaceAll("_", " ")}</td></tr>`));
+  // у моделей из старой истории размеров деталей нет — там остаётся только разбивка по цветам
+  const list = summary.parts_list || summary.colors.map(([name, n]) => ["", name, n]);
+  const rows = await Promise.all(list.map(async ([part, name, n]) =>
+    `<tr><td>${n}</td><td>${part}</td><td><i class="swatch" style="background:${await colorHex(name)}"></i>${name.replaceAll("_", " ")}</td></tr>`));
   $("parts").innerHTML = rows.join("");
   await showModel(files["model.mpd"]);
 }

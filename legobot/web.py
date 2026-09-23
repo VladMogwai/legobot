@@ -104,6 +104,7 @@ def _outputs(bricks, mosaic, tmp: Path, mode: str) -> dict:
         "steps": len(steps), "pages": guide_pages,
         "size_cm": [round(width_studs * 0.8, 1), round(depth * 0.8, 1), round(height * 0.8, 1)],
         "colors": [[names.get(c, str(c)), n] for c, n in Counter(b.color for b in bricks).most_common()],
+        "parts_list": [[l.name, l.color_name, l.quantity] for l in bom],   # страница показывает размеры, а не только цвета
         "grid": mosaic.codes.tolist(), "price_usd": _price(bricks), "palette": _palette(),
     }
     return {"files": files, "summary": summary}
