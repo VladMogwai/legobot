@@ -24,11 +24,14 @@ from .colors import studio_palette
 PAGE = (8.27, 11.69)      # A4 в дюймах
 SECTION = 16              # клеток в стороне секции панно
 ROWS_PER_PAGE = 6
+PARTS_COLUMNS, PARTS_ROWS = 3, 38   # список деталей: колонок и строк на странице
 MIN_LABEL_STUDS = 2       # в детали уже этого подпись размера не влезает
 
 
 def write_guide(bricks: list, path: str, title: str, kind: str) -> int:
-    """kind: 'панно' — секции, иначе ряды. Возвращает число страниц."""
+    """kind: 'панно' — секции, иначе ряды. Текст инструкции — английский: её печатают и дают
+    человеку, который собирает, а названия цветов и деталей всё равно английские.
+    Возвращает число страниц."""
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
@@ -36,65 +39,71 @@ def write_guide(bricks: list, path: str, title: str, kind: str) -> int:
 
     rgb = {c.code: tuple(v / 255 for v in c.rgb) for c in studio_palette(common_only=False)}
     names = {c.code: c.name for c in studio_palette(common_only=False)}
-    pages = 0
+    panel = kind == "панно"
     with PdfPages(path) as pdf:
-        _cover(pdf, plt, bricks, title, kind, rgb, names)
-        pages += 2
-        if kind == "панно":
-            pages += _panel_pages(pdf, plt, bricks, rgb, names)
-        else:
-            pages += _row_pages(pdf, plt, bricks, rgb, names)
+        pages = _cover(pdf, plt, bricks, title, panel)
+        pages += _parts_pages(pdf, plt, bricks, rgb, names)
+        pages += _panel_pages(pdf, plt, bricks, rgb, names) if panel else _row_pages(pdf, plt, bricks, rgb, names)
     return pages
 
 
 # --- обложка и список деталей ---
 
-def _cover(pdf, plt, bricks, title, kind, rgb, names) -> None:
-    totals = Counter((b.part.label, b.color) for b in bricks)
+def _cover(pdf, plt, bricks, title, panel: bool) -> int:
     width = max(b.x + b.width for b in bricks) - min(b.x for b in bricks)
     depth = max(b.z + b.length for b in bricks) - min(b.z for b in bricks)
     height = max(b.layer for b in bricks) + 1
     cm = lambda studs, unit=0.8: round(studs * unit, 1)
-    size = f"{cm(width)} × {cm(depth)} × {cm(height, bricks[0].part.height / 20 * 0.8)} см"
+    size = f"{cm(width)} × {cm(depth)} × {cm(height, bricks[0].part.height / 20 * 0.8)} cm"
     prices = [price_cents(b.part.number, b.color) for b in bricks]
-    price = sum(p for p in prices if p is not None) / 100 if any(prices) else None
+    price = sum(p for p in prices if p is not None) / 100 if any(p is not None for p in prices) else None
 
     fig = plt.figure(figsize=PAGE)
     fig.text(0.08, 0.88, title, fontsize=26, weight="bold")
-    fig.text(0.08, 0.84, f"{kind} фигура · {len(bricks)} деталей · {size}", fontsize=13, color="#444444")
-    lines = [
-        "Как собирать",
-        "",
-        "Фигурка: ряд за рядом снизу вверх. На каждой странице несколько рядов;" if kind != "панно"
-        else "Панно: подложка из пластин, поверх неё тайлы 1×1 по секциям 16×16 клеток.",
-        "ряд нарисован сверху — перёд фигурки внизу полоски." if kind != "панно"
-        else "Номера столбцов и рядов на схеме совпадают с общей картой на первой странице секций.",
-        "",
-        "Цвета названы так же, как в каталоге LEGO Pick a Brick и BrickLink.",
-    ]
-    if kind == "панно" and len({b.layer for b in bricks}) == 1:   # плитки без своей подложки
+    fig.text(0.08, 0.84, f"{'Panel' if panel else 'Figure'} · {len(bricks)} pieces · {size}", fontsize=13, color="#444444")
+    lines = ["How to build", ""]
+    if panel:
+        lines += ["Lay the base plates first, then the tiles section by section.",
+                  "Each section is 16 × 16 cells; column and row numbers match the section map."]
+    else:
+        lines += ["Build row by row from the bottom. Each page holds several rows.",
+                  "A row is drawn from above: the front of the figure is at the bottom of the strip."]
+    lines += ["", "Colour names are the ones LEGO Pick a Brick and BrickLink use."]
+    if panel and len({b.layer for b in bricks}) == 1:          # плитки без своей подложки
         studs_x = max(b.x + b.width for b in bricks) - min(b.x for b in bricks)
         studs_z = max(b.z + b.length for b in bricks) - min(b.z for b in bricks)
         plates = -(-studs_x // 48) * -(-studs_z // 48)
-        lines += ["", f"Подложки в наборе нет: {studs_x} × {studs_z} штырьков нужно закрыть готовыми "
-                      f"строительными пластинами — это {plates} шт. 48×48 или пластины 16×16 по площади."]
+        lines += ["", f"No base included: cover {studs_x} × {studs_z} studs with baseplates —",
+                  f"that is {plates} of 48 × 48, or 16 × 16 plates by area."]
     fig.text(0.08, 0.76, "\n".join(lines), fontsize=11, va="top", linespacing=1.6)
     if price is not None:
-        fig.text(0.08, 0.60, f"Детали на Pick a Brick: ${price:.2f}", fontsize=12, weight="bold")
+        fig.text(0.08, 0.50, f"Pick a Brick total: ${price:.2f}", fontsize=12, weight="bold")
     pdf.savefig(fig); plt.close(fig)
+    return 1
 
-    fig = plt.figure(figsize=PAGE)
-    fig.text(0.08, 0.94, "Перед сборкой: все детали", fontsize=18, weight="bold")
-    ax = fig.add_axes([0.08, 0.06, 0.84, 0.85]); ax.axis("off")
-    ax.set_xlim(0, 1); ax.set_ylim(0, 1)
+
+def _parts_pages(pdf, plt, bricks, rgb, names) -> int:
+    """Все детали по цветам: три колонки на страницу, сколько надо страниц."""
+    totals = Counter((b.part.label, b.color) for b in bricks)
     rows = sorted(totals.items(), key=lambda kv: (-kv[1], names.get(kv[0][1], "")))
-    per_column = 34
-    for i, ((label, color), n) in enumerate(rows):
-        col, row = divmod(i, per_column)
-        x, y = col * 0.5, 1 - (row + 1) / (per_column + 1)
-        ax.add_patch(plt.Rectangle((x, y), 0.022, 0.016, facecolor=rgb.get(color, "#888888"), edgecolor="#333333", lw=0.4))
-        ax.text(x + 0.03, y + 0.002, f"{label}  {names.get(color, color).replace('_', ' ')} — {n}", fontsize=8.5)
-    pdf.savefig(fig); plt.close(fig)
+    per_page = PARTS_COLUMNS * PARTS_ROWS
+    pages = 0
+    for start in range(0, len(rows), per_page):
+        chunk = rows[start:start + per_page]
+        fig = plt.figure(figsize=PAGE)
+        title = "Parts you need" + ("" if start == 0 else " (continued)")
+        fig.text(0.08, 0.94, title, fontsize=18, weight="bold")
+        fig.text(0.08, 0.915, f"{sum(totals.values())} pieces, {len(rows)} kinds", fontsize=10, color="#555555")
+        for i, ((label, color), n) in enumerate(chunk):
+            col, row = divmod(i, PARTS_ROWS)
+            x = 0.08 + col * 0.29
+            y = 0.88 - (row + 1) * 0.021
+            fig.patches.append(plt.Rectangle((x, y), 0.018, 0.013, transform=fig.transFigure,
+                                             facecolor=rgb.get(color, "#888888"), edgecolor="#333333", lw=0.4))
+            fig.text(x + 0.024, y, f"{label}  {names.get(color, color).replace('_', ' ')} — {n}", fontsize=8)
+        pdf.savefig(fig); plt.close(fig)
+        pages += 1
+    return pages
 
 
 # --- фигурка: ряды ---
@@ -111,7 +120,7 @@ def _row_pages(pdf, plt, bricks, rgb, names) -> int:
     for start in range(0, len(layers), ROWS_PER_PAGE):
         chunk = layers[start:start + ROWS_PER_PAGE]
         fig = plt.figure(figsize=PAGE)
-        fig.text(0.06, 0.96, f"Ряды {chunk[0] + 1}–{chunk[-1] + 1} из {len(layers)}", fontsize=14, weight="bold")
+        fig.text(0.06, 0.96, f"Rows {chunk[0] + 1}–{chunk[-1] + 1} of {len(layers)}", fontsize=14, weight="bold")
         block = 0.88 / ROWS_PER_PAGE
         for i, layer in enumerate(chunk):
             _row_strip(fig, plt, by_layer[layer], layer, len(layers), x0, x1, depth, rgb, names,
@@ -123,14 +132,14 @@ def _row_pages(pdf, plt, bricks, rgb, names) -> int:
 
 def _row_strip(fig, plt, row, layer, total_layers, x0, x1, depth, rgb, names, top, block) -> None:
     """Блок одного ряда: заголовок, детали ряда, вид сверху (X — ширина, Z — глубина, перёд внизу)."""
-    fig.text(0.06, top, f"Ряд {layer + 1} из {total_layers}", fontsize=9.5, weight="bold")
-    fig.text(0.94, top, "вид сверху, перёд снизу", fontsize=7, color="#888888", ha="right")
+    fig.text(0.06, top, f"Row {layer + 1} of {total_layers}", fontsize=9.5, weight="bold")
+    fig.text(0.94, top, "top view, front at the bottom", fontsize=7, color="#888888", ha="right")
     counts = Counter((b.part.label, b.color) for b in row).most_common()
     parts = ", ".join(f"{label} {names.get(color, color).replace('_', ' ')} ×{n}" for (label, color), n in counts)
     lines = textwrap.wrap(parts, 128)
     if len(lines) > 2:
         lines = lines[:2]
-        lines[1] = lines[1].rsplit(",", 1)[0] + f" и ещё {len(counts) - lines[0].count(',') - lines[1].count(',') - 1} видов"
+        lines[1] = lines[1].rsplit(",", 1)[0] + f" and {len(counts) - lines[0].count(',') - lines[1].count(',') - 1} more kinds"
     for k, line in enumerate(lines):
         fig.text(0.06, top - 0.018 - k * 0.012, line, fontsize=6.5, color="#333333")
 
@@ -170,8 +179,8 @@ def _panel_pages(pdf, plt, bricks, rgb, names) -> int:
     sections = [(sx, sz) for sz in range(0, nz, SECTION) for sx in range(0, nx, SECTION)]
 
     fig = plt.figure(figsize=PAGE)
-    fig.text(0.06, 0.95, "Карта секций", fontsize=16, weight="bold")
-    fig.text(0.06, 0.92, f"{nx} × {nz} клеток, {len(sections)} секций по {SECTION}×{SECTION}", fontsize=10, color="#444444")
+    fig.text(0.06, 0.95, "Section map", fontsize=16, weight="bold")
+    fig.text(0.06, 0.92, f"{nx} × {nz} cells, {len(sections)} sections of {SECTION} × {SECTION}", fontsize=10, color="#444444")
     ax = fig.add_axes([0.06, 0.12, 0.88, 0.76])
     ax.set_xlim(0, nx); ax.set_ylim(nz, 0); ax.set_aspect("equal"); ax.axis("off")
     ax.imshow(np.transpose([[rgb.get(c, (1, 1, 1)) for c in col] for col in grid], (1, 0, 2)),
@@ -183,7 +192,7 @@ def _panel_pages(pdf, plt, bricks, rgb, names) -> int:
                 color="#ffffff", weight="bold", path_effects=None)
     if base:
         counts = Counter((b.part.label, b.color) for b in base)
-        text = "Подложка: " + ", ".join(f"{label} {names.get(color, color).replace('_', ' ')} ×{n}"
+        text = "Base plates: " + ", ".join(f"{label} {names.get(color, color).replace('_', ' ')} ×{n}"
                                         for (label, color), n in counts.most_common())
         fig.text(0.06, 0.07, text, fontsize=8, color="#333333", wrap=True)
     pdf.savefig(fig); plt.close(fig)
@@ -192,8 +201,8 @@ def _panel_pages(pdf, plt, bricks, rgb, names) -> int:
         w, h = min(SECTION, nx - sx), min(SECTION, nz - sz)
         block = grid[sx:sx + w, sz:sz + h]
         fig = plt.figure(figsize=PAGE)
-        fig.text(0.06, 0.95, f"Секция {i} из {len(sections)}", fontsize=15, weight="bold")
-        fig.text(0.06, 0.92, f"столбцы {sx + 1}–{sx + w}, ряды {sz + 1}–{sz + h}", fontsize=10, color="#444444")
+        fig.text(0.06, 0.95, f"Section {i} of {len(sections)}", fontsize=15, weight="bold")
+        fig.text(0.06, 0.92, f"columns {sx + 1}–{sx + w}, rows {sz + 1}–{sz + h}", fontsize=10, color="#444444")
         ax = fig.add_axes([0.10, 0.34, 0.80, 0.54])
         ax.set_xlim(0, w); ax.set_ylim(h, 0); ax.set_aspect("equal")
         for cx in range(w):
@@ -211,7 +220,7 @@ def _panel_pages(pdf, plt, bricks, rgb, names) -> int:
         counts = Counter((b.part.label, b.color) for b in inside)
         lines = [f"{label} {names.get(code, code).replace('_', ' ')} — {n}"
                  for (label, code), n in counts.most_common()]
-        ax.figure.text(0.10, 0.28, "Детали этой секции:", fontsize=9, weight="bold")
+        ax.figure.text(0.10, 0.28, "Pieces in this section:", fontsize=9, weight="bold")
         for k, line in enumerate(lines):
             col, row = divmod(k, 12)
             fig.text(0.10 + col * 0.30, 0.25 - row * 0.018, line, fontsize=8)
