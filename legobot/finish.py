@@ -11,9 +11,12 @@ TILES = {
     (8, 1): Part("4162", 8, 1, PLATE_HEIGHT_LDU),
     (6, 1): Part("6636", 6, 1, PLATE_HEIGHT_LDU),
     (4, 1): Part("2431", 4, 1, PLATE_HEIGHT_LDU),
+    (3, 1): Part("63864", 3, 1, PLATE_HEIGHT_LDU),
     (2, 1): Part("3069b", 2, 1, PLATE_HEIGHT_LDU),
     (1, 1): Part("3070b", 1, 1, PLATE_HEIGHT_LDU),
+    (6, 6): Part("10202", 6, 6, PLATE_HEIGHT_LDU),
     (4, 2): Part("87079", 4, 2, PLATE_HEIGHT_LDU),
+    (3, 2): Part("26603", 3, 2, PLATE_HEIGHT_LDU),
     (2, 2): Part("3068b", 2, 2, PLATE_HEIGHT_LDU),
 }
 
