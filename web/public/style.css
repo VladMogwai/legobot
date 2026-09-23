@@ -1,5 +1,5 @@
 /* Пиксельный стиль в цветах Atom One Dark: углов нет, границы в 2 px, тени без размытия —
-   как будто интерфейс сам выложен из деталей. Кириллицу держит Pixelify Sans. */
+   как будто интерфейс сам выложен из деталей. Шрифт — Raleway (у него есть кириллица). */
 :root {
   --bg: #282c34;          /* фон редактора Atom */
   --panel: #21252b;       /* боковая панель */
@@ -11,8 +11,8 @@
   --blue: #61afef; --green: #98c379; --red: #e06c75;
   --yellow: #e5c07b; --purple: #c678dd; --cyan: #56b6c2;
   --accent: var(--blue);
-  --display: "Pixelify Sans", "Courier New", monospace;
-  --text: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --display: "Raleway", system-ui, sans-serif;   /* заголовки и кнопки — жирным */
+  --text: "Raleway", system-ui, sans-serif;
 }
 * { box-sizing: border-box; }
 body {
@@ -23,8 +23,10 @@ body {
 }
 ::selection { background: var(--blue); color: var(--panel); }
 h1, h2, button, .downloads a, .saved-actions a, dt, summary, label, .health { font-family: var(--display); }
+h1, h2 { font-weight: 800; }
+button, .downloads a, .saved-actions a, dt, summary, label { font-weight: 600; }
 header, main, footer { max-width: 1100px; margin: 0 auto; padding: 16px; }
-header h1 { margin: 0; font-size: 32px; color: #fff; text-shadow: 3px 3px 0 var(--shadow); letter-spacing: 1px; }
+header h1 { margin: 0; font-size: 32px; color: #fff; text-shadow: 3px 3px 0 var(--shadow); letter-spacing: 2px; text-transform: lowercase; }
 header p, footer { color: var(--muted); }
 footer a, header a { color: var(--cyan); }
 
@@ -119,7 +121,7 @@ input[type=checkbox] { accent-color: var(--accent); width: 14px; height: 14px; }
 }
 .saved img { width: 96px; aspect-ratio: 1; object-fit: cover; border: 2px solid var(--line); background: var(--bg); image-rendering: pixelated; }
 .saved-meta { display: grid; gap: 3px; min-width: 0; }
-.saved-meta b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #fff; font-family: var(--display); }
+.saved-meta b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #fff; font-family: var(--display); font-weight: 600; }
 .saved-meta span { font-size: 12px; color: var(--muted); }
 .saved-date { font-size: 12px; }
 .saved-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-top: 6px; }
