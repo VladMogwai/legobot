@@ -36,7 +36,31 @@ def trimmed_csv(path: Path, key: str, keep: set[str]) -> str:
         return buf.getvalue()
 
 
+def check_geometry() -> None:
+    """Все детали словаря и их подфайлы должны лежать в vendor/ldraw: без геометрии модель
+    соберётся, но во вьюшке не покажется (LDrawLoader: Subobject could not be loaded)."""
+    from legobot.pack import SEARCH, VENDOR
+    stack = [f"{n}.dat" for n in ({p.number for v in (BRICKS, PLATES) for p in v.parts} | {t.number for t in TILES.values()})]
+    seen, missing = set(), []
+    while stack:
+        name = stack.pop().replace("\\", "/").lower()
+        if name in seen:
+            continue
+        seen.add(name)
+        path = next((VENDOR / folder / name for folder in SEARCH if (VENDOR / folder / name).exists()), None)
+        if path is None:
+            missing.append(name)
+            continue
+        for line in path.read_text(encoding="utf-8", errors="ignore").splitlines():
+            t = line.split()
+            if len(t) >= 15 and t[0] == "1":
+                stack.append(" ".join(t[14:]))
+    if missing:
+        raise SystemExit(f"нет геометрии в vendor/ldraw: {sorted(missing)[:8]} — запусти tools/vendor_ldraw.py")
+
+
 def main() -> None:
+    check_geometry()
     OUT.mkdir(parents=True, exist_ok=True)
     numbers = vocabulary_numbers()
     buf = io.BytesIO()

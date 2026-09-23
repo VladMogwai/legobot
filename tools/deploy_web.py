@@ -21,6 +21,8 @@ def token() -> str:
 
 
 def main() -> None:
+    if Path("/Applications/Studio 2.0/ldraw").exists():   # без Studio берём то, что уже лежит в vendor/ldraw
+        subprocess.run([sys.executable, str(ROOT / "tools" / "vendor_ldraw.py")], check=True, cwd=ROOT)
     subprocess.run([sys.executable, str(ROOT / "tools" / "web_engine.py")], check=True, cwd=ROOT)
     from huggingface_hub import HfApi
     HfApi(token=token()).upload_folder(folder_path=str(PUBLIC), repo_id=SPACE, repo_type="space",
