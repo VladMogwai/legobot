@@ -107,7 +107,10 @@ def _build_mosaic(args, source: str, variant: str) -> None:
     print(f"мозаика {mosaic.width}x{mosaic.height} пикселей, шаг сетки {mosaic.pitch_px:.1f} px растра")
     if args.flat:
         colors = Counter(b.color for b in bricks if b.layer == 1)
-        print(f"деталей {len(bricks)}: тайлов 1x1 {sum(colors.values())}, подложка {len(bricks) - sum(colors.values())}")
+        sizes = Counter(b.part.label for b in bricks if b.layer == 1)
+        cells = sum(b.part.area for b in bricks if b.layer == 1)
+        print(f"панно {cells} клеток, деталей {len(bricks)}: тайлы " + ", ".join(f"{k} x{n}" for k, n in sorted(sizes.items()))
+              + f", подложка {sum(1 for b in bricks if b.layer == 0)}")
     else:
         colors = Counter(b.color for b in bricks)
         parts = Counter(b.part.label for b in bricks)

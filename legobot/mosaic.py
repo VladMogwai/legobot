@@ -8,7 +8,7 @@
 пиксельной сетки по периодичности границ цвета, снимаем цвет в центре каждой клетки.
 """
 from collections import Counter
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 import numpy as np
 from scipy import ndimage
@@ -17,7 +17,7 @@ from .colors import nearest_codes
 from .finish import TILES
 from .layout import ANY_COLOR, PlacedBrick, layout_bricks
 from .colors import code_by_name
-from .parts import BRICKS, PLATES
+from .parts import BRICKS, PLATES, Vocabulary
 from .preferences import preferences
 
 RASTER = 512
@@ -114,17 +114,19 @@ def _sample_cells(image, present, pitch, phase_x, phase_z):
     return colors, mask
 
 
+TILE_VOCABULARY = Vocabulary("tiles", tuple(TILES.values()))
+
+
 def mosaic_bricks(mosaic: Mosaic, base_color: int = BLACK) -> list[PlacedBrick]:
-    """Слой 0 — подложка из пластин по силуэту, слой 1 — тайлы 1x1 по цветам."""
+    """Слой 0 — подложка из пластин по силуэту, слой 1 — тайлы по цветам: соседние клетки одного
+    цвета кладутся одной деталью (1×2, 2×2, 1×4, 2×4, 1×6, 1×8), и панно выходит вдвое дешевле
+    и быстрее в сборке, чем из одних 1×1."""
     mosaic_codes = np.flip(mosaic.codes, axis=0)   # в Studio сверху ось X смотрит влево: без отражения панно выходит зеркальным
     mask = mosaic_codes >= 0
     voxels = mask[:, :, None]
-    codes = np.full(voxels.shape, ANY_COLOR)
-    base = layout_bricks(voxels, codes, base_color, PLATES)
-    tile = TILES[(1, 1)]
-    tiles = [PlacedBrick(tile, x, z, 1, rotated=False, color=int(mosaic_codes[x, z]))
-             for x, z in np.argwhere(mask)]
-    return base + tiles
+    base = layout_bricks(voxels, np.full(voxels.shape, ANY_COLOR), base_color, PLATES)
+    tiles = layout_bricks(voxels, mosaic_codes[:, :, None], base_color, TILE_VOCABULARY)
+    return base + [replace(t, layer=1) for t in tiles]
 
 
 def standing_bricks(mosaic: Mosaic) -> list[PlacedBrick]:

@@ -1,4 +1,4 @@
-"""Схема панно: сетка клеток с цветом, номера рядов и столбцов, легенда с количеством.
+"""Схема панно: детали с цветом и границами, номера рядов и столбцов, легенда по цветам.
 
 Для плоской мозаики из тысяч тайлов пошаговый изометрический PDF бессмыслен (сотни страниц,
 сотни мегабайт); собирают такие панно по схеме, как вышивку: ряд за рядом, по номерам.
@@ -19,16 +19,20 @@ def write_chart(bricks: list, path: str, layer: int = 1) -> int:
     tiles = [b for b in bricks if b.layer == layer]
     rgb = {c.code: c.rgb for c in studio_palette(common_only=False)}
     names = {c.code: c.name for c in load_palette(common_only=False)}
-    xs = [b.x for b in tiles]; zs = [b.z for b in tiles]
-    x0, z0, nx, nz = min(xs), min(zs), max(xs) - min(xs) + 1, max(zs) - min(zs) + 1
-    counts = Counter(b.color for b in tiles)
+    x0, z0 = min(b.x for b in tiles), min(b.z for b in tiles)
+    nx = max(b.x + b.width for b in tiles) - x0
+    nz = max(b.z + b.length for b in tiles) - z0
+    counts = Counter()
+    for b in tiles:
+        counts[b.color] += b.part.area      # в легенде — клетки цвета, а не число деталей
     legend_h = LEGEND_ROW * len(counts) + 20
     img = Image.new("RGB", (MARGIN + nx * CELL + 10, MARGIN + nz * CELL + legend_h), "white")
     d = ImageDraw.Draw(img)
     font = ImageFont.load_default()
     for b in tiles:
         px, py = MARGIN + (b.x - x0) * CELL, MARGIN + (b.z - z0) * CELL   # у плоской мозаики z растёт сверху вниз, как строки картинки
-        d.rectangle([px, py, px + CELL - 1, py + CELL - 1], fill=rgb[b.color], outline=(200, 200, 200))
+        d.rectangle([px, py, px + b.width * CELL - 1, py + b.length * CELL - 1],
+                    fill=rgb[b.color], outline=(90, 90, 90))              # граница = граница детали
     for i in range(nx):
         if i % 5 == 0:
             d.text((MARGIN + i * CELL + 2, MARGIN - 14), str(i + 1), fill="black", font=font)

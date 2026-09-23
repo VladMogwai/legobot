@@ -155,11 +155,11 @@ def _panel_pages(pdf, plt, bricks, rgb, names) -> int:
     tiles = [b for b in bricks if b.layer == 1] or bricks
     base = [b for b in bricks if b.layer == 0]
     x0, z0 = min(b.x for b in tiles), min(b.z for b in tiles)
-    nx = max(b.x for b in tiles) - x0 + 1
-    nz = max(b.z for b in tiles) - z0 + 1
+    nx = max(b.x + b.width for b in tiles) - x0
+    nz = max(b.z + b.length for b in tiles) - z0
     grid = np.full((nx, nz), -1)
     for b in tiles:
-        grid[b.x - x0, b.z - z0] = b.color
+        grid[b.x - x0:b.x - x0 + b.width, b.z - z0:b.z - z0 + b.length] = b.color
     sections = [(sx, sz) for sz in range(0, nz, SECTION) for sx in range(0, nx, SECTION)]
 
     fig = plt.figure(figsize=PAGE)
@@ -197,9 +197,14 @@ def _panel_pages(pdf, plt, bricks, rgb, names) -> int:
         ax.set_xticks([c + 0.5 for c in range(w)]); ax.set_xticklabels(range(sx + 1, sx + w + 1), fontsize=6)
         ax.set_yticks([c + 0.5 for c in range(h)]); ax.set_yticklabels(range(sz + 1, sz + h + 1), fontsize=6)
         ax.tick_params(length=0, pad=2)
-        counts = Counter(int(c) for c in block.ravel() if c >= 0)
-        lines = [f"{names.get(code, code).replace('_', ' ')} — {n}" for code, n in counts.most_common()]
-        ax.figure.text(0.10, 0.28, "Тайлы 1×1 в этой секции:", fontsize=9, weight="bold")
+        inside = [b for b in tiles if sx <= b.x - x0 < sx + w and sz <= b.z - z0 < sz + h]
+        for b in inside:                      # границы деталей: видно, где 1×2, а где 2×2
+            ax.add_patch(plt.Rectangle((b.x - x0 - sx, b.z - z0 - sz), b.width, b.length,
+                                       fill=False, edgecolor="#222222", lw=0.9))
+        counts = Counter((b.part.label, b.color) for b in inside)
+        lines = [f"{label} {names.get(code, code).replace('_', ' ')} — {n}"
+                 for (label, code), n in counts.most_common()]
+        ax.figure.text(0.10, 0.28, "Детали этой секции:", fontsize=9, weight="bold")
         for k, line in enumerate(lines):
             col, row = divmod(k, 12)
             fig.text(0.10 + col * 0.30, 0.25 - row * 0.018, line, fontsize=8)
