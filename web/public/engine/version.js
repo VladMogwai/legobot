@@ -1,1 +1,1 @@
-window.LEGOBOT_ENGINE = "6cd63f1f50";
+window.LEGOBOT_ENGINE = "677cb77493";
