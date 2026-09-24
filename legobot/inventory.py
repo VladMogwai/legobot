@@ -4,6 +4,7 @@
 LDraw с подмоделями (`0 FILE имя` … `0 NOFILE`). Подмодели раскрываются рекурсивно:
 если одна и та же нога вставлена дважды, её детали считаются дважды.
 """
+import io
 import re
 import zipfile
 from collections import Counter
@@ -41,11 +42,16 @@ class InventoryLine:
 
 def read_model(path: str) -> str:
     """Текст LDraw из .io (с паролем) или из .ldr/.mpd."""
-    p = Path(path)
-    if p.suffix.lower() == ".io":
-        with zipfile.ZipFile(p) as z:
+    return read_model_bytes(Path(path).read_bytes())
+
+
+def read_model_bytes(data: bytes) -> str:
+    """То же, но из файла в памяти: в браузере модель приходит загрузкой, а не с диска.
+    .io — zip (Studio шифрует их одним известным паролем), .ldr и .mpd — обычный текст."""
+    if data[:2] == b"PK":
+        with zipfile.ZipFile(io.BytesIO(data)) as z:
             return z.read("model.ldr", pwd=IO_PASSWORD).decode("utf-8", errors="ignore")
-    return p.read_text(encoding="utf-8", errors="ignore")
+    return data.decode("utf-8", errors="ignore")
 
 
 def inventory(ldraw_text: str) -> list[InventoryLine]:

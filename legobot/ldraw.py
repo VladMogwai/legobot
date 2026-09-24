@@ -7,7 +7,7 @@ from itertools import groupby
 from .fixtures import Fixture
 from .layout import PlacedBrick
 from .finish import TILES
-from .parts import STUD_LDU, VOCABULARIES
+from .parts import RETIRED, STUD_LDU, VOCABULARIES
 from .slopes import PlacedSlope
 
 _IDENTITY = "1.000000 0.000000 0.000000 0.000000 1.000000 0.000000 0.000000 0.000000 1.000000"
@@ -47,7 +47,8 @@ def _brick_line(b: PlacedBrick) -> str:
     return f"1 {b.color} {cx:.6f} {cy:.6f} {cz:.6f} {rot} {b.part.number}.dat"
 
 
-_KNOWN = {p.number: p for v in VOCABULARIES.values() for p in v.parts} | {t.number: t for t in TILES.values()}
+_KNOWN = ({p.number: p for v in VOCABULARIES.values() for p in v.parts}
+          | {p.number: p for p in RETIRED} | {t.number: t for t in TILES.values()})
 
 
 def read_bricks(ldraw_text: str) -> tuple[list[PlacedBrick], int]:

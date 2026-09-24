@@ -61,7 +61,8 @@ async function runLocal(message, transfer, statusEl, title) {
 function buildOptions() {
   return {
     mode: $("mode").value, background: "auto",   // фон решают тип модели и сама картинка
-    width: +($("width").value || 0), contrast: $("contrast").checked, base: $("base").checked,
+    width: +($("width").value || 0), depth: +($("depth").value || 0),
+    contrast: $("contrast").checked, base: $("base").checked,
   };
 }
 const $ = (id) => document.getElementById(id);
@@ -337,7 +338,11 @@ $("form").addEventListener("submit", async (e) => {
 $("model-file").addEventListener("change", async () => {
   const f = $("model-file").files[0];
   if (!f) return;
-  if (!API) { $("status").textContent = "Загрузка своих .io работает только с бэкендом."; return; }
+  if (!API) {                      // без бэкенда модель читает движок в браузере
+    const data = await f.arrayBuffer();
+    await runLocal({ type: "model", data }, [data], $("status"), f.name);
+    return;
+  }
   const body = new FormData();
   body.append("model", f);
   await runJob({ path: "/models", init: { method: "POST", body } }, $("status"), f.name);
@@ -418,7 +423,7 @@ $("undo").addEventListener("click", () => {
 $("rebuild").addEventListener("click", async () => {
   $("rebuild").disabled = true;
   if (!API) {
-    await runLocal({ type: "regrid", codes: grid, options: { mode: builtMode, base: $("base").checked } }, [], $("editor-status"), $("title").textContent + " (правка)");
+    await runLocal({ type: "regrid", codes: grid, options: { mode: builtMode, base: $("base").checked, depth: +($("depth").value || 0) } }, [], $("editor-status"), $("title").textContent + " (правка)");
     $("rebuild").disabled = false;
     return;
   }

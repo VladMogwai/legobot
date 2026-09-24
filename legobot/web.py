@@ -26,10 +26,11 @@ from .studio import PARTS_DB_VERSION, STUDIO_VERSION
 
 
 def build(image_bytes: bytes, mode: str = "auto", background: str = "auto", width: int = 0,
-          max_colors: int = 0, volume_depth: int = 4, recolor: dict | None = None, contrast: bool = False,
+          max_colors: int = 0, depth: int = 0, recolor: dict | None = None, contrast: bool = False,
           base: bool = True) -> dict:
     """mode: auto | standing | volume | flat. background: auto | cut | keep. width > 0 — переложить
-    любую картинку в пиксель-арт такой ширины. base — класть ли у панно свою подложку из пластин.
+    любую картинку в пиксель-арт такой ширины. depth — толщина модели в штырьках (0 — как в
+    настройках); у панно толщину задаёт не она, а подложка base.
     Возвращает {"files": {имя: bytes|str}, "summary": {...}}."""
     with tempfile.TemporaryDirectory() as tmp:
         image_path = Path(tmp) / "input.png"
@@ -47,13 +48,7 @@ def build(image_bytes: bytes, mode: str = "auto", background: str = "auto", widt
         mosaic = result.mosaic
         for old, new in (recolor or {}).items():
             mosaic.codes[mosaic.codes == code_by_name(old)] = code_by_name(new)
-        if mode == "volume":
-            from .inflate import volume_bricks
-            bricks = volume_bricks(mosaic, volume_depth)
-        elif mode == "flat":
-            bricks = mosaic_bricks(mosaic, base=base)
-        else:
-            bricks = standing_bricks(mosaic)
+        bricks = _bricks_for(mosaic, mode, depth, base)
         out = _outputs(bricks, mosaic, Path(tmp), mode)
         check_path = Path(tmp) / "check.png"
         out["summary"]["accuracy"] = write_check(result, str(check_path))
@@ -61,20 +56,39 @@ def build(image_bytes: bytes, mode: str = "auto", background: str = "auto", widt
         return out
 
 
-def build_from_grid(codes: list[list[int]], mode: str = "standing", volume_depth: int = 4, base: bool = True) -> dict:
+def build_from_grid(codes: list[list[int]], mode: str = "standing", depth: int = 0, base: bool = True) -> dict:
     """Пересборка из сетки, отредактированной на странице: codes[x][y], -1 — пусто."""
     from .mosaic import Mosaic
     grid = np.array(codes, dtype=int)
     mosaic = Mosaic(grid, 1.0, *grid.shape)
-    if mode == "volume":
-        from .inflate import volume_bricks
-        bricks = volume_bricks(mosaic, volume_depth)
-    elif mode == "flat":
-        bricks = mosaic_bricks(mosaic, base=base)
-    else:
-        bricks = standing_bricks(mosaic)
+    bricks = _bricks_for(mosaic, mode, depth, base)
     with tempfile.TemporaryDirectory() as tmp:
         return _outputs(bricks, mosaic, Path(tmp), mode)
+
+
+def build_from_model(data: bytes) -> dict:
+    """Готовая модель (.io из Studio, .ldr или .mpd) → инструкция, список деталей и превью.
+    Модель не пересобирается: детали берутся как есть и раскладываются по шагам."""
+    from .inventory import read_model_bytes
+    from .ldraw import read_bricks
+    bricks, skipped = read_bricks(read_model_bytes(data))
+    if not bricks:
+        raise ValueError("в файле нет знакомых деталей: бот понимает кирпичи, пластины и тайлы")
+    flat = max(b.layer for b in bricks) == 0      # всё в один слой — это панно, инструкция по секциям
+    with tempfile.TemporaryDirectory() as tmp:
+        out = _outputs(bricks, None, Path(tmp), "flat" if flat else "standing")
+    if skipped:
+        out["summary"]["skipped"] = skipped
+    return out
+
+
+def _bricks_for(mosaic, mode: str, depth: int, base: bool) -> list:
+    if mode == "volume":
+        from .inflate import VOLUME_DEPTH, volume_bricks
+        return volume_bricks(mosaic, depth or VOLUME_DEPTH)
+    if mode == "flat":
+        return mosaic_bricks(mosaic, base=base)
+    return standing_bricks(mosaic, depth)
 
 
 def _outputs(bricks, mosaic, tmp: Path, mode: str) -> dict:
@@ -100,13 +114,15 @@ def _outputs(bricks, mosaic, tmp: Path, mode: str) -> dict:
     height = (max(b.layer for b in bricks) + 1) * bricks[0].part.height / 20
     summary = {
         "kind": kind, "mode": mode,   # mode нужен странице: у «определить по картинке» тип знает только движок
-        "pixels": [mosaic.width, mosaic.height], "parts": len(bricks),
-        "steps": len(steps), "pages": guide_pages,
+        "parts": len(bricks), "steps": len(steps), "pages": guide_pages,
         "size_cm": [round(width_studs * 0.8, 1), round(depth * 0.8, 1), round(height * 0.8, 1)],
         "colors": [[names.get(c, str(c)), n] for c, n in Counter(b.color for b in bricks).most_common()],
         "parts_list": [[l.name, l.color_name, l.quantity] for l in bom],   # страница показывает размеры, а не только цвета
-        "grid": mosaic.codes.tolist(), "price_usd": _price(bricks), "palette": _palette(),
+        "price_usd": _price(bricks), "palette": _palette(),
     }
+    if mosaic is not None:      # у загруженной модели сетки нет — редактор пикселей для неё не открыть
+        summary["pixels"] = [mosaic.width, mosaic.height]
+        summary["grid"] = mosaic.codes.tolist()
     return {"files": files, "summary": summary}
 
 

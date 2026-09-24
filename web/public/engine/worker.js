@@ -2,12 +2,13 @@
 // Работает в веб-воркере, чтобы страница не замирала на время расчёта.
 // Сообщения: {type:"init"} → {type:"progress", text} … {type:"ready"} | {type:"fatal", error}
 //            {type:"build", id, image: ArrayBuffer, options} / {type:"regrid", id, codes, options}
+//            {type:"model", id, data: ArrayBuffer} — готовая модель .io/.ldr/.mpd
 //            → {type:"result", id, files: {имя: Uint8Array|string}, summary} | {type:"error", id, error}
 
 const PYODIDE = "https://cdn.jsdelivr.net/pyodide/v0.27.7/full/";
 importScripts(PYODIDE + "pyodide.js");
 
-let pyodide = null, build = null, buildFromGrid = null;
+let pyodide = null, build = null, buildFromGrid = null, buildFromModel = null;
 const post = (m) => self.postMessage(m);
 
 async function init(engineVersion) {
@@ -38,9 +39,13 @@ def _build(image, opts):              # image — Uint8Array из JS, opts — �
 
 def _regrid(codes, opts):
     return legobot.web.build_from_grid(codes.to_py(), **opts.to_py())
+
+def _model(data):                     # data — Uint8Array с .io, .ldr или .mpd
+    return legobot.web.build_from_model(data.to_bytes())
 `);
   build = pyodide.globals.get("_build");
   buildFromGrid = pyodide.globals.get("_regrid");
+  buildFromModel = pyodide.globals.get("_model");
   post({ type: "ready" });
 }
 
@@ -64,6 +69,7 @@ self.onmessage = async (e) => {
     let result;
     if (m.type === "build") result = build(new Uint8Array(m.image), m.options || {});
     else if (m.type === "regrid") result = buildFromGrid(m.codes, m.options || {});
+    else if (m.type === "model") result = buildFromModel(new Uint8Array(m.data));
     else return;
     const { files, summary, transfer } = toJs(result);
     self.postMessage({ type: "result", id: m.id, files, summary }, transfer);

@@ -132,7 +132,7 @@ def mosaic_bricks(mosaic: Mosaic, base_color: int = BLACK, base: bool = True) ->
     return plates + [replace(t, layer=1 if base else 0) for t in tiles]
 
 
-def standing_bricks(mosaic: Mosaic) -> list[PlacedBrick]:
+def standing_bricks(mosaic: Mosaic, depth: int = 0) -> list[PlacedBrick]:
     """Стоячая фигурка. Спереди пиксели, сзади стенка (цвет и глубина — в legobot.toml).
     Чётные ряды: пиксели глубиной 2 + стенка 2; нечётные: пиксели 3 (кирпичи 1×3 / 2×3) + стенка 1.
     Трёхглубокие пиксели пересекают границу стенки соседних рядов — только так стенка и пиксели
@@ -148,7 +148,7 @@ def standing_bricks(mosaic: Mosaic) -> list[PlacedBrick]:
     back = mask
     prefs = preferences()["mosaic"]
     back_color = code_by_name(prefs["back_color"])
-    depth = int(prefs.get("depth", STANDING_DEPTH))
+    depth = depth or int(prefs.get("depth", STANDING_DEPTH))
     nx, ny = mask.shape
     front = np.zeros((nx, depth, ny), dtype=bool)
     wall = np.zeros_like(front)
