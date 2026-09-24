@@ -145,6 +145,8 @@ input[type=checkbox] { accent-color: var(--accent); width: 14px; height: 14px; }
   content: ""; position: absolute; left: 0; bottom: 0; height: 3px; background: var(--red);
   animation: toast-countdown 5s linear forwards;
 }
+.toast.info { border-left-color: var(--accent); }
+.toast.info::after { background: var(--accent); }
 .toast.leaving { animation: toast-out .18s steps(3) forwards; }
 @keyframes toast-in { from { transform: translateX(24px); opacity: 0; } }
 @keyframes toast-out { to { transform: translateX(24px); opacity: 0; } }

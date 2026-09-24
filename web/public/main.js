@@ -7,9 +7,9 @@ import { LDrawConditionalLineMaterial } from "three/addons/materials/LDrawCondit
 import * as history from "./history.js";
 
 const TOAST_MS = 5000;   // сколько висит сообщение об ошибке
-function toast(text) {
+function toast(text, kind = "error") {
   const el = document.createElement("div");
-  el.className = "toast";
+  el.className = "toast " + kind;
   el.textContent = text;
   el.onclick = () => close();
   $("toasts").append(el);
@@ -154,6 +154,9 @@ async function showResult(files, summary, title) {
     ["Размер", `${sx} × ${sy} × ${sz} см`],
     summary.skipped && ["Пропущено деталей", summary.skipped],
   ].filter(Boolean).map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("");
+  if (summary.instruction === "schema") {   // шаги у такой модели были бы по сотне деталей
+    toast("Деталей слишком много для пошаговой инструкции — в PDF схема: карта секций 16 × 16 клеток и страница на секцию.", "info");
+  }
   $("accuracy").textContent = summary.accuracy || "";
   $("check").hidden = !files["check.png"];
   if (files["check.png"]) $("check").src = files["check.png"];

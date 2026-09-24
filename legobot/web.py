@@ -17,6 +17,7 @@ from PIL import Image
 from .chart import write_chart
 from .colors import code_by_name, load_palette
 from .instructions import bill_of_materials, split_steps, step_size, write_pdf
+from .schema import write_schema
 from .ldraw import write_ldr
 from .mosaic import mosaic_bricks, standing_bricks
 from .pack import pack_model
@@ -92,6 +93,9 @@ def _bricks_for(mosaic, mode: str, depth: int, base: bool) -> list:
     return standing_bricks(mosaic, depth)
 
 
+MIN_STEPS = 8   # меньше шагов — это уже не инструкция: каждый шаг был бы в сотни деталей
+
+
 def _outputs(bricks, mosaic, tmp: Path, mode: str) -> dict:
     steps = split_steps(bricks, step_size(bricks))
     ldr_path = tmp / "model.ldr"
@@ -107,7 +111,11 @@ def _outputs(bricks, mosaic, tmp: Path, mode: str) -> dict:
         write_chart(bricks, str(chart_path))
         files["chart.png"] = chart_path.read_bytes()
     guide_path = tmp / "instructions.pdf"
-    guide_pages = write_pdf(bricks, steps, str(guide_path), "legobot")
+    # Шагов осталось слишком мало — значит модель такая большая, что шаг пришлось сделать
+    # огромным: собирать по ней нечего, и вместо шагов даём схему по секциям.
+    schema = len(steps) < MIN_STEPS
+    guide_pages = (write_schema(bricks, str(guide_path), "legobot") if schema
+                   else write_pdf(bricks, steps, str(guide_path), "legobot"))
     files["instructions.pdf"] = guide_path.read_bytes()
     names = {c.code: c.name for c in load_palette(common_only=False)}
     width_studs = max(b.x + b.width for b in bricks) - min(b.x for b in bricks)
@@ -120,6 +128,7 @@ def _outputs(bricks, mosaic, tmp: Path, mode: str) -> dict:
         "colors": [[names.get(c, str(c)), n] for c, n in Counter(b.color for b in bricks).most_common()],
         "parts_list": [[l.name, l.color_name, l.quantity] for l in bom],   # страница показывает размеры, а не только цвета
         "price_usd": _price(bricks), "palette": _palette(),
+        "instruction": "schema" if schema else "steps",   # страница предупреждает тостом, если это схема
     }
     if mosaic is not None:      # у загруженной модели сетки нет — редактор пикселей для неё не открыть
         summary["pixels"] = [mosaic.width, mosaic.height]
