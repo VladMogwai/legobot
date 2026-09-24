@@ -10,7 +10,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from .colors import load_palette
+from .colors import all_colors
 from .fixtures import Fixture
 from .layout import PlacedBrick
 from .parts import STUD_LDU, part_name
@@ -24,7 +24,7 @@ CELL_DRAWS = 46_000
 PAGE = (11.69, 8.27)          # A4 альбомная, дюймы
 CALLOUT_BG = "#dff0fb"
 OUTLINE = "#d80000"
-GROUND_RGB = (0.5, 0.5, 0.5)
+GROUND_RGB = np.array([0.5, 0.5, 0.5])   # цвет незнакомой детали: массив, как и остальные — его ещё затеняют
 
 
 @dataclass(frozen=True)
@@ -56,7 +56,7 @@ def split_steps(bricks: list, max_per_step: int = MAX_PER_STEP) -> list[list]:
 
 
 def bill_of_materials(bricks: list, fixtures: list[Fixture] = ()) -> list[PartLine]:
-    names = {c.code: c.name for c in load_palette(common_only=False)}
+    names = {c.code: c.name for c in all_colors()}
     counts = Counter((b.part.number, b.color) for b in bricks)
     counts.update((f.part, f.color) for f in fixtures)
     lines = [PartLine(n, part_name(n), c, names.get(c, str(c)), q) for (n, c), q in counts.items()]
@@ -78,7 +78,7 @@ def write_pdf(bricks: list, steps: list[list], path: str, title: str, fixtures: 
     import matplotlib.pyplot as plt
     from matplotlib.backends.backend_pdf import PdfPages
 
-    rgb = {c.code: np.array(c.rgb) / 255 for c in load_palette(common_only=False)}
+    rgb = {c.code: np.array(c.rgb) / 255 for c in all_colors()}
     scene = _Scene(bricks, rgb)
     total = bill_of_materials(bricks, fixtures)
 

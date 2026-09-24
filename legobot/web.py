@@ -15,7 +15,7 @@ import numpy as np
 from PIL import Image
 
 from .chart import write_chart
-from .colors import code_by_name, load_palette
+from .colors import all_colors, code_by_name, load_palette
 from .instructions import bill_of_materials, split_steps, step_size, write_pdf
 from .schema import write_schema
 from .ldraw import write_ldr
@@ -117,7 +117,7 @@ def _outputs(bricks, mosaic, tmp: Path, mode: str) -> dict:
     guide_pages = (write_schema(bricks, str(guide_path), "legobot") if schema
                    else write_pdf(bricks, steps, str(guide_path), "legobot"))
     files["instructions.pdf"] = guide_path.read_bytes()
-    names = {c.code: c.name for c in load_palette(common_only=False)}
+    names = {c.code: c.name for c in all_colors()}   # в загруженной модели бывает и прозрачный, и металлик
     width_studs = max(b.x + b.width for b in bricks) - min(b.x for b in bricks)
     depth = max(b.z + b.length for b in bricks) - min(b.z for b in bricks)
     height = (max(b.layer for b in bricks) + 1) * bricks[0].part.height / 20

@@ -57,6 +57,12 @@ def load_palette(common_only: bool = True) -> tuple[LdrawColor, ...]:
 
 
 @lru_cache
+def all_colors() -> tuple[LdrawColor, ...]:
+    """Каждый цвет LDraw, включая прозрачные и металлики: в чужой модели встречается любой."""
+    return tuple(_color(r) for r in _rows())
+
+
+@lru_cache
 def all_color_names() -> dict[int, str]:
     """Все цвета, включая прозрачные и металлики — для чтения чужих моделей."""
     return {int(r["code"]): r["name"] for r in _rows()}
