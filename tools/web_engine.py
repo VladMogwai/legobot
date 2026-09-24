@@ -17,7 +17,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))   # скрипт запускают и без PYTHONPATH — пакет лежит рядом
 
 from legobot.finish import TILES      # noqa: E402 — после настройки пути
-from legobot.parts import BRICKS, PLATES   # noqa: E402
+from legobot.parts import BRICKS, PLATES, RETIRED   # noqa: E402
 
 OUT = ROOT / "web" / "public" / "engine"
 
@@ -40,7 +40,8 @@ def check_geometry() -> None:
     """Все детали словаря и их подфайлы должны лежать в vendor/ldraw: без геометрии модель
     соберётся, но во вьюшке не покажется (LDrawLoader: Subobject could not be loaded)."""
     from legobot.pack import SEARCH, VENDOR
-    stack = [f"{n}.dat" for n in ({p.number for v in (BRICKS, PLATES) for p in v.parts} | {t.number for t in TILES.values()})]
+    stack = [f"{n}.dat" for n in ({p.number for v in (BRICKS, PLATES) for p in v.parts}
+                                  | {p.number for p in RETIRED} | {t.number for t in TILES.values()})]
     seen, missing = set(), []
     while stack:
         name = stack.pop().replace("\\", "/").lower()

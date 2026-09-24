@@ -15,7 +15,7 @@ sys.path.insert(0, str(PROJECT))
 
 from legobot.finish import TILES            # noqa: E402 — после настройки пути
 from legobot.fixtures import AXLE, AXLE_BRICK, WHEELS   # noqa: E402
-from legobot.parts import VOCABULARIES      # noqa: E402
+from legobot.parts import RETIRED, VOCABULARIES      # noqa: E402
 from legobot.slopes import SLOPES           # noqa: E402
 from tools.ldraw_geometry import ROOT, find_file        # noqa: E402
 
@@ -24,7 +24,10 @@ OUT = PROJECT / "vendor" / "ldraw"
 
 def part_numbers() -> set[str]:
     """Все детали, которые бот может положить."""
-    roots = {p.number for v in VOCABULARIES.values() for p in v.parts} | {t.number for t in TILES.values()}
+    # RETIRED — детали, которыми бот уже не выкладывает, но которые читает в чужих моделях:
+    # без их геометрии такая модель не покажется во вьюшке.
+    roots = ({p.number for v in VOCABULARIES.values() for p in v.parts}
+             | {p.number for p in RETIRED} | {t.number for t in TILES.values()})
     roots |= set(SLOPES) | {AXLE_BRICK, AXLE}
     for wheel in WHEELS:
         roots |= {v for v in vars(wheel).values() if isinstance(v, str)}
