@@ -4,7 +4,11 @@ import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { LDrawLoader } from "three/addons/loaders/LDrawLoader.js";
 import { LDrawConditionalLineMaterial } from "three/addons/materials/LDrawConditionalLineMaterial.js";
-import * as history from "./history.js";
+// Свои модули подключаем с версией движка: иначе браузер возьмёт из кэша старые, а страницу —
+// новую, и они разойдутся. Внешние библиотеки версионированы самим адресом CDN.
+const version = window.LEGOBOT_ENGINE || "";
+const history = await import("./history.js?v=" + version);
+const splash = await import("./loader.js?v=" + version);   // экран загрузки движка
 
 const TOAST_MS = 5000;   // сколько висит сообщение об ошибке
 function toast(text, kind = "error") {
@@ -20,18 +24,25 @@ function toast(text, kind = "error") {
 const API = new URLSearchParams(location.search).get("api") || window.LEGOBOT_API || "";
 // Без бэкенда модель считается прямо в браузере: Pyodide + legobot в веб-воркере (engine/worker.js).
 const engine = { worker: null, ready: false, pending: new Map(), seq: 0 };
+// Долю полосы загрузки берём по сообщениям воркера: он говорит, что качает прямо сейчас.
+const STAGES = {
+  "Загружаю Python (≈15 МБ, один раз)…": 0.2,
+  "Загружаю numpy, scipy, scikit-image…": 0.55,
+  "Загружаю legobot и инструкции…": 0.85,
+};
 function startEngine() {
   const el = $("health");
   el.textContent = "● движок загружается…"; el.className = "health";
+  splash.progress("Поднимаю движок…", 0.08);
   engine.worker = new Worker("engine/worker.js?v=" + (window.LEGOBOT_ENGINE || ""));   // версия — чтобы браузер не взял старый воркер из кэша
   engine.worker.onmessage = (e) => {
     const m = e.data;
-    if (m.type === "progress") { el.textContent = "● " + m.text; $("status").textContent = m.text + " Кнопка «Собрать» оживёт, когда движок будет готов."; }
-    else if (m.type === "ready") { engine.ready = true; online = true; el.textContent = "● считает в браузере"; el.className = "health on"; if (file) $("submit").disabled = false; $("status").textContent = file ? "Готов собирать" : ""; }
-    else if (m.type === "fatal") { el.textContent = "● движок не загрузился"; el.className = "health off"; $("status").textContent = ""; toast("Движок не загрузился: " + m.error); }
+    if (m.type === "progress") { el.textContent = "● " + m.text; splash.progress(m.text, STAGES[m.text] || null); }
+    else if (m.type === "ready") { engine.ready = true; online = true; el.textContent = "● считает в браузере"; el.className = "health on"; if (file) $("submit").disabled = false; $("status").textContent = ""; splash.done(); }
+    else if (m.type === "fatal") { el.textContent = "● движок не загрузился"; el.className = "health off"; splash.fail("Движок не загрузился: " + m.error); toast("Движок не загрузился: " + m.error); }
     else if (m.id && engine.pending.has(m.id)) { engine.pending.get(m.id)(m); engine.pending.delete(m.id); }
   };
-  engine.worker.onerror = (e) => { el.textContent = "● движок не загрузился"; el.className = "health off"; toast("Движок не загрузился: " + e.message); };
+  engine.worker.onerror = (e) => { el.textContent = "● движок не загрузился"; el.className = "health off"; splash.fail("Движок не загрузился: " + e.message); toast("Движок не загрузился: " + e.message); };
   engine.worker.postMessage({ type: "init", version: window.LEGOBOT_ENGINE || "" });
 }
 function engineCall(message, transfer) {
@@ -264,6 +275,7 @@ let online = false, local = false;
 async function checkHealth() {
   const el = $("health");
   if (!API) { if (!engine.worker) startEngine(); return; }   // без бэкенда — движок в браузере, один на страницу
+  splash.done();               // с бэкендом движок в браузере не нужен, ждать нечего
   try {
     const ctrl = new AbortController();
     setTimeout(() => ctrl.abort(), 8000);

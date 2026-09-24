@@ -6,7 +6,7 @@
 <title>legobot — фигурка из фото</title>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;600;800&display=swap">
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=fbcbd33d5d">
 <script type="importmap">
 {"imports": {
   "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
@@ -15,6 +15,15 @@
 </script>
 </head>
 <body>
+<div class="loader" id="loader">
+  <div class="loader-box">
+    <h1>legobot</h1>
+    <canvas id="loader-art" width="96" height="72" aria-hidden="true"></canvas>
+    <div class="loader-bar"><i id="loader-fill"></i></div>
+    <p class="loader-text" id="loader-text">Поднимаю движок…</p>
+    <p class="loader-note">Модель считает сам браузер, сервера нет. Первый раз движок качается — около 15 МБ и полминуты, дальше берётся из кэша.</p>
+  </div>
+</div>
 <header>
   <h1>legobot <span class="health" id="health" title="Сервис">● проверяю…</span></h1>
   <p>Пиксель-арт → модель LEGO: файл для Studio, PDF-инструкция, список деталей. Всё считается в твоём браузере — сервера нет.</p>
@@ -99,7 +108,9 @@
 <script src="engine/version.js"></script>
 <script type="module">
   // версия в адресе — чтобы после обновления сайта браузер не показывал старую страницу из кэша
-  import("./main.js?v=" + (window.LEGOBOT_ENGINE || ""));
+  import("./main.js?v=" + (window.LEGOBOT_ENGINE || "")).catch(async (err) => {
+    (await import("./loader.js")).fail("Страница не загрузилась: " + err.message);
+  });
 </script>
 </body>
 </html>

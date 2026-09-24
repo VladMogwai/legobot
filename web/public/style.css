@@ -152,3 +152,22 @@ input[type=checkbox] { accent-color: var(--accent); width: 14px; height: 14px; }
 @keyframes toast-out { to { transform: translateX(24px); opacity: 0; } }
 @keyframes toast-countdown { from { width: 100%; } to { width: 0; } }
 @media (max-width: 560px) { .toasts { left: 16px; right: 16px; } .toast { max-width: none; } }
+
+/* экран загрузки движка: пока он не поднялся, форму показывать нечем */
+.loader {
+  position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center;
+  background: var(--bg); padding: 24px;
+}
+.loader[hidden] { display: none; }
+.loader-box { width: min(560px, 100%); text-align: center; }
+.loader-box h1 { margin: 0 0 24px; font-size: 32px; color: #fff; letter-spacing: 2px; text-shadow: 3px 3px 0 var(--shadow); }
+#loader-art { width: 384px; max-width: 80%; height: auto; image-rendering: pixelated; }
+.loader-bar {
+  margin: 24px auto 12px; height: 16px; background: var(--panel);
+  border: 2px solid var(--line); box-shadow: 4px 4px 0 var(--shadow);
+}
+.loader-bar i { display: block; height: 100%; width: 8%; background: var(--accent); transition: width .4s steps(8); }
+.loader-text { margin: 0; font-weight: 600; color: var(--ink); }
+.loader-note { margin: 8px 0 0; font-size: 13px; color: var(--muted); }
+.loader.failed .loader-bar i { background: var(--red); }
+.loader.failed .loader-text { color: var(--red); }

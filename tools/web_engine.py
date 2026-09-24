@@ -8,6 +8,7 @@ lego.com для личного пользования; без него поку�
 """
 import csv
 import hashlib
+import re
 import io
 import sys
 import zipfile
@@ -71,6 +72,15 @@ def availability_csv() -> str:
     return "ldraw,color_code,cents,channel\n" + "".join(f"{n},{c},,\n" for n, c in rows)
 
 
+def stamp_page(path: Path, stamp: str) -> None:
+    """Версия в ссылке на style.css: у того, кто уже заходил, иначе останется старое оформление,
+    пока он не сбросит кэш. Скрипты страница подключает с этой же версией сама."""
+    text = path.read_text()
+    stamped = re.sub(r'href="style\.css(\?v=[^"]*)?"', f'href="style.css?v={stamp}"', text)
+    if stamped != text:
+        path.write_text(stamped)
+
+
 def main() -> None:
     check_geometry()
     OUT.mkdir(parents=True, exist_ok=True)
@@ -91,6 +101,7 @@ def main() -> None:
     (OUT / "legobot.zip").write_bytes(data)
     stamp = hashlib.sha256(data).hexdigest()[:10]
     (OUT / "version.js").write_text(f'window.LEGOBOT_ENGINE = "{stamp}";\n')
+    stamp_page(ROOT / "web" / "public" / "index.html", stamp)
     print(f"-> {OUT / 'legobot.zip'}: {len(data) // 1024} КБ, версия {stamp}")
 
 
