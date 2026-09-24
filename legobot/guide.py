@@ -3,11 +3,10 @@
 Универсальный изометрический рендерер (instructions.py) писался под утку и машину: у пиксельной
 фигурки он даёт сотню-другую почти одинаковых кадров и файл на десятки мегабайт. Здесь другое:
 
-- фигурка (стоячая, объёмная) — ряд за рядом снизу вверх. Шаг = ряд, нарисован сверху: ось X —
-  ширина, ось Z — глубина, каждый кирпич прямоугольником своего цвета с подписью размера.
-  Несколько рядов на страницу, у каждого — детали именно этого ряда;
-- панно — как вышивка: секции SECTION×SECTION клеток с координатами и списком деталей секции,
-  плюс страница подложки.
+ряд за рядом, одинаково для любой модели. Шаг = ряд, нарисован сверху: ось X — ширина, ось Z —
+глубина, каждая деталь прямоугольником своего цвета с подписью размера. Несколько рядов на
+страницу, у каждого — детали именно этого ряда. У стоячей фигурки ряд — слой снизу вверх,
+у лежащего панно — линия плиток поперёк картины.
 
 Обложка, страница «перед сборкой» со всеми деталями по цветам и, если известна, цена Pick a Brick.
 Рисуем прямоугольниками (вектор): файл выходит в сотни килобайт и строится за секунды — так что
@@ -16,21 +15,19 @@
 import textwrap
 from collections import Counter
 
-import numpy as np
-
 from .catalog import price_cents
 from .colors import studio_palette
 
 PAGE = (8.27, 11.69)      # A4 в дюймах
-SECTION = 16              # клеток в стороне секции панно
 ROWS_PER_PAGE = 6
 PARTS_COLUMNS, PARTS_ROWS = 3, 38   # список деталей: колонок и строк на странице
 MIN_LABEL_STUDS = 2       # в детали уже этого подпись размера не влезает
 
 
 def write_guide(bricks: list, path: str, title: str, kind: str) -> int:
-    """kind: 'панно' — секции, иначе ряды. Текст инструкции — английский: её печатают и дают
-    человеку, который собирает, а названия цветов и деталей всё равно английские.
+    """kind — подпись на обложке ('панно' — Panel, иначе Figure); собирают по ней одинаково,
+    рядами. Текст инструкции — английский: её печатают и дают человеку, который собирает,
+    а названия цветов и деталей всё равно английские.
     Возвращает число страниц."""
     import matplotlib
     matplotlib.use("Agg")
@@ -43,7 +40,7 @@ def write_guide(bricks: list, path: str, title: str, kind: str) -> int:
     with PdfPages(path) as pdf:
         pages = _cover(pdf, plt, bricks, title, panel)
         pages += _parts_pages(pdf, plt, bricks, rgb, names)
-        pages += _panel_pages(pdf, plt, bricks, rgb, names) if panel else _row_pages(pdf, plt, bricks, rgb, names)
+        pages += _row_pages(pdf, plt, bricks, rgb, names)
     return pages
 
 
@@ -61,13 +58,9 @@ def _cover(pdf, plt, bricks, title, panel: bool) -> int:
     fig = plt.figure(figsize=PAGE)
     fig.text(0.08, 0.88, title, fontsize=26, weight="bold")
     fig.text(0.08, 0.84, f"{'Panel' if panel else 'Figure'} · {len(bricks)} pieces · {size}", fontsize=13, color="#444444")
-    lines = ["How to build", ""]
-    if panel:
-        lines += ["Lay the base plates first, then the tiles section by section.",
-                  "Each section is 16 × 16 cells; column and row numbers match the section map."]
-    else:
-        lines += ["Build row by row from the bottom. Each page holds several rows.",
-                  "A row is drawn from above: the front of the figure is at the bottom of the strip."]
+    lines = ["How to build", "",
+             "Row by row, each page holds several rows.",
+             "A row is drawn from above: X across, Z into the model."]
     lines += ["", "Colour names are the ones LEGO Pick a Brick and BrickLink use."]
     if panel and len({b.layer for b in bricks}) == 1:          # плитки без своей подложки
         studs_x = max(b.x + b.width for b in bricks) - min(b.x for b in bricks)
@@ -109,30 +102,44 @@ def _parts_pages(pdf, plt, bricks, rgb, names) -> int:
 # --- фигурка: ряды ---
 
 def _row_pages(pdf, plt, bricks, rgb, names) -> int:
-    by_layer: dict[int, list] = {}
-    for b in bricks:
-        by_layer.setdefault(b.layer, []).append(b)
-    layers = sorted(by_layer)
+    rows = _rows(bricks)
     x0 = min(b.x for b in bricks)
     x1 = max(b.x + b.width for b in bricks)
-    depth = max(b.z + b.length for b in bricks)
+    # Глубина полоски — самый «толстый» ряд: у фигурки это вся её глубина, у панно 1–2 клетки.
+    depth = max(max(b.z + b.length for b in row) - min(b.z for b in row) for row in rows)
     pages = 0
-    for start in range(0, len(layers), ROWS_PER_PAGE):
-        chunk = layers[start:start + ROWS_PER_PAGE]
+    for start in range(0, len(rows), ROWS_PER_PAGE):
+        chunk = rows[start:start + ROWS_PER_PAGE]
         fig = plt.figure(figsize=PAGE)
-        fig.text(0.06, 0.96, f"Rows {chunk[0] + 1}–{chunk[-1] + 1} of {len(layers)}", fontsize=14, weight="bold")
+        fig.text(0.06, 0.96, f"Rows {start + 1}–{start + len(chunk)} of {len(rows)}", fontsize=14, weight="bold")
         block = 0.88 / ROWS_PER_PAGE
-        for i, layer in enumerate(chunk):
-            _row_strip(fig, plt, by_layer[layer], layer, len(layers), x0, x1, depth, rgb, names,
+        for i, row in enumerate(chunk):
+            _row_strip(fig, plt, row, start + i, len(rows), x0, x1, depth, rgb, names,
                        top=0.91 - i * block, block=block)
         pdf.savefig(fig); plt.close(fig)
         pages += 1
     return pages
 
 
-def _row_strip(fig, plt, row, layer, total_layers, x0, x1, depth, rgb, names, top, block) -> None:
+def _rows(bricks) -> list[list]:
+    """Ряды сборки. У стоячей фигурки ряд — слой снизу вверх (слоёв десятки при глубине 4),
+    у лежащего панно — линия плиток поперёк картины (слоёв один-два, а линий сотня). Берём ту
+    ось, вдоль которой рядов больше: тип модели знать для этого не нужно."""
+    by_layer = _grouped(bricks, lambda b: b.layer)
+    by_line = _grouped(bricks, lambda b: b.z)
+    return by_layer if len(by_layer) >= len(by_line) else by_line
+
+
+def _grouped(bricks, key) -> list[list]:
+    groups: dict[int, list] = {}
+    for b in bricks:
+        groups.setdefault(key(b), []).append(b)
+    return [groups[k] for k in sorted(groups)]
+
+
+def _row_strip(fig, plt, row, number, total_rows, x0, x1, depth, rgb, names, top, block) -> None:
     """Блок одного ряда: заголовок, детали ряда, вид сверху (X — ширина, Z — глубина, перёд внизу)."""
-    fig.text(0.06, top, f"Row {layer + 1} of {total_layers}", fontsize=9.5, weight="bold")
+    fig.text(0.06, top, f"Row {number + 1} of {total_rows}", fontsize=9.5, weight="bold")
     fig.text(0.94, top, "top view, front at the bottom", fontsize=7, color="#888888", ha="right")
     counts = Counter((b.part.label, b.color) for b in row).most_common()
     parts = ", ".join(f"{label} {names.get(color, color).replace('_', ' ')} ×{n}" for (label, color), n in counts)
@@ -146,7 +153,8 @@ def _row_strip(fig, plt, row, layer, total_layers, x0, x1, depth, rgb, names, to
     ax_height = block * 0.52
     ax_top = top - 0.022 - len(lines) * 0.012
     ax = fig.add_axes([0.06, ax_top - ax_height, 0.88, ax_height])
-    ax.set_xlim(x0, x1); ax.set_ylim(depth, 0)
+    z0 = min(b.z for b in row)
+    ax.set_xlim(x0, x1); ax.set_ylim(z0 + depth, z0)
     ax.set_aspect("equal", adjustable="box")
     ax.set_xticks(range(x0, x1 + 1, 5)); ax.set_yticks([])
     ax.tick_params(labelsize=6, length=2, pad=1)
@@ -162,67 +170,3 @@ def _row_strip(fig, plt, row, layer, total_layers, x0, x1, depth, rgb, names, to
 
 def _ink(color) -> str:
     return "#111111" if sum(color[:3]) / 3 > 0.55 else "#f2f2f2"
-
-
-# --- панно: секции ---
-
-def _panel_pages(pdf, plt, bricks, rgb, names) -> int:
-    top = max(b.layer for b in bricks)
-    tiles = [b for b in bricks if b.layer == top]
-    base = [b for b in bricks if b.layer < top]
-    x0, z0 = min(b.x for b in tiles), min(b.z for b in tiles)
-    nx = max(b.x + b.width for b in tiles) - x0
-    nz = max(b.z + b.length for b in tiles) - z0
-    grid = np.full((nx, nz), -1)
-    for b in tiles:
-        grid[b.x - x0:b.x - x0 + b.width, b.z - z0:b.z - z0 + b.length] = b.color
-    sections = [(sx, sz) for sz in range(0, nz, SECTION) for sx in range(0, nx, SECTION)]
-
-    fig = plt.figure(figsize=PAGE)
-    fig.text(0.06, 0.95, "Section map", fontsize=16, weight="bold")
-    fig.text(0.06, 0.92, f"{nx} × {nz} cells, {len(sections)} sections of {SECTION} × {SECTION}", fontsize=10, color="#444444")
-    ax = fig.add_axes([0.06, 0.12, 0.88, 0.76])
-    ax.set_xlim(0, nx); ax.set_ylim(nz, 0); ax.set_aspect("equal"); ax.axis("off")
-    ax.imshow(np.transpose([[rgb.get(c, (1, 1, 1)) for c in col] for col in grid], (1, 0, 2)),
-              extent=(0, nx, nz, 0), interpolation="nearest")
-    for i, (sx, sz) in enumerate(sections, 1):
-        w, h = min(SECTION, nx - sx), min(SECTION, nz - sz)
-        ax.add_patch(plt.Rectangle((sx, sz), w, h, fill=False, edgecolor="#ffffff", lw=1.2))
-        ax.text(sx + w / 2, sz + h / 2, str(i), ha="center", va="center", fontsize=11,
-                color="#ffffff", weight="bold", path_effects=None)
-    if base:
-        counts = Counter((b.part.label, b.color) for b in base)
-        text = "Base plates: " + ", ".join(f"{label} {names.get(color, color).replace('_', ' ')} ×{n}"
-                                        for (label, color), n in counts.most_common())
-        fig.text(0.06, 0.07, text, fontsize=8, color="#333333", wrap=True)
-    pdf.savefig(fig); plt.close(fig)
-
-    for i, (sx, sz) in enumerate(sections, 1):
-        w, h = min(SECTION, nx - sx), min(SECTION, nz - sz)
-        block = grid[sx:sx + w, sz:sz + h]
-        fig = plt.figure(figsize=PAGE)
-        fig.text(0.06, 0.95, f"Section {i} of {len(sections)}", fontsize=15, weight="bold")
-        fig.text(0.06, 0.92, f"columns {sx + 1}–{sx + w}, rows {sz + 1}–{sz + h}", fontsize=10, color="#444444")
-        ax = fig.add_axes([0.10, 0.34, 0.80, 0.54])
-        ax.set_xlim(0, w); ax.set_ylim(h, 0); ax.set_aspect("equal")
-        for cx in range(w):
-            for cz in range(h):
-                code = block[cx, cz]
-                ax.add_patch(plt.Rectangle((cx, cz), 1, 1, facecolor=rgb.get(code, (1, 1, 1)) if code >= 0 else "#ffffff",
-                                           edgecolor="#bbbbbb", lw=0.3))
-        ax.set_xticks([c + 0.5 for c in range(w)]); ax.set_xticklabels(range(sx + 1, sx + w + 1), fontsize=6)
-        ax.set_yticks([c + 0.5 for c in range(h)]); ax.set_yticklabels(range(sz + 1, sz + h + 1), fontsize=6)
-        ax.tick_params(length=0, pad=2)
-        inside = [b for b in tiles if sx <= b.x - x0 < sx + w and sz <= b.z - z0 < sz + h]
-        for b in inside:                      # границы деталей: видно, где 1×2, а где 2×2
-            ax.add_patch(plt.Rectangle((b.x - x0 - sx, b.z - z0 - sz), b.width, b.length,
-                                       fill=False, edgecolor="#222222", lw=0.9))
-        counts = Counter((b.part.label, b.color) for b in inside)
-        lines = [f"{label} {names.get(code, code).replace('_', ' ')} — {n}"
-                 for (label, code), n in counts.most_common()]
-        ax.figure.text(0.10, 0.28, "Pieces in this section:", fontsize=9, weight="bold")
-        for k, line in enumerate(lines):
-            col, row = divmod(k, 12)
-            fig.text(0.10 + col * 0.30, 0.25 - row * 0.018, line, fontsize=8)
-        pdf.savefig(fig); plt.close(fig)
-    return len(sections) + 1

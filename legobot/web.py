@@ -74,7 +74,9 @@ def build_from_model(data: bytes) -> dict:
     bricks, skipped = read_bricks(read_model_bytes(data))
     if not bricks:
         raise ValueError("в файле нет знакомых деталей: бот понимает кирпичи, пластины и тайлы")
-    flat = max(b.layer for b in bricks) == 0      # всё в один слой — это панно, инструкция по секциям
+    # Панно лежит в один-два слоя, а линий деталей у него сотня: по этому его и узнаём.
+    # От типа зависит только подпись и схема раскладки — инструкция у всех моделей одна, рядами.
+    flat = len({b.layer for b in bricks}) < len({b.z for b in bricks})
     with tempfile.TemporaryDirectory() as tmp:
         out = _outputs(bricks, None, Path(tmp), "flat" if flat else "standing")
     if skipped:
