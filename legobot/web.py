@@ -15,9 +15,8 @@ import numpy as np
 from PIL import Image
 
 from .chart import write_chart
-from .guide import write_guide
 from .colors import code_by_name, load_palette
-from .instructions import bill_of_materials, split_steps
+from .instructions import bill_of_materials, split_steps, step_size, write_pdf
 from .ldraw import write_ldr
 from .mosaic import mosaic_bricks, standing_bricks
 from .pack import pack_model
@@ -94,7 +93,7 @@ def _bricks_for(mosaic, mode: str, depth: int, base: bool) -> list:
 
 
 def _outputs(bricks, mosaic, tmp: Path, mode: str) -> dict:
-    steps = split_steps(bricks)
+    steps = split_steps(bricks, step_size(bricks))
     ldr_path = tmp / "model.ldr"
     write_ldr(bricks, str(ldr_path), "legobot", steps=steps)
     ldr = ldr_path.read_text()
@@ -108,7 +107,7 @@ def _outputs(bricks, mosaic, tmp: Path, mode: str) -> dict:
         write_chart(bricks, str(chart_path))
         files["chart.png"] = chart_path.read_bytes()
     guide_path = tmp / "instructions.pdf"
-    guide_pages = write_guide(bricks, str(guide_path), "legobot", kind)
+    guide_pages = write_pdf(bricks, steps, str(guide_path), "legobot")
     files["instructions.pdf"] = guide_path.read_bytes()
     names = {c.code: c.name for c in load_palette(common_only=False)}
     width_studs = max(b.x + b.width for b in bricks) - min(b.x for b in bricks)

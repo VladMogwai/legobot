@@ -17,6 +17,10 @@ from .parts import STUD_LDU, part_name
 from .slopes import FACINGS, PlacedSlope
 
 MAX_PER_STEP = 6
+# Страница шага перерисовывает всю модель целиком, поэтому её вес растёт вместе с числом клеток:
+# у панно 64 клетки при шаге в 6 деталей выходило 102 страницы и 99 МБ. CELL_DRAWS — сколько клеток
+# инструкции разрешено нарисовать за все страницы вместе; из него и считается размер шага.
+CELL_DRAWS = 46_000
 PAGE = (11.69, 8.27)          # A4 альбомная, дюймы
 CALLOUT_BG = "#dff0fb"
 OUTLINE = "#d80000"
@@ -30,6 +34,13 @@ class PartLine:
     color: int
     color_name: str
     quantity: int
+
+
+def step_size(bricks: list) -> int:
+    """Деталей на шаг: у маленькой модели MAX_PER_STEP, у большой — крупнее, иначе PDF не
+    открыть, а собирающему всё равно ждать сотню почти одинаковых страниц."""
+    cells = sum(b.width * b.length for b in bricks)
+    return max(MAX_PER_STEP, -(-len(bricks) * cells // CELL_DRAWS))
 
 
 def split_steps(bricks: list, max_per_step: int = MAX_PER_STEP) -> list[list]:
@@ -60,8 +71,8 @@ def write_bom(lines: list[PartLine], path: str) -> None:
             w.writerow([l.number, l.name, l.color, l.color_name, l.quantity])
 
 
-def write_pdf(bricks: list, steps: list[list], path: str, title: str, fixtures: list[Fixture] = ()) -> None:
-    """bricks — пластины и скосы вместе, в порядке сборки."""
+def write_pdf(bricks: list, steps: list[list], path: str, title: str, fixtures: list[Fixture] = ()) -> int:
+    """bricks — пластины и скосы вместе, в порядке сборки. Возвращает число страниц."""
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
@@ -82,7 +93,7 @@ def write_pdf(bricks: list, steps: list[list], path: str, title: str, fixtures: 
             scene.draw(ax, done, step, avoid=box)
             pdf.savefig(fig); plt.close(fig)
             done = done + step
-        _bom_pages(pdf, plt, total)
+        return 1 + len(steps) + _bom_pages(pdf, plt, total)
 
 
 class _Scene:
@@ -313,18 +324,21 @@ def _cover(pdf, plt, scene, bricks, title, total):
     ax = fig.add_axes([0.05, 0.1, 0.6, 0.8])
     scene.draw(ax, bricks, [])
     fig.text(0.68, 0.85, title, fontsize=24, weight="bold")
-    fig.text(0.68, 0.78, f"Деталей: {sum(l.quantity for l in total)}", fontsize=13)
-    fig.text(0.68, 0.74, f"Типов деталей: {len(total)}", fontsize=13)
-    fig.text(0.68, 0.70, f"Размер: {scene.nx * 0.8:.1f} × {scene.nz * 0.8:.1f} × {scene.nk * scene.aspect * 0.8:.1f} см", fontsize=13)
+    fig.text(0.68, 0.78, f"Pieces: {sum(l.quantity for l in total)}", fontsize=13)
+    fig.text(0.68, 0.74, f"Kinds: {len(total)}", fontsize=13)
+    fig.text(0.68, 0.70, f"Size: {scene.nx * 0.8:.1f} × {scene.nz * 0.8:.1f} × {scene.nk * scene.aspect * 0.8:.1f} cm", fontsize=13)
     pdf.savefig(fig); plt.close(fig)
 
 
-def _bom_pages(pdf, plt, total):
+def _bom_pages(pdf, plt, total) -> int:
     per_page = 28
+    pages = 0
     for start in range(0, len(total), per_page):
+        pages += 1
         fig = plt.figure(figsize=PAGE)
-        fig.text(0.04, 0.92, "Список деталей", fontsize=18, weight="bold")
+        fig.text(0.04, 0.92, "Parts list", fontsize=18, weight="bold")
         for j, line in enumerate(total[start:start + per_page]):
             fig.text(0.04, 0.86 - j * 0.029, f"{line.quantity:4d} ×  {line.number:<10} {line.name:<34} {line.color_name}",
                      fontsize=10, family="monospace")
         pdf.savefig(fig); plt.close(fig)
+    return pages
