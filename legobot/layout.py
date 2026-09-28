@@ -64,19 +64,23 @@ class _Components:
         self._parent[self.find(i)] = self.find(j)
 
 
-def layout_bricks(voxels: np.ndarray, colors: np.ndarray, default_color: int, vocabulary: Vocabulary,
-                  mirrored: bool = False, fixed: np.ndarray | None = None) -> list[PlacedBrick]:
+def layout_bricks(voxels: np.ndarray, colors: np.ndarray, default_color: int,
+                  vocabulary: Vocabulary | list[Vocabulary], mirrored: bool = False,
+                  fixed: np.ndarray | None = None) -> list[PlacedBrick]:
     """voxels: bool [x, y, z], z — вертикаль. colors: код цвета LDraw на каждый воксель той же формы,
     ANY_COLOR — воксель без требования. Кирпич одноцветный: все его воксели с требованием одного цвета;
     если требований нет — default_color. mirrored — зеркальная кладка относительно середины X.
     fixed: int той же формы, -1 — свободно, иначе номер заранее поставленной детали (скос):
-    её клетки укладка не покрывает, но считает опорой и связью."""
+    её клетки укладка не покрывает, но считает опорой и связью.
+    vocabulary — один словарь на всю модель или свой на каждый слой (у панно внизу пластины,
+    сверху плитки): слои кладутся одним проходом, и верхний видит, что лежит под ним."""
     nx, nz, nlayers = voxels.shape
     if fixed is None:
         fixed = np.full(voxels.shape, -1)
-    footprints = {(p.width, p.length) for p in vocabulary.parts} | {(p.length, p.width) for p in vocabulary.parts}
+    by_layer = list(vocabulary) if isinstance(vocabulary, (list, tuple)) else [vocabulary] * nlayers
+    footprints = [{(p.width, p.length) for p in v.parts} | {(p.length, p.width) for p in v.parts} for v in by_layer]
     placed: list[PlacedBrick] = []
-    produced = _produced(vocabulary, default_color)
+    produced = [_produced(v, default_color) for v in by_layer]
     components = _Components()
     components.add()  # GROUND
     fixed_ids: dict[int, int] = {}
@@ -87,7 +91,7 @@ def layout_bricks(voxels: np.ndarray, colors: np.ndarray, default_color: int, vo
         above = voxels[:, :, k + 1] if k + 1 < nlayers else empty
         if layer.any():
             ids = _layout_layer(layer, colors[:, :, k], default_color, below_ids, above, k,
-                                placed, components, mirrored, vocabulary, footprints, produced)
+                                placed, components, mirrored, by_layer[k], footprints[k], produced[k])
         else:
             ids = np.full((nx, nz), NO_BRICK)
         for f in np.unique(fixed[:, :, k][fixed[:, :, k] >= 0]):

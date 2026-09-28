@@ -126,10 +126,13 @@ def mosaic_bricks(mosaic: Mosaic, base_color: int = BLACK, base: bool = True) ->
     и панно дешевеет примерно на треть, потому что невидимая подложка стоит как её площадь."""
     mosaic_codes = np.flip(mosaic.codes, axis=0)   # в Studio сверху ось X смотрит влево: без отражения панно выходит зеркальным
     mask = mosaic_codes >= 0
-    voxels = mask[:, :, None]
-    plates = layout_bricks(voxels, np.full(voxels.shape, ANY_COLOR), base_color, PLATES) if base else []
-    tiles = layout_bricks(voxels, mosaic_codes[:, :, None], base_color, TILE_VOCABULARY)
-    return plates + [replace(t, layer=1 if base else 0) for t in tiles]
+    if not base:
+        return layout_bricks(mask[:, :, None], mosaic_codes[:, :, None], base_color, TILE_VOCABULARY)
+    # Подложку и плитки кладём одним проходом: плитка видит стыки пластин под собой и садится
+    # так, чтобы их сшивать. Двумя проходами панно разваливалось на куски.
+    voxels = np.repeat(mask[:, :, None], 2, axis=2)
+    colors = np.stack([np.full(mask.shape, ANY_COLOR), mosaic_codes], axis=2)
+    return layout_bricks(voxels, colors, base_color, [PLATES, TILE_VOCABULARY])
 
 
 def standing_bricks(mosaic: Mosaic, depth: int = 0) -> list[PlacedBrick]:

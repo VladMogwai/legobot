@@ -18,6 +18,7 @@ from .chart import write_chart
 from .colors import all_colors, code_by_name, load_palette
 from .instructions import bill_of_materials, split_steps, step_size, write_pdf
 from .schema import write_schema
+from .stability import check as check_stability
 from .ldraw import write_ldr
 from .mosaic import mosaic_bricks, standing_bricks
 from .pack import pack_model
@@ -128,6 +129,7 @@ def _outputs(bricks, mosaic, tmp: Path, mode: str) -> dict:
         "colors": [[names.get(c, str(c)), n] for c, n in Counter(b.color for b in bricks).most_common()],
         "parts_list": [[l.name, l.color_name, l.quantity] for l in bom],   # страница показывает размеры, а не только цвета
         "price_usd": _price(bricks), "palette": _palette(),
+        "warnings": check_stability(bricks).problems,   # чем модель слаба: страница скажет об этом тостом
         "instruction": "schema" if schema else "steps",   # страница предупреждает тостом, если это схема
     }
     if mosaic is not None:      # у загруженной модели сетки нет — редактор пикселей для неё не открыть

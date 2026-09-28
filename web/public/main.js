@@ -165,6 +165,7 @@ async function showResult(files, summary, title) {
     ["Размер", `${sx} × ${sy} × ${sz} см`],
     summary.skipped && ["Пропущено деталей", summary.skipped],
   ].filter(Boolean).map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("");
+  for (const text of summary.warnings || []) toast(text, "info");   // чем модель слаба: узкая, рассыпается
   if (summary.instruction === "schema") {   // шаги у такой модели были бы по сотне деталей
     toast("Деталей слишком много для пошаговой инструкции — в PDF схема: карта секций 16 × 16 клеток и страница на секцию.", "info");
   }
