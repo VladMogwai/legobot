@@ -57,6 +57,7 @@ button.secondary { background: var(--raised); color: var(--ink); border-color: v
 .hint { color: var(--muted); font-size: 13px; }
 
 .result { display: grid; grid-template-columns: 1fr 340px; gap: 16px; margin-top: 16px; }
+.result:has(.viewer-wrap[hidden]) { grid-template-columns: 1fr; }   /* нет WebGL — нет и колонки под вьюшку */
 .viewer-wrap { padding: 0; overflow: hidden; }
 #viewer { display: block; width: 100%; height: 560px; background: var(--bg); }
 .steps { display: flex; gap: 12px; align-items: center; padding: 10px 14px; border-top: 2px solid var(--line); }

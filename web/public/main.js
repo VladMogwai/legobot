@@ -80,8 +80,20 @@ const $ = (id) => document.getElementById(id);
 
 // --- вьюшка ---
 const canvas = $("viewer");
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+// Без WebGL (старый браузер, машина без видеоускорения) трёхмерная вьюшка не поднимется. Модель,
+// инструкция, список деталей и скачивание от неё не зависят, поэтому страница живёт и без неё.
+const renderer = webglRenderer(canvas);
+
+function webglRenderer(canvas) {
+  try {
+    const r = new THREE.WebGLRenderer({ canvas, antialias: true });
+    r.setPixelRatio(Math.min(devicePixelRatio, 2));
+    return r;
+  } catch (err) {
+    canvas.closest(".viewer-wrap").hidden = true;
+    return null;
+  }
+}
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x282c34);   // фон страницы (Atom One Dark)
 const camera = new THREE.PerspectiveCamera(35, 1, 1, 100000);
@@ -108,9 +120,10 @@ function animate() {
   renderer.render(scene, camera);
   requestAnimationFrame(animate);
 }
-animate();
+if (renderer) animate();
 
 async function showModel(url) {
+  if (!renderer) return;
   if (model) scene.remove(model);
   const loader = new LDrawLoader();
   loader.setConditionalLineMaterial(LDrawConditionalLineMaterial);
